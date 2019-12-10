@@ -1,0 +1,26 @@
+{
+  "name": "keychain-api",
+  "version": "1.0.0",
+  "description": "Backend for Steem Keychain Extension",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "keywords": [
+    "steem",
+    "keychain",
+    "extension",
+    "backend"
+  ],
+  "author": "stoodkev",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.1"
+  }
+}
