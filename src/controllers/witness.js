@@ -9,13 +9,19 @@ exports.getWitness = function(username) {
         .request()
         .input("username", username)
         .query(
-          "SELECT lastWeekValue, lastMonthValue, lastYearValue, foreverValue, timestamp, Witnesses.* \
-          FROM (SELECT SUM(vesting_shares) as lastWeekValue FROM VOProducerRewards WHERE producer = @username AND timestamp >= DATEADD(day,-7, GETUTCDATE())) as lastWeekTable, \
-          (SELECT SUM(vesting_shares) as lastMonthValue FROM VOProducerRewards WHERE producer = @username AND timestamp >= DATEADD(day,-31, GETUTCDATE())) as lastMonthTable, \
-          (SELECT SUM(vesting_shares) as lastYearValue FROM VOProducerRewards WHERE producer = @username AND timestamp >= DATEADD(day,-365, GETUTCDATE())) as lastYearTable, \
-          (SELECT SUM(vesting_shares) as ForeverValue FROM VOProducerRewards WHERE producer = @username ) as foreverTable, Witnesses \
-          LEFT JOIN Blocks ON Witnesses.last_confirmed_block_num = Blocks.block_num \
-          WHERE Witnesses.name = @username"
+          "WITH Rewards (lastWeekValue, lastMonthValue, lastYearValue, allValue) AS \
+           ( SELECT \
+                SUM(IIF(timestamp >= DATEADD(day,-7, GETUTCDATE()),vesting_shares,0)) AS lastWeekValue, \
+                SUM(IIF(timestamp >= DATEADD(day,-31, GETUTCDATE()),vesting_shares,0)) AS lastMonthValue, \
+                SUM(IIF(timestamp >= DATEADD(day,-365, GETUTCDATE()),vesting_shares,0)) AS lastYearValue, \
+                SUM(IIF(timestamp >= DATEADD(day,-7, GETUTCDATE()),vesting_shares,0)) AS allValue \
+             FROM VOProducerRewards \
+             WHERE producer = @username \
+            ) \
+            SELECT Rewards.*, Blocks.timestamp, Witnesses.* \
+            FROM Rewards, Witnesses \
+            LEFT JOIN Blocks ON Witnesses.last_confirmed_block_num = Blocks.block_num \
+            WHERE Witnesses.name = @username"
         );
     })
     .then(result => {
@@ -35,7 +41,7 @@ exports.getWitnessesRank = function() {
       return pool.request().query(
         `SELECT Witnesses.name, rank
           FROM Witnesses
-          RIGHT JOIN (SELECT ROW_NUMBER() OVER (ORDER BY (SELECT votes) DESC) AS rank, * FROM Witnesses WHERE signing_key != 'STM1111111111111111111111111111111114T1Anm') AS rankedTable
+          INNER JOIN (SELECT ROW_NUMBER() OVER (ORDER BY (SELECT votes) DESC) AS rank, name FROM Witnesses WHERE signing_key != 'STM1111111111111111111111111111111114T1Anm') AS rankedTable
           ON Witnesses.name = rankedTable.name
           ORDER BY rank;`
       );
@@ -59,7 +65,14 @@ exports.getReceivedVotes = function(username) {
         .request()
         .input("username", username)
         .query(
-          "WITH proxySelect AS ( SELECT t.*, ROW_NUMBER() OVER (PARTITION BY account ORDER BY timestamp DESC) AS rn FROM TxAccountWitnessProxies AS t ) SELECT MyAccounts.timestamp, MyAccounts.account, (ISNULL(total_proxied,0) + TRY_CONVERT(float,REPLACE(vesting_shares,'VESTS',''))) as totalVests, TRY_CONVERT(float,REPLACE(vesting_shares,'VESTS','')) as accountVests, ISNULL(total_proxied,0) as proxiedVests FROM (SELECT B.timestamp, B.account,A.vesting_shares FROM Accounts A, (select timestamp, account from TxAccountWitnessVotes where ID IN (select MAX(ID)as last from TxAccountWitnessVotes where witness=@username group by account) and approve=1)as B where B.account=A.name)as MyAccounts LEFT JOIN (SELECT SUM(TRY_CONVERT(float,REPLACE(vesting_shares,'VESTS',''))) as total_proxied, pr.proxy FROM proxySelect pr INNER JOIN Accounts ON pr.account=name WHERE rn = 1 GROUP BY pr.proxy) pr2 ON pr2.proxy=MyAccounts.account;"
+          "SELECT \
+            name AS [account], \
+            CONVERT(bigint,vesting_shares) + (CONVERT(bigint,JSON_VALUE(proxied_vsf_votes,'$[0]'))/1000000) AS totalVests, \
+            CONVERT(bigint,vesting_shares) AS accountVests, \
+            CONVERT(bigint,JSON_VALUE(proxied_vsf_votes,'$[0]'))/1000000 AS proxiedvests \
+          FROM Accounts \
+          WHERE witness_votes LIKE '%"'+@username+'"%' \
+          ORDER BY CONVERT(bigint,vesting_shares) + (CONVERT(bigint,JSON_VALUE(proxied_vsf_votes,'$[0]'))/1000000) DESC"
         );
     })
     .then(result => {
