@@ -3,6 +3,7 @@ const express = require("express");
 const rpcRouter = require("./routes/rpc");
 const delegationRouter = require("./routes/delegation");
 const witnessRouter = require("./routes/witness");
+const bittrexRouter = require("./routes/bittrex");
 var cors = require("cors");
 
 // Express
@@ -17,5 +18,6 @@ app.use(cors());
 app.use(rpcRouter);
 app.use("/hive", witnessRouter);
 app.use("/hive", delegationRouter);
+app.use("/hive", bittrexRouter);
 
 module.exports = app;
