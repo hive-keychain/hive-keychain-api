@@ -14,4 +14,6 @@ const config = {
   hive_rpc: process.env.HIVE_RPC
 };
 
+console.log(config);
+
 module.exports = config;

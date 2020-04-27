@@ -33,7 +33,7 @@ exports.getWitnessesRank = function() {
     .connect()
     .then(pool => {
       return pool.request().query(
-        `SELECT Witnesses.name, rank
+        `SELECT Witnesses.name, rank,Witnesses.votes,Witnesses.votes_count
           FROM Witnesses
           RIGHT JOIN (SELECT ROW_NUMBER() OVER (ORDER BY (SELECT votes) DESC) AS rank, * FROM Witnesses WHERE signing_key != 'STM1111111111111111111111111111111114T1Anm') AS rankedTable
           ON Witnesses.name = rankedTable.name
