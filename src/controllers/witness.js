@@ -56,31 +56,33 @@ exports.getWitnessesRank = function() {
     });
 };
 
-exports.getReceivedVotes = function(username) {
-  return new sql.ConnectionPool(config.config_api)
-    .connect()
-    .then(pool => {
-      console.log("connected");
-      return pool
-        .request()
-        .input("username", username)
-        .query(
-          "SELECT \
-            name AS [account], \
-            CONVERT(bigint,vesting_shares) + (CONVERT(bigint,JSON_VALUE(proxied_vsf_votes,'$[0]'))/1000000) AS totalVests, \
-            CONVERT(bigint,vesting_shares) AS accountVests, \
-            CONVERT(bigint,JSON_VALUE(proxied_vsf_votes,'$[0]'))/1000000 AS proxiedvests \
-          FROM Accounts \
-          WHERE witness_votes LIKE '%"'+@username+'"%' \
-          ORDER BY CONVERT(bigint,vesting_shares) + (CONVERT(bigint,JSON_VALUE(proxied_vsf_votes,'$[0]'))/1000000) DESC"
-        );
-    })
-    .then(result => {
-      sql.close();
-      return result.recordsets[0];
-    })
-    .catch(error => {
-      console.log(error);
-      sql.close();
-    });
-};
+// exports.getReceivedVotes = function(username) {
+//   return new sql.ConnectionPool(config.config_api)
+//     .connect()
+//     .then(pool => {
+//       console.log("connected");
+//       return pool
+//         .request()
+//         .input("username", username)
+//         .query(
+//           "SELECT \
+//             name AS [account], \
+//             CONVERT(bigint,vesting_shares) + (CONVERT(bigint,JSON_VALUE(proxied_vsf_votes,'$[0]'))/1000000) AS totalVests, \
+//             CONVERT(bigint,vesting_shares) AS accountVests, \
+//             CONVERT(bigint,JSON_VALUE(proxied_vsf_votes,'$[0]'))/1000000 AS proxiedvests \
+//           FROM Accounts \
+//           WHERE witness_votes LIKE '%@" +
+//             username +
+//             "%' \
+//           ORDER BY CONVERT(bigint,vesting_shares) + (CONVERT(bigint,JSON_VALUE(proxied_vsf_votes,'$[0]'))/1000000) DESC"
+//         );
+//     })
+//     .then(result => {
+//       sql.close();
+//       return result.recordsets[0];
+//     })
+//     .catch(error => {
+//       console.log(error);
+//       sql.close();
+//     });
+// };
