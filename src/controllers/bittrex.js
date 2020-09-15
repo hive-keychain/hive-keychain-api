@@ -1,9 +1,38 @@
 const req = require("request");
-exports.getValues = async () => {
-  const hive = await getHivePrice();
-  const btc = await getBTCPrice();
-  const hbd = await getHBDPrice();
-  return {btc, hive, hbd};
+
+const getValues = async () => {
+  const [hive, btc, hbd] = await Promise.all([
+    getHivePrice(),
+    getBTCPrice(),
+    getHBDPrice()
+  ]);
+  return { btc, hive, hbd };
+};
+
+exports.getValues = getValues;
+exports.getValuesV2 = async () => {
+  const obj = await getValues();
+  const newObj = {};
+  for (const key in obj) {
+    const { Bid, PrevDay } = obj[key].result[0];
+    const Daily = (((Bid - PrevDay) / PrevDay) * 100).toFixed(2);
+    newObj[key] = {
+      Bid,
+      PrevDay,
+      Daily
+    };
+    if (key !== "btc") {
+      const BidBTC = obj.btc.result[0].Bid;
+      const PrevDayBTC = obj.btc.result[0].PrevDay;
+      const PrevDayUsd = PrevDayBTC * PrevDay;
+      const Usd = Bid * BidBTC;
+      newObj[key].Usd = Usd.toFixed(2);
+      newObj[key].DailyUsd = (((Usd - PrevDayUsd) / PrevDayUsd) * 100).toFixed(
+        2
+      );
+    }
+  }
+  return newObj;
 };
 
 exports.getTicker = async code => {
@@ -27,7 +56,8 @@ async function getHivePrice() {
   return new Promise(fulfill => {
     req(
       {
-        url: "https://bittrex.com/api/v1.1/public/getticker?market=BTC-HIVE",
+        url:
+          "https://bittrex.com/api/v1.1/public/getmarketsummary?market=BTC-HIVE",
         json: true
       },
       function(err, http, body) {
@@ -41,7 +71,8 @@ async function getBTCPrice() {
   return new Promise(fulfill => {
     req(
       {
-        url: "https://bittrex.com/api/v1.1/public/getticker?market=USDT-BTC",
+        url:
+          "https://bittrex.com/api/v1.1/public/getmarketsummary?market=USDT-BTC",
         json: true
       },
       function(err, http, body) {
@@ -55,7 +86,8 @@ async function getHBDPrice() {
   return new Promise(fulfill => {
     req(
       {
-        url: "https://bittrex.com/api/v1.1/public/getticker?market=BTC-HBD",
+        url:
+          "https://bittrex.com/api/v1.1/public/getmarketsummary?market=BTC-HBD",
         json: true
       },
       function(err, http, body) {
