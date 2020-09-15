@@ -1,6 +1,6 @@
 const req = require("request");
 
-const getValues = async () => {
+const getPrices = async () => {
   const [hive, btc, hbd] = await Promise.all([
     getHivePrice(),
     getBTCPrice(),
@@ -9,9 +9,16 @@ const getValues = async () => {
   return { btc, hive, hbd };
 };
 
-exports.getValues = getValues;
+exports.getValues = async () => {
+  const obj = await getPrices();
+  const newObj = { btc: {}, hive: {}, hbd: {} };
+  for (const key in obj) {
+    newObj[key].result = obj[key].result[0];
+  }
+  return newObj;
+};
 exports.getValuesV2 = async () => {
-  const obj = await getValues();
+  const obj = await getPrices();
   const newObj = {};
   for (const key in obj) {
     const { Bid, PrevDay } = obj[key].result[0];
