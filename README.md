@@ -1,2 +1,2 @@
-# steem-keychain-api
+# hive-keychain-api
 Backend for Hive Keychain
