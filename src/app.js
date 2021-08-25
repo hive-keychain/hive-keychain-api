@@ -20,6 +20,6 @@ app.use(rpcRouter);
 app.use("/hive", witnessRouter);
 app.use("/hive", delegationRouter);
 app.use("/hive", bittrexRouter);
-app.use("/hive", badActorsRouter);
+//app.use("/hive", badActorsRouter);
 
 module.exports = app;

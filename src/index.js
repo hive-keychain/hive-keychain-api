@@ -12,15 +12,15 @@ if (!process.env.DEV) {
     .createServer(
       {
         key: fs.readFileSync(
-          "/etc/letsencrypt/live/api.steemkeychain.com/privkey.pem",
+          "/etc/letsencrypt/live/api.hive-keychain.com/privkey.pem",
           "utf8"
         ),
         cert: fs.readFileSync(
-          "/etc/letsencrypt/live/api.steemkeychain.com/cert.pem",
+          "/etc/letsencrypt/live/api.hive-keychain.com/cert.pem",
           "utf8"
         ),
         ca: fs.readFileSync(
-          "/etc/letsencrypt/live/api.steemkeychain.com/chain.pem",
+          "/etc/letsencrypt/live/api.hive-keychain.com/chain.pem",
           "utf8"
         )
       },
@@ -30,5 +30,5 @@ if (!process.env.DEV) {
       console.log(`Server running on port ${port}`);
     });
 } else {
-  http.createServer(app).listen(3000);
+  http.createServer(app).listen(port);
 }
