@@ -10,8 +10,8 @@ var cors = require("cors");
 // Express
 const app = express();
 app.use(express.json());
-app.use(express.urlencoded({extended: false}));
-app.use(express.static("public", {dotfiles: "allow"}));
+app.use(express.urlencoded({ extended: false }));
+app.use(express.static("public", { dotfiles: "allow" }));
 //CORS
 app.use(cors());
 
@@ -20,6 +20,6 @@ app.use(rpcRouter);
 app.use("/hive", witnessRouter);
 app.use("/hive", delegationRouter);
 app.use("/hive", bittrexRouter);
-//app.use("/hive", badActorsRouter);
+app.use("/hive", badActorsRouter);
 
 module.exports = app;
