@@ -22,7 +22,7 @@ if (!process.env.DEV) {
         ca: fs.readFileSync(
           "/etc/letsencrypt/live/api.hive-keychain.com/chain.pem",
           "utf8"
-        )
+        ),
       },
       app
     )
@@ -31,4 +31,5 @@ if (!process.env.DEV) {
     });
 } else {
   http.createServer(app).listen(port);
+  console.log("Running on port", port);
 }
