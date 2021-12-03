@@ -70,7 +70,16 @@ exports.getWitnessesRankV2 = function () {
     })
     .then((result) => {
       sql.close();
-      return result.recordsets[0];
+      const res = result.recordsets[0];
+      let inactive = 0;
+      for (const wit of res) {
+        if (wit.signing_key === "STM1111111111111111111111111111111114T1Anm") {
+          inactive++;
+        } else {
+          wit.active_rank = wit.rank - inactive;
+        }
+      }
+      return res;
     })
     .catch((error) => {
       console.log(error);
