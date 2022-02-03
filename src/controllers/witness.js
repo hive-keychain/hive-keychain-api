@@ -61,7 +61,7 @@ exports.getWitnessesRankV2 = function () {
     .connect()
     .then((pool) => {
       return pool.request().query(
-        `SELECT Witnesses.name, rank,Witnesses.votes,Witnesses.votes_count,Witnesses.signing_key
+        `SELECT Witnesses.name, rank,Witnesses.votes,Witnesses.votes_count,Witnesses.signing_key,Witnesses.url
           FROM Witnesses
           INNER JOIN (SELECT ROW_NUMBER() OVER (ORDER BY (SELECT votes) DESC) AS rank, name FROM Witnesses ) AS rankedTable
           ON Witnesses.name = rankedTable.name
