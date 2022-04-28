@@ -13,7 +13,13 @@ router.get("/witnesses-ranks", async function (req, res) {
 });
 
 router.get("/v2/witnesses-ranks", async function (req, res) {
-  res.status(200).send(await witnesses.getWitnessesRankV2());
+  try {
+    const resp = await witnesses.getWitnessesRankV2();
+    res.status(200).send(resp);
+  } catch (e) {
+    console.log({ e });
+    res.status(500).send(e);
+  }
 });
 
 module.exports = router;

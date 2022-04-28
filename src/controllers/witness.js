@@ -29,8 +29,8 @@ exports.getWitness = function (username) {
       return result.recordsets[0][0];
     })
     .catch((error) => {
-      console.log(error);
       sql.close();
+      return null;
     });
 };
 
@@ -82,8 +82,8 @@ exports.getWitnessesRankV2 = function () {
       return res;
     })
     .catch((error) => {
-      console.log(error);
       sql.close();
+      throw new Error(error);
     });
 };
 

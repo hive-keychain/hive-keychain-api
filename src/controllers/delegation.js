@@ -1,10 +1,10 @@
 const config = require("../config");
 const sql = require("mssql");
 
-exports.getIncoming = username => {
+exports.getIncoming = (username) => {
   return new sql.ConnectionPool(config.config_api)
     .connect()
-    .then(pool => {
+    .then((pool) => {
       return pool
         .request()
         .input("username", username)
@@ -19,12 +19,12 @@ exports.getIncoming = username => {
             ) AS Data ON TxDelegateVestingShares.ID = Data.last_delegation_id`
         );
     })
-    .then(result => {
+    .then((result) => {
       sql.close();
       return result.recordsets[0];
     })
-    .catch(error => {
-      console.log(error);
+    .catch((error) => {
       sql.close();
+      throw new Error(error);
     });
 };

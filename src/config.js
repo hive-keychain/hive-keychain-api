@@ -5,13 +5,13 @@ const config_api = {
   password: process.env.PASSWORD,
   server: process.env.SQL_API,
   database: process.env.DB,
-  requestTimeout: 60000
+  requestTimeout: 60000,
 };
 
 const config = {
   config_api,
   rpc: process.env.RPC,
-  hive_rpc: process.env.HIVE_RPC
+  hive_rpc: process.env.HIVE_RPC,
 };
 
 module.exports = config;
