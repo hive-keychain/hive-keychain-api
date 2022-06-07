@@ -2,12 +2,18 @@ const req = require("request");
 
 let prices;
 
-setInterval(async () => {
+setInterval(() => {
+  checkPrices();
+}, 10000);
+
+checkPrices = async () => {
   const newPrices = await getPrices();
   if (newPrices) {
     prices = newPrices;
   }
-}, 10000);
+};
+
+checkPrices();
 
 exports.getValues = async () => {
   return prices;
