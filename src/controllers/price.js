@@ -4,7 +4,7 @@ let prices;
 
 setInterval(() => {
   checkPrices();
-}, 10000);
+}, 20000);
 
 checkPrices = async () => {
   const newPrices = await getPrices();
