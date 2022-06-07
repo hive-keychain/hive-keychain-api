@@ -3,7 +3,6 @@ const express = require("express");
 const rpcRouter = require("./routes/rpc");
 const delegationRouter = require("./routes/delegation");
 const witnessRouter = require("./routes/witness");
-const bittrexRouter = require("./routes/bittrex");
 const priceRouter = require("./routes/price");
 const badActorsRouter = require("./routes/badActors");
 var cors = require("cors");
@@ -20,7 +19,6 @@ app.use(cors());
 app.use(rpcRouter);
 app.use("/hive", witnessRouter);
 app.use("/hive", delegationRouter);
-app.use("/hive", bittrexRouter);
 app.use("/hive", priceRouter);
 app.use("/hive", badActorsRouter);
 
