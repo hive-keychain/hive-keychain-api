@@ -8,7 +8,7 @@
     "method": "PUT",
     "sortNum": 10000,
     "created": "2022-07-11T01:37:36.407Z",
-    "modified": "2022-07-15T08:11:56.780Z",
+    "modified": "2022-07-18T03:35:35.076Z",
     "headers": [],
     "params": [
       {
@@ -21,6 +21,9 @@
       "type": "json",
       "raw": "{\n    \"version\":\"2.1\",\n    \"url\":\"https://peakd.com/keychain/@keychain/hive-keychain-dhf-3-weeks-5-and-6\", \n    \"features\": {\n        \"en\": [\n            {\n                \"title\": \"Savings Auto Claim\",\n                \"description\": \"Claim automatically your savings interests when they are available\",\n                \"image\": \"https://files.peakd.com/file/peakd-hive/cedricguillas/23tGeSs1pgyk39EvtUv27Uswxt8ZrFAFQbznYmaJRt6xgGMU3rp3r7YcyZbQyLEJqamLr.png\",\n                \"anchor\": \"auto-claim-savings\",\n                \"extraInformation\": \"Try it from 'Settings', 'User preferences' and then 'Automated tasks'\"\n            },\n            {\n                \"title\": \"Hive-Engine custom RPC\",\n                \"description\": \"Select your favorite Hive Engine RPC configuration or create custom ones.\",\n                \"image\": \"https://files.peakd.com/file/peakd-hive/cedricguillas/23swnTCHQTH7yZAA7Z2Y2EN5pFQj6FdcMZQH435qWzurBbKqQnoExpA5NF8jqnxv9VF69.png\",\n                \"anchor\": \"hive-engine-custom-rpc\",\n                \"extraInformation\": \"Try it from 'Tokens' and then 'Settings'\"\n            }\n        ]\n        \n    }\n} \n",
       "form": []
+    },
+    "auth": {
+      "type": "basic"
     },
     "tests": []
   },
