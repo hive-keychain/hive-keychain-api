@@ -5,6 +5,7 @@ const delegationRouter = require("./routes/delegation");
 const witnessRouter = require("./routes/witness");
 const priceRouter = require("./routes/price");
 const badActorsRouter = require("./routes/badActors");
+const versionLogRouter = require("./routes/version-log");
 var cors = require("cors");
 
 // Express
@@ -21,5 +22,6 @@ app.use("/hive", witnessRouter);
 app.use("/hive", delegationRouter);
 app.use("/hive", priceRouter);
 app.use("/hive", badActorsRouter);
+app.use("/hive", versionLogRouter)
 
 module.exports = app;

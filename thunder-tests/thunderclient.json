@@ -1,0 +1,80 @@
+[
+  {
+    "_id": "84bb3aee-d4bf-477b-a16d-73108b9790d5",
+    "colId": "da434004-b460-474a-840b-8d2617b7139e",
+    "containerId": "",
+    "name": "save-dev-version",
+    "url": "http://localhost:3000/hive/set-last-extension-version?VERSION_PASSWORD={{VERSION_PASSWORD}}",
+    "method": "PUT",
+    "sortNum": 10000,
+    "created": "2022-07-11T01:37:36.407Z",
+    "modified": "2022-07-15T08:11:56.780Z",
+    "headers": [],
+    "params": [
+      {
+        "name": "VERSION_PASSWORD",
+        "value": "{{VERSION_PASSWORD}}",
+        "isPath": false
+      }
+    ],
+    "body": {
+      "type": "json",
+      "raw": "{\n    \"version\":\"2.1\",\n    \"url\":\"https://peakd.com/keychain/@keychain/hive-keychain-dhf-3-weeks-5-and-6\", \n    \"features\": {\n        \"en\": [\n            {\n                \"title\": \"Savings Auto Claim\",\n                \"description\": \"Claim automatically your savings interests when they are available\",\n                \"image\": \"https://files.peakd.com/file/peakd-hive/cedricguillas/23tGeSs1pgyk39EvtUv27Uswxt8ZrFAFQbznYmaJRt6xgGMU3rp3r7YcyZbQyLEJqamLr.png\",\n                \"anchor\": \"auto-claim-savings\",\n                \"extraInformation\": \"Try it from 'Settings', 'User preferences' and then 'Automated tasks'\"\n            },\n            {\n                \"title\": \"Hive-Engine custom RPC\",\n                \"description\": \"Select your favorite Hive Engine RPC configuration or create custom ones.\",\n                \"image\": \"https://files.peakd.com/file/peakd-hive/cedricguillas/23swnTCHQTH7yZAA7Z2Y2EN5pFQj6FdcMZQH435qWzurBbKqQnoExpA5NF8jqnxv9VF69.png\",\n                \"anchor\": \"hive-engine-custom-rpc\",\n                \"extraInformation\": \"Try it from 'Tokens' and then 'Settings'\"\n            }\n        ]\n        \n    }\n} \n",
+      "form": []
+    },
+    "tests": []
+  },
+  {
+    "_id": "a66379d3-aca4-47b9-abbc-6e86eeb327b1",
+    "colId": "da434004-b460-474a-840b-8d2617b7139e",
+    "containerId": "",
+    "name": "save-prod-version",
+    "url": "https://api.hive-keychain.com/hive/set-last-extension-version?VERSION_PASSWORD={{VERSION_PASSWORD}}",
+    "method": "PUT",
+    "sortNum": 20000,
+    "created": "2022-07-11T01:37:52.981Z",
+    "modified": "2022-07-15T08:00:19.095Z",
+    "headers": [],
+    "params": [
+      {
+        "name": "VERSION_PASSWORD",
+        "value": "{{VERSION_PASSWORD}}",
+        "isPath": false
+      }
+    ],
+    "body": {
+      "type": "json",
+      "raw": "{\n    \"version\": \"2.1.1\",\n    \"url\": \"https://peakd.com/keychain/@keychain/hive-keychain-dhf-3-weeks-5-and-6\"\n    \n}",
+      "form": []
+    },
+    "tests": []
+  },
+  {
+    "_id": "32b329a3-c28c-4d32-9c78-844a8f4bbab7",
+    "colId": "da434004-b460-474a-840b-8d2617b7139e",
+    "containerId": "",
+    "name": "get-dev-version",
+    "url": "http://localhost:3000/hive/last-extension-version",
+    "method": "GET",
+    "sortNum": 30000,
+    "created": "2022-07-15T07:59:50.292Z",
+    "modified": "2022-07-15T08:01:30.156Z",
+    "headers": [],
+    "params": [],
+    "tests": []
+  },
+  {
+    "_id": "f5149317-0580-4741-bf7a-29705362a9e7",
+    "colId": "da434004-b460-474a-840b-8d2617b7139e",
+    "containerId": "",
+    "name": "get-prod-version",
+    "url": "https://api.hive-keychain.com/hive/last-extension-version",
+    "method": "GET",
+    "sortNum": 40000,
+    "created": "2022-07-15T07:59:59.759Z",
+    "modified": "2022-07-15T08:00:57.156Z",
+    "headers": [],
+    "params": [],
+    "tests": []
+  }
+]
