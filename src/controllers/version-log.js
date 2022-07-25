@@ -1,7 +1,7 @@
 const fs = require('fs');
 
 exports.getLastExtensionVersion = () => {
-    return require(__dirname + '/../../version/extension.json'); 
+    return fs.readFileSync(__dirname + '/../../version/extension.json'); 
 }
 
 exports.setLastExtensionVersion = (json) => {
