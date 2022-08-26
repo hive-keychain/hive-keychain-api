@@ -1,10 +1,10 @@
-const fs = require('fs');
+import * as fs from 'fs';
 
-exports.getLastExtensionVersion = () => {
+const getLastExtensionVersion = () => {
     return fs.readFileSync(__dirname + '/../../version/extension.json'); 
 }
 
-exports.setLastExtensionVersion = (json) => {
+const setLastExtensionVersion = (json) => {
     try{
         fs.writeFile(
             __dirname + '/../../version/extension.json',
@@ -16,5 +16,10 @@ exports.setLastExtensionVersion = (json) => {
     catch(err){
         console.log(err);
     }
+}
+
+export const VersionLogLogic = {
+    setLastExtensionVersion,
+    getLastExtensionVersion
 }
     

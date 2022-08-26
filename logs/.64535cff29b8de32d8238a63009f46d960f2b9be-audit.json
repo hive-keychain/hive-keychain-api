@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": false,
+        "amount": 7
+    },
+    "auditLog": "/Users/cedric/Documents/Dev/HiveKeychain/hive-keychain-api/logs/.64535cff29b8de32d8238a63009f46d960f2b9be-audit.json",
+    "files": [
+        {
+            "date": 1661494613438,
+            "name": "/Users/cedric/Documents/Dev/HiveKeychain/hive-keychain-api/logs/lease-market-2022-08-26.log",
+            "hash": "135018d7dd4cf7e560cd1c7e6dc06a178db214aa080581d7a85d6a6bf65ffbab"
+        }
+    ],
+    "hashType": "sha256"
+}

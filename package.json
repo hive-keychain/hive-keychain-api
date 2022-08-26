@@ -4,10 +4,11 @@
   "description": "Backend for Steem Keychain Extension",
   "main": "index.js",
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon src/index.js",
+    "start": "ts-node src/index.ts",
+    "dev": "nodemon src/index.ts",
     "pm2-start": "pm2 start --name keychain-api npm -- start",
-    "pm2-stop": "pm2 kill"
+    "pm2-stop": "pm2 kill",
+    "build": "tsc -p ."
   },
   "keywords": [
     "hive",
@@ -19,6 +20,8 @@
   "license": "ISC",
   "dependencies": {
     "@hiveio/hivescript": "^1.2.5",
+    "@types/express": "^4.17.13",
+    "body-parser": "^1.20.0",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
@@ -26,10 +29,15 @@
     "http": "0.0.0",
     "https": "^1.0.0",
     "mssql": "^6.2.0",
-    "request": "^2.88.2"
+    "request": "^2.88.2",
+    "winston": "^3.8.1",
+    "winston-daily-rotate-file": "^4.7.1"
   },
   "devDependencies": {
+    "@types/node": "^18.7.13",
     "nodemon": "^2.0.2",
-    "pm2": "^4.2.1"
+    "pm2": "^4.2.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.7.4"
   }
 }

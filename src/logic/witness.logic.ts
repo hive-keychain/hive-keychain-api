@@ -1,8 +1,8 @@
-const config = require("../config");
-const sql = require("mssql");
+import sql from "mssql";
+import { Config } from "../config";
 
-exports.getWitness = function (username) {
-  return new sql.ConnectionPool(config.config_api)
+const getWitness = function (username) {
+  return new sql.ConnectionPool(Config.hiveSql)
     .connect()
     .then((pool) => {
       return pool
@@ -34,8 +34,8 @@ exports.getWitness = function (username) {
     });
 };
 
-exports.getWitnessesRank = function () {
-  return new sql.ConnectionPool(config.config_api)
+const getWitnessesRank = function () {
+  return new sql.ConnectionPool(Config.hiveSql)
     .connect()
     .then((pool) => {
       return pool.request().query(
@@ -56,8 +56,8 @@ exports.getWitnessesRank = function () {
     });
 };
 
-exports.getWitnessesRankV2 = function () {
-  return new sql.ConnectionPool(config.config_api)
+const getWitnessesRankV2 = function () {
+  return new sql.ConnectionPool(Config.hiveSql)
     .connect()
     .then((pool) => {
       return pool.request().query(
@@ -117,3 +117,7 @@ exports.getWitnessesRankV2 = function () {
 //       sql.close();
 //     });
 // };
+
+export const WitnessLogic = {
+  getWitness, getWitnessesRank, getWitnessesRankV2
+}
