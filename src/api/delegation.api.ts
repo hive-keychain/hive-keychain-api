@@ -1,9 +1,11 @@
 import { Express } from "express";
+import Logger from "../logger/logger";
 import { DelegationLogic } from "../logic/delegation.logic";
 
 const setupGetIncomingDelegations = (app: Express) => {
   app.get("/hive/delegators/:username", async function (req, res) {
     try {
+      Logger.debug(`Getting delegators for ${req.params.username}`);
       const resp = await DelegationLogic.getIncoming(req.params.username);
       res.status(200).send(resp);
     } catch (e) {

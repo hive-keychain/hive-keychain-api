@@ -1,5 +1,6 @@
 import sql from "mssql";
 import { Config } from "../config";
+import Logger from "../logger/logger";
 
 const getWitness = function (username) {
   return new sql.ConnectionPool(Config.hiveSql)
@@ -30,6 +31,7 @@ const getWitness = function (username) {
     })
     .catch((error) => {
       sql.close();
+      Logger.error(error);
       return null;
     });
 };
@@ -119,5 +121,7 @@ const getWitnessesRankV2 = function () {
 // };
 
 export const WitnessLogic = {
-  getWitness, getWitnessesRank, getWitnessesRankV2
-}
+  getWitness,
+  getWitnessesRank,
+  getWitnessesRankV2,
+};

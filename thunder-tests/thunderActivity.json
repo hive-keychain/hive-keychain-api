@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "_id": "34a23968-b83b-43ed-ba3a-3f4d4d12c95c",
+    "colId": "history",
+    "containerId": "",
+    "name": "http://localhost:5000/hive/phishingAccounts",
+    "url": "http://localhost:5000/hive/phishingAccounts",
+    "method": "GET",
+    "sortNum": 0,
+    "created": "2022-08-29T01:40:00.263Z",
+    "modified": "2022-08-29T01:40:05.969Z",
+    "headers": [],
+    "params": [],
+    "tests": []
+  }
+]

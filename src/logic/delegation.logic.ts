@@ -1,5 +1,6 @@
 import sql from "mssql";
 import { Config } from "../config";
+import Logger from "../logger/logger";
 
 const getIncoming = (username) => {
   return new sql.ConnectionPool(Config.hiveSql)
@@ -25,10 +26,11 @@ const getIncoming = (username) => {
     })
     .catch((error) => {
       sql.close();
+      Logger.error(error);
       throw new Error(error);
     });
 };
 
 export const DelegationLogic = {
-  getIncoming
-}
+  getIncoming,
+};
