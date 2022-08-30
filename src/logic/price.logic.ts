@@ -1,5 +1,5 @@
+import Logger from "hive-keychain-commons/lib/logger/logger";
 import req from "request";
-import Logger from "../logger/logger";
 
 let prices;
 const refreshPrices = async () => {

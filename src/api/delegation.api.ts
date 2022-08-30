@@ -1,5 +1,5 @@
 import { Express } from "express";
-import Logger from "../logger/logger";
+import Logger from "hive-keychain-commons/lib/logger/logger";
 import { DelegationLogic } from "../logic/delegation.logic";
 
 const setupGetIncomingDelegations = (app: Express) => {

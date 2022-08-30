@@ -2,6 +2,7 @@ require("dotenv").config();
 import bodyParser from "body-parser";
 import express from "express";
 import fs from "fs";
+import Logger from "hive-keychain-commons/lib/logger/logger";
 import https from "https";
 import { BadActorsApi } from "./api/bad-actors.api";
 import { DelegationApi } from "./api/delegation.api";
@@ -9,7 +10,7 @@ import { PriceApi } from "./api/price.api";
 import { RpcApi } from "./api/rpc.api";
 import { VersionLogApi } from "./api/version-log.api";
 import { WitnessApi } from "./api/witness.api";
-import Logger from "./logger/logger";
+import { Config } from "./config";
 import { PriceLogic } from "./logic/price.logic";
 
 var cors = require("cors");
@@ -18,6 +19,7 @@ const PORT = process.env.PORT || 3000;
 
 const initServerRoutine = () => {
   const app = express();
+  Logger.initLogger(Config.logger, process.env.NODE_ENV);
   setupRoutes(app);
 
   PriceLogic.initFetchPrices();

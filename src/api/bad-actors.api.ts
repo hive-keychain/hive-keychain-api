@@ -1,5 +1,5 @@
 import { Express } from "express";
-import Logger from "../logger/logger";
+import Logger from "hive-keychain-commons/lib/logger/logger";
 import { BadActorsLogic } from "../logic/bad-actors.logic";
 
 const setupGetPhishingAccount = (app: Express) => {
