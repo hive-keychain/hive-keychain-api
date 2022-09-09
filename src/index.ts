@@ -6,6 +6,7 @@ import Logger from "hive-keychain-commons/lib/logger/logger";
 import https from "https";
 import { BadActorsApi } from "./api/bad-actors.api";
 import { DelegationApi } from "./api/delegation.api";
+import { NftApi } from "./api/ntf.api";
 import { PriceApi } from "./api/price.api";
 import { RpcApi } from "./api/rpc.api";
 import { VersionLogApi } from "./api/version-log.api";
@@ -36,6 +37,7 @@ const setupRoutes = (app: express.Express) => {
 
   BadActorsApi.setupApis(app);
   DelegationApi.setupApis(app);
+  NftApi.setupApis(app);
   PriceApi.setupApis(app);
   RpcApi.setupApis(app);
   VersionLogApi.setupApis(app);

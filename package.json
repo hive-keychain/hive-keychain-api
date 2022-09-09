@@ -30,7 +30,8 @@
     "http": "0.0.0",
     "https": "^1.0.0",
     "mssql": "^6.2.0",
-    "request": "^2.88.2"
+    "request": "^2.88.2",
+    "sscjs": "^0.0.9"
   },
   "devDependencies": {
     "@types/node": "^18.7.13",
