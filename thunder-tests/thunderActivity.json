@@ -1,14 +1,14 @@
 [
   {
-    "_id": "34a23968-b83b-43ed-ba3a-3f4d4d12c95c",
+    "_id": "63517e92-6b09-49f5-9ec2-075da66eb7cf",
     "colId": "history",
     "containerId": "",
-    "name": "http://localhost:5000/hive/phishingAccounts",
-    "url": "http://localhost:5000/hive/phishingAccounts",
+    "name": "http://localhost:3000/hive/v2/price",
+    "url": "http://localhost:3000/hive/v2/price",
     "method": "GET",
     "sortNum": 0,
-    "created": "2022-08-29T01:40:00.263Z",
-    "modified": "2022-08-29T01:40:05.969Z",
+    "created": "2022-09-12T06:13:29.586Z",
+    "modified": "2022-09-12T06:13:38.187Z",
     "headers": [],
     "params": [],
     "tests": []
