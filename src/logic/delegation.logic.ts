@@ -1,8 +1,9 @@
-const config = require("../config");
-const sql = require("mssql");
+import Logger from "hive-keychain-commons/lib/logger/logger";
+import sql from "mssql";
+import { Config } from "../config";
 
-exports.getIncoming = (username) => {
-  return new sql.ConnectionPool(config.config_api)
+const getIncoming = (username) => {
+  return new sql.ConnectionPool(Config.hiveSql)
     .connect()
     .then((pool) => {
       return pool
@@ -25,6 +26,11 @@ exports.getIncoming = (username) => {
     })
     .catch((error) => {
       sql.close();
+      Logger.error(error);
       throw new Error(error);
     });
+};
+
+export const DelegationLogic = {
+  getIncoming,
 };
