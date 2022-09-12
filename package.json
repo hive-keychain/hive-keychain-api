@@ -1,7 +1,7 @@
 {
   "name": "keychain-api",
-  "version": "1.0.0",
-  "description": "Backend for Steem Keychain Extension",
+  "version": "2.0.0",
+  "description": "Backend for Hive Keychain Extension and mobile Apps",
   "main": "index.js",
   "scripts": {
     "start": "ts-node src/index.ts",
