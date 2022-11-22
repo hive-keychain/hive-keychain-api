@@ -8,7 +8,7 @@
     "method": "PUT",
     "sortNum": 10000,
     "created": "2022-07-11T01:37:36.407Z",
-    "modified": "2022-09-16T08:24:12.860Z",
+    "modified": "2022-11-07T02:37:20.998Z",
     "headers": [],
     "params": [
       {
@@ -19,7 +19,7 @@
     ],
     "body": {
       "type": "json",
-      "raw": "{\n    \"version\":\"2.2\",\n    \"url\":\"https://peakd.com/keychain/@keychain/hive-keychain-v22--create-accounts--buy-hive-with-fiat\", \n    \"features\": {\n        \"en\": [\n            {\n                \"title\": \"Buy Hive with fiat\",\n                \"description\": \"Using Transak, buy HIVE via credit card, bank transfer, etc.\",\n                \"image\": \"https://files.peakd.com/file/peakd-hive/keychain/23tvB1s5x5d1xBh2edLAyNBapEW2nbtMxEsVrYdV9MZK89h91xCnJ33282ZhmnepaqdZx.png\",\n                \"anchor\": \"buy-hive\",\n                \"extraInformation\": \"Try it from 'Buy', then 'Transak'\"\n            },\n            {\n                \"title\": \"Create Accounts\",\n                \"description\": \"Buy new accounts or use your claimed account creation tickets to create new accounts.\",\n                \"image\": \"https://files.peakd.com/file/peakd-hive/keychain/23tGZdpWkaMf2EBaet9GFGTb4K8LNKMzvJuuuaHVuV9bLPK4NVZ5tS8vvUzEz6teFgAN7.png\",\n                \"anchor\": \"create-accounts\",\n                \"extraInformation\": \"Try it from 'Settings', 'Accounts' and then 'Create Account'\"\n            }\n        ]\n        \n    }\n} \n",
+      "raw": "{\n    \"version\":\"2.3\",\n    \"url\":\"https://peakd.com/keychain/@keychain/\", \n    \"features\": {\n        \"en\": [\n            {\n                \"title\": \"RC Delegations\",\n                \"description\": \"Delegate Resource Credits\",\n                \"image\": \"https://files.peakd.com/file/peakd-hive/cedricguillas/23t7D8JzQ8YAuNmUFhvSTZ3AbuysdbpJE5MahVPvwxZiZ1hfg9hZSsVzrAKUZDqpJdyii.png\",\n                \"anchor\": \"rc-delegations\",\n                \"extraInformation\": \"Try it from HP menu on your home page\"\n            },\n            {\n                \"title\": \"Transak is back!\",\n                \"description\": \"After being down for a few weeks, Hive is back on Transak!\",\n                \"image\": \"https://pbs.twimg.com/media/FgKCKu-WAAIBf0O?format=jpg&name=large\",\n                \"anchor\": \"transak\",\n                \"extraInformation\": \"Try it from 'Buy'\"\n            },\n            {\n                \"title\": \"Keychain on Twitter!\",\n                \"description\": \"We are on Twitter! Check it out and follow us!\",\n                \"image\": \"https://pbs.twimg.com/profile_images/1488548719062654976/u6qfBBkF_400x400.jpg\",\n                \"externalUrl\": \"https://twitter.com/intent/follow?original_referer=https%3A%2F%2Fpublish.twitter.com%2F&ref_src=twsrc%5Etfw%7Ctwcamp%5Ebuttonembed%7Ctwterm%5Efollow%7Ctwgr%5EHiveKeychain&region=follow_link&screen_name=HiveKeychain\",\n                \"overrideReadMoreLabel\": \"Follow us!\"\n            }\n        ]\n    }\n}",
       "form": []
     },
     "tests": []
@@ -33,7 +33,7 @@
     "method": "PUT",
     "sortNum": 20000,
     "created": "2022-07-11T01:37:52.981Z",
-    "modified": "2022-09-16T08:45:53.562Z",
+    "modified": "2022-11-18T07:42:16.828Z",
     "headers": [],
     "params": [
       {
@@ -44,7 +44,7 @@
     ],
     "body": {
       "type": "json",
-      "raw": "{\n    \"version\":\"2.2\",\n    \"url\":\"https://peakd.com/keychain/@keychain/hive-keychain-v22--create-accounts--buy-hive-with-fiat\", \n    \"features\": {\n        \"en\": [\n            {\n                \"title\": \"Buy Hive with fiat\",\n                \"description\": \"Using Transak, buy HIVE via credit card, bank transfer, etc.\",\n                \"image\": \"https://files.peakd.com/file/peakd-hive/keychain/23tvB1s5x5d1xBh2edLAyNBapEW2nbtMxEsVrYdV9MZK89h91xCnJ33282ZhmnepaqdZx.png\",\n                \"anchor\": \"buy-hive\",\n                \"extraInformation\": \"Try it from 'Buy', then 'Transak'\"\n            },\n            {\n                \"title\": \"Create Accounts\",\n                \"description\": \"Buy new accounts or use your claimed account creation tickets to create new accounts.\",\n                \"image\": \"https://files.peakd.com/file/peakd-hive/keychain/23tGZdpWkaMf2EBaet9GFGTb4K8LNKMzvJuuuaHVuV9bLPK4NVZ5tS8vvUzEz6teFgAN7.png\",\n                \"anchor\": \"create-accounts\",\n                \"extraInformation\": \"Try it from 'Settings', 'Accounts' and then 'Create Account'\"\n            }\n        ]\n        \n    }\n} \n",
+      "raw": "{\n    \"version\":\"2.3\",\n    \"url\":\"https://peakd.com/keychain/@keychain/keychain-extension-2-3\", \n    \"features\": {\n        \"en\": [\n            {\n                \"title\": \"RC Delegations\",\n                \"description\": \"Delegate RC and visualize your delegations in a few click!\",\n                \"image\": \"https://files.peakd.com/file/peakd-hive/cedricguillas/23t7D8JzQ8YAuNmUFhvSTZ3AbuysdbpJE5MahVPvwxZiZ1hfg9hZSsVzrAKUZDqpJdyii.png\",\n                \"anchor\": \"rc-delegations\",\n                \"extraInformation\": \"Try it from the HP menu on your home page\"\n            },\n            {\n                \"title\": \"Transak is back!\",\n                \"description\": \"You can buy HIVE from fiat again!\",\n                \"image\": \"https://pbs.twimg.com/media/FgKCKu-WAAIBf0O?format=jpg&name=large\",\n                \"anchor\": \"transak\",\n                \"extraInformation\": \"Try it from 'Buy'\"\n            },\n            {\n                \"title\": \"Keychain is on Twitter!\",\n                \"description\": \"We are on Twitter! Check it out and follow us!\",\n                \"image\": \"https://pbs.twimg.com/profile_images/1488548719062654976/u6qfBBkF_400x400.jpg\",\n                \"externalUrl\": \"https://twitter.com/intent/follow?original_referer=https%3A%2F%2Fpublish.twitter.com%2F&ref_src=twsrc%5Etfw%7Ctwcamp%5Ebuttonembed%7Ctwterm%5Efollow%7Ctwgr%5EHiveKeychain&region=follow_link&screen_name=HiveKeychain\",\n                \"overrideReadMoreLabel\": \"Follow us!\"\n            }\n        ]\n    }\n}",
       "form": []
     },
     "tests": []
