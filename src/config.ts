@@ -24,4 +24,9 @@ export const Config = {
       WARN: 1,
     },
   },
+  swaps: {
+    marketPool: {
+      autoRefreshIntervalInSec: 30,
+    },
+  },
 };

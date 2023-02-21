@@ -8,10 +8,12 @@ import { BadActorsApi } from "./api/bad-actors.api";
 import { DelegationApi } from "./api/delegation.api";
 import { PriceApi } from "./api/price.api";
 import { RpcApi } from "./api/rpc.api";
+import { SwapTokenApi } from "./api/swap-token.api";
 import { VersionLogApi } from "./api/version-log.api";
 import { WitnessApi } from "./api/witness.api";
 import { Config } from "./config";
 import { PriceLogic } from "./logic/price.logic";
+import { SwapTokenLogic } from "./logic/swaps/swap-token.logic";
 
 var cors = require("cors");
 
@@ -21,9 +23,7 @@ const initServerRoutine = () => {
   const app = express();
   Logger.initLogger(Config.logger, process.env.NODE_ENV);
   setupRoutes(app);
-
-  PriceLogic.initFetchPrices();
-
+  setupRoutines();
   startServer(app);
 };
 
@@ -40,6 +40,12 @@ const setupRoutes = (app: express.Express) => {
   RpcApi.setupApis(app);
   VersionLogApi.setupApis(app);
   WitnessApi.setupApis(app);
+  SwapTokenApi.setupApis(app);
+};
+
+const setupRoutines = () => {
+  PriceLogic.initFetchPrices();
+  SwapTokenLogic.initAutoRefreshTokenMarketPool();
 };
 
 const startServer = (app: express.Express) => {
