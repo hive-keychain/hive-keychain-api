@@ -29,6 +29,6 @@ const calculateSwapOutput = (
   });
 };
 
-export const DSwapUtils = {
+export const DSwapLogic = {
   calculateSwapOutput,
 };

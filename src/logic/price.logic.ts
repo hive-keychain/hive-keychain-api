@@ -12,7 +12,7 @@ const refreshPrices = async () => {
 };
 
 const initFetchPrices = () => {
-  Logger.technical("Intializing fetch prices...");
+  Logger.technical("Initializing fetch prices...");
   refreshPrices();
   setInterval(() => {
     refreshPrices();

@@ -38,6 +38,6 @@ const getTokenMarketPool = async () => {
   });
 };
 
-export const LiquidityPoolUtils = {
+export const LiquidityPoolLogic = {
   getTokenMarketPool,
 };

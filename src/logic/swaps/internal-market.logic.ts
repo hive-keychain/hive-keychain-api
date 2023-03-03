@@ -65,7 +65,7 @@ const getBuyBookForToken = async (
   });
 };
 
-export const InternalMarketUtils = {
+export const InternalMarketLogic = {
   getBuyBookForToken,
   getSellBookForToken,
 };

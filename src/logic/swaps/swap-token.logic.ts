@@ -1,8 +1,8 @@
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import { Config } from "../../config";
 import { LiquidityPool } from "../../interfaces/tokens.interface";
-import { Book, InternalMarketUtils } from "./internal-market.utils";
-import { LiquidityPoolUtils } from "./liquidity-pool.utils";
+import { Book, InternalMarketLogic } from "./internal-market.logic";
+import { LiquidityPoolLogic } from "./liquidity-pool.logic";
 
 const SWAP_HIVE = "SWAP.HIVE";
 let liquidityPools: LiquidityPool[] = [];
@@ -72,7 +72,7 @@ const estimateValueFromInternalMarket = async (
   let filteredMarketItems = [];
   let startTokenRemaining = amount;
 
-  const sellMarket: Book[] = await InternalMarketUtils.getSellBookForToken(
+  const sellMarket: Book[] = await InternalMarketLogic.getSellBookForToken(
     startToken
   );
 
@@ -92,7 +92,7 @@ const estimateValueFromInternalMarket = async (
 
   if (endToken === SWAP_HIVE) return totalSwapHive;
 
-  const buyMarket: Book[] = await InternalMarketUtils.getBuyBookForToken(
+  const buyMarket: Book[] = await InternalMarketLogic.getBuyBookForToken(
     endToken
   );
 
@@ -115,7 +115,7 @@ const estimateValueFromInternalMarket = async (
 const refreshTokenMarketPool = async () => {
   Logger.info("Fetching market pool");
   try {
-    liquidityPools = await LiquidityPoolUtils.getTokenMarketPool();
+    liquidityPools = await LiquidityPoolLogic.getTokenMarketPool();
   } catch (err) {
     Logger.warn("Failed to fetch market pool");
   }
