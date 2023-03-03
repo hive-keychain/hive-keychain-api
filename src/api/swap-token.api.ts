@@ -13,15 +13,15 @@ const setupGetSwapEstimation = (app: Express) => {
   });
 };
 
-const setupGetFullMarketPool = (app: Express) => {
-  app.get("/token-swap/market-pools", (req, res) => {
-    res.send(SwapTokenLogic.getMarketPools());
+const setupGetFullLiquidityPool = (app: Express) => {
+  app.get("/token-swap/liquidity-pools", (req, res) => {
+    res.send(SwapTokenLogic.getLiquidityPools());
   });
 };
 
 const setupApis = (app: Express) => {
   setupGetSwapEstimation(app);
-  setupGetFullMarketPool(app);
+  setupGetFullLiquidityPool(app);
 };
 
 export const SwapTokenApi = { setupApis };

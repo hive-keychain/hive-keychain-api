@@ -10,7 +10,9 @@ export type TokenRequestParamsTable =
   | "delegations"
   | "batches"
   | "liquidityPositions"
-  | "pools";
+  | "pools"
+  | "buyBook"
+  | "sellBook";
 
 export interface TokenRequestParams {
   contract: TokenRequestParamsContrat;

@@ -1,44 +1,56 @@
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import { Config } from "../../config";
 import { LiquidityPool } from "../../interfaces/tokens.interface";
-import { HiveEngineUtils } from "../../utils/hive-engine.utils";
-import { DSwapUtils } from "./dswap.utils";
+import { Book, InternalMarketUtils } from "./internal-market.utils";
+import { LiquidityPoolUtils } from "./liquidity-pool.utils";
 
-let tokenMarketPool: LiquidityPool[] = [];
+const SWAP_HIVE = "SWAP.HIVE";
+let liquidityPools: LiquidityPool[] = [];
 
 const estimateSwapValue = async (
   startToken: string,
   endToken: string,
   amount: number
 ) => {
+  const [pool, internalMarket] = await Promise.all([
+    SwapTokenLogic.estimateLiquidityPoolValue(startToken, endToken, amount),
+    await SwapTokenLogic.estimateValueFromInternalMarket(
+      startToken,
+      endToken,
+      amount
+    ),
+  ]);
+
   return {
-    HELiquidityPool: estimateLiquidityValue(startToken, endToken, amount),
-    DSwap: await DSwapUtils.calculateSwapOutput(startToken, endToken, amount),
+    HELiquidityPool: pool,
+    internalMarket: internalMarket,
   };
 };
 
-const SWAP_HIVE = "SWAP.HIVE";
-
-const estimateLiquidityValue = (
+const estimateLiquidityPoolValue = (
   startToken: string,
   endToken: string,
   amount: number
 ) => {
-  let liquidity = tokenMarketPool.find(
+  let liquidity = liquidityPools.find(
     (p) => p.tokenPair === `${startToken}:${endToken}`
   );
   let num: number;
   let den: number;
   if (!liquidity) {
-    liquidity = tokenMarketPool.find(
+    liquidity = liquidityPools.find(
       (p) => p.tokenPair === `${endToken}:${startToken}`
     );
     if (liquidity) {
       num = liquidity.baseQuantity * amount;
       den = liquidity.quoteQuantity + amount;
     } else if (startToken !== SWAP_HIVE && endToken !== SWAP_HIVE) {
-      const nbSwapHive = estimateLiquidityValue(startToken, SWAP_HIVE, amount);
-      return estimateLiquidityValue(SWAP_HIVE, endToken, nbSwapHive);
+      const nbSwapHive = estimateLiquidityPoolValue(
+        startToken,
+        SWAP_HIVE,
+        amount
+      );
+      return estimateLiquidityPoolValue(SWAP_HIVE, endToken, nbSwapHive);
     }
   } else {
     num = liquidity.quoteQuantity * amount;
@@ -49,10 +61,61 @@ const estimateLiquidityValue = (
   return amountOut;
 };
 
+const estimateValueFromInternalMarket = async (
+  startToken: string,
+  endToken: string,
+  amount: number
+) => {
+  Logger.info(`Tring to convert ${amount} ${startToken} to ${endToken}`);
+
+  let totalSwapHive = 0;
+  let filteredMarketItems = [];
+  let startTokenRemaining = amount;
+
+  const sellMarket: Book[] = await InternalMarketUtils.getSellBookForToken(
+    startToken
+  );
+
+  for (const marketItem of sellMarket) {
+    const totalNeededFromItem =
+      marketItem.quantity > startTokenRemaining
+        ? startTokenRemaining
+        : marketItem.quantity;
+
+    totalSwapHive += totalNeededFromItem * marketItem.price;
+    startTokenRemaining -= totalNeededFromItem;
+
+    if (startTokenRemaining === 0) break;
+  }
+
+  if (startToken === SWAP_HIVE) totalSwapHive = amount;
+
+  if (endToken === SWAP_HIVE) return totalSwapHive;
+
+  const buyMarket: Book[] = await InternalMarketUtils.getBuyBookForToken(
+    endToken
+  );
+
+  filteredMarketItems = [];
+  let totalEndToken = 0;
+  let totalSwapHiveRemaining = totalSwapHive;
+  for (const marketItem of buyMarket) {
+    const totalNeededFromItem =
+      marketItem.quantity > totalSwapHiveRemaining
+        ? totalSwapHiveRemaining
+        : marketItem.quantity;
+
+    totalEndToken += totalNeededFromItem / marketItem.price;
+    totalSwapHiveRemaining -= totalNeededFromItem;
+
+    if (totalSwapHiveRemaining === 0) return totalEndToken;
+  }
+};
+
 const refreshTokenMarketPool = async () => {
   Logger.info("Fetching market pool");
   try {
-    tokenMarketPool = await SwapTokenLogic.getTokenMarketPool();
+    liquidityPools = await LiquidityPoolUtils.getTokenMarketPool();
   } catch (err) {
     Logger.warn("Failed to fetch market pool");
   }
@@ -65,51 +128,15 @@ const initAutoRefreshTokenMarketPool = () => {
   }, Config.swaps.marketPool.autoRefreshIntervalInSec * 1000);
 };
 
-const getTokenMarketPool = async () => {
-  let pool = [];
-  let offset = 0;
-
-  let res = [];
-  do {
-    res = await HiveEngineUtils.get({
-      contract: "marketpools",
-      table: "pools",
-      query: {},
-      limit: 1000,
-      offset: offset,
-      indexes: [],
-    });
-    // console.log(
-    //   `offset => ${offset} / pool size => ${pool.length} / res => ${res.length}`
-    // );
-    offset += 1000;
-    pool = [...pool, ...res];
-  } while (res.length === 1000);
-  return pool.map((l) => {
-    return {
-      _id: l._id,
-      tokenPair: l.tokenPair,
-      baseQuantity: Number(l.baseQuantity),
-      baseVolume: Number(l.baseVolume),
-      basePrice: Number(l.basePrice),
-      quoteQuantity: Number(l.quoteQuantity),
-      quoteVolume: Number(l.quoteVolume),
-      quotePrice: Number(l.quotePrice),
-      totalShares: Number(l.totalShares),
-      precision: l.precision,
-      creator: l.creator,
-    } as LiquidityPool;
-  });
-};
-
-const getMarketPools = () => {
-  return tokenMarketPool;
+const getLiquidityPools = () => {
+  return liquidityPools;
 };
 
 export const SwapTokenLogic = {
   estimateSwapValue,
-  getTokenMarketPool,
+  estimateValueFromInternalMarket,
+  estimateLiquidityPoolValue,
   refreshTokenMarketPool,
   initAutoRefreshTokenMarketPool,
-  getMarketPools,
+  getLiquidityPools,
 };

@@ -24,7 +24,6 @@ const calculateSwapOutput = (
         }
       })
       .then((res: any) => {
-        console.log(res);
         resolve(res.TokenOutputAmount);
       });
   });
