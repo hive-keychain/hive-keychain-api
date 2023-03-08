@@ -13,7 +13,7 @@ import { VersionLogApi } from "./api/version-log.api";
 import { WitnessApi } from "./api/witness.api";
 import { Config } from "./config";
 import { PriceLogic } from "./logic/price.logic";
-import { SwapTokenLogic } from "./logic/swaps/swap-token.logic";
+import { SwapTokenLogic } from "./logic/swaps/swap-tokens/swap-token.logic";
 
 var cors = require("cors");
 

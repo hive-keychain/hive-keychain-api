@@ -1,20 +1,10 @@
-import { Asset, Client } from "@hiveio/dhive";
+import { Asset } from "@hiveio/dhive";
 import { HiveEngineUtils } from "./hive-engine.utils";
-
-let hiveClient: Client;
-
-const getClient = () => {
-  if (!hiveClient)
-    hiveClient = new Client([
-      "https://api.deathwing.me",
-      "https://api.hive.blog",
-    ]);
-  return hiveClient;
-};
+import { HiveUtils } from "./hive.utils";
 
 const getHiveBalance = async (username: string) => {
   const extendedAccount = (
-    await getClient().database.getAccounts([username])
+    await HiveUtils.getClient().database.getAccounts([username])
   )[0];
   return Asset.from(extendedAccount.balance).amount;
 };
@@ -30,10 +20,22 @@ const getSwapHiveBalance = async (username: string) => {
   });
   const swapHiveToken = tokens.find((t) => t.symbol === "SWAP.HIVE");
   if (!swapHiveToken) return 0;
-  return Number(swapHiveToken);
+  return Number(swapHiveToken.balance);
+};
+
+const getBalances = async (provider: string) => {
+  const [hive, swapHive] = await Promise.all([
+    BalancesUtils.getHiveBalance(provider),
+    BalancesUtils.getSwapHiveBalance(provider),
+  ]);
+  return {
+    hive,
+    swapHive,
+  };
 };
 
 export const BalancesUtils = {
   getHiveBalance,
   getSwapHiveBalance,
+  getBalances,
 };

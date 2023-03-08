@@ -1,37 +1,47 @@
 import Logger from "hive-keychain-commons/lib/logger/logger";
-import { Config } from "../../config";
-import { LiquidityPool } from "../../interfaces/tokens.interface";
+import { Config } from "../../../config";
+import {
+  Provider,
+  SwapStep,
+  SwapStepType,
+} from "../../../interfaces/swap.interface";
+import { LiquidityPool, SWAP_HIVE } from "../../../interfaces/tokens.interface";
 import { Book, InternalMarketLogic } from "./internal-market.logic";
 import { LiquidityPoolLogic } from "./liquidity-pool.logic";
 
-const SWAP_HIVE = "SWAP.HIVE";
 let liquidityPools: LiquidityPool[] = [];
 
 const estimateSwapValue = async (
   startToken: string,
   endToken: string,
   amount: number
-) => {
-  const [pool, internalMarket] = await Promise.all([
+): Promise<SwapStep[]> => {
+  const swapEstimates = await Promise.all([
     SwapTokenLogic.estimateLiquidityPoolValue(startToken, endToken, amount),
-    await SwapTokenLogic.estimateValueFromInternalMarket(
+    SwapTokenLogic.estimateValueFromInternalMarket(
       startToken,
       endToken,
       amount
     ),
   ]);
 
-  return {
-    HELiquidityPool: pool,
-    internalMarket: internalMarket,
-  };
+  let selectedSwapSteps: SwapStep[] = [];
+  let maxEstimate = 0;
+
+  for (const steps of swapEstimates) {
+    if (steps[steps.length - 1].estimate > maxEstimate) {
+      selectedSwapSteps = steps;
+    }
+  }
+
+  return selectedSwapSteps;
 };
 
 const estimateLiquidityPoolValue = (
   startToken: string,
   endToken: string,
   amount: number
-) => {
+): SwapStep[] => {
   let liquidity = liquidityPools.find(
     (p) => p.tokenPair === `${startToken}:${endToken}`
   );
@@ -45,12 +55,19 @@ const estimateLiquidityPoolValue = (
       num = liquidity.baseQuantity * amount;
       den = liquidity.quoteQuantity + amount;
     } else if (startToken !== SWAP_HIVE && endToken !== SWAP_HIVE) {
-      const nbSwapHive = estimateLiquidityPoolValue(
+      const swapStep = estimateLiquidityPoolValue(
         startToken,
         SWAP_HIVE,
         amount
       );
-      return estimateLiquidityPoolValue(SWAP_HIVE, endToken, nbSwapHive);
+      return [
+        ...swapStep,
+        ...estimateLiquidityPoolValue(
+          SWAP_HIVE,
+          endToken,
+          swapStep[swapStep.length - 1].estimate
+        ),
+      ];
     }
   } else {
     num = liquidity.quoteQuantity * amount;
@@ -58,7 +75,15 @@ const estimateLiquidityPoolValue = (
   }
 
   const amountOut = num / den;
-  return amountOut;
+  return [
+    {
+      step: SwapStepType.SWAP_TOKEN,
+      provider: Provider.LIQUIDITY_POOL,
+      startToken: startToken,
+      endToken: endToken,
+      estimate: amountOut,
+    },
+  ];
 };
 
 const estimateValueFromInternalMarket = async (
@@ -66,11 +91,11 @@ const estimateValueFromInternalMarket = async (
   endToken: string,
   amount: number
 ) => {
-  Logger.info(`Tring to convert ${amount} ${startToken} to ${endToken}`);
-
   let totalSwapHive = 0;
   let filteredMarketItems = [];
   let startTokenRemaining = amount;
+
+  const steps: SwapStep[] = [];
 
   const sellMarket: Book[] = await InternalMarketLogic.getSellBookForToken(
     startToken
@@ -85,12 +110,23 @@ const estimateValueFromInternalMarket = async (
     totalSwapHive += totalNeededFromItem * marketItem.price;
     startTokenRemaining -= totalNeededFromItem;
 
-    if (startTokenRemaining === 0) break;
+    if (startTokenRemaining === 0) {
+      steps.push({
+        estimate: totalSwapHive,
+        provider: Provider.HIVE_ENGINE_INTERNAL_MARKET,
+        startToken: startToken,
+        endToken: SWAP_HIVE,
+        step: SwapStepType.SELL_ON_MARKET,
+      });
+      break;
+    }
   }
 
-  if (startToken === SWAP_HIVE) totalSwapHive = amount;
+  if (startToken === SWAP_HIVE) {
+    totalSwapHive = amount;
+  }
 
-  if (endToken === SWAP_HIVE) return totalSwapHive;
+  if (endToken === SWAP_HIVE) return steps;
 
   const buyMarket: Book[] = await InternalMarketLogic.getBuyBookForToken(
     endToken
@@ -108,7 +144,16 @@ const estimateValueFromInternalMarket = async (
     totalEndToken += totalNeededFromItem / marketItem.price;
     totalSwapHiveRemaining -= totalNeededFromItem;
 
-    if (totalSwapHiveRemaining === 0) return totalEndToken;
+    if (totalSwapHiveRemaining === 0) {
+      steps.push({
+        estimate: totalEndToken,
+        provider: Provider.HIVE_ENGINE_INTERNAL_MARKET,
+        startToken: SWAP_HIVE,
+        endToken: endToken,
+        step: SwapStepType.BUY_ON_MARKET,
+      });
+      return steps;
+    }
   }
 };
 

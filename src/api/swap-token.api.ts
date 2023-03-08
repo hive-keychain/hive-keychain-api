@@ -1,10 +1,11 @@
 import { Express } from "express";
-import { SwapTokenLogic } from "../logic/swaps/swap-token.logic";
+import { SwapTokenLogic } from "../logic/swaps/swap-tokens/swap-token.logic";
+import { SwapsLogic } from "../logic/swaps/swaps.logic";
 
 const setupGetSwapEstimation = (app: Express) => {
   app.get("/token-swap/estimate/:from/:to/:amount", async (req, res) => {
     res.send(
-      await SwapTokenLogic.estimateSwapValue(
+      await SwapsLogic.estimateSwapValue(
         req.params.from,
         req.params.to,
         parseFloat(req.params.amount)

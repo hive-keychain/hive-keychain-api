@@ -35,3 +35,7 @@ export interface LiquidityPool {
   precision: number;
   creator: string;
 }
+
+export const HIVE = "HIVE";
+export const HBD = "HBD";
+export const SWAP_HIVE = "SWAP.HIVE";

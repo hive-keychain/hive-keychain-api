@@ -1,4 +1,4 @@
-import { HiveEngineUtils } from "../../utils/hive-engine.utils";
+import { HiveEngineUtils } from "../../../utils/hive-engine.utils";
 
 export interface Book {
   _id: number;
