@@ -28,6 +28,10 @@ const estimateSwapValue = async (
   let selectedSwapSteps: SwapStep[] = [];
   let maxEstimate = 0;
 
+  console.log("------------estimateSwapValue------------");
+  console.log(swapEstimates);
+  console.log("------------------------");
+
   for (const steps of swapEstimates) {
     if (steps[steps.length - 1].estimate > maxEstimate) {
       selectedSwapSteps = steps;
@@ -112,11 +116,11 @@ const estimateValueFromInternalMarket = async (
 
     if (startTokenRemaining === 0) {
       steps.push({
-        estimate: totalSwapHive,
+        step: SwapStepType.SELL_ON_HIVE_ENGINE_MARKET,
         provider: Provider.HIVE_ENGINE_INTERNAL_MARKET,
         startToken: startToken,
         endToken: SWAP_HIVE,
-        step: SwapStepType.SELL_ON_MARKET,
+        estimate: totalSwapHive,
       });
       break;
     }
@@ -146,11 +150,11 @@ const estimateValueFromInternalMarket = async (
 
     if (totalSwapHiveRemaining === 0) {
       steps.push({
-        estimate: totalEndToken,
+        step: SwapStepType.BUY_ON_HIVE_ENGINE_MARKET,
         provider: Provider.HIVE_ENGINE_INTERNAL_MARKET,
         startToken: SWAP_HIVE,
         endToken: endToken,
-        step: SwapStepType.BUY_ON_MARKET,
+        estimate: totalEndToken,
       });
       return steps;
     }

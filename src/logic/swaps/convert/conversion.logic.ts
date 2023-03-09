@@ -1,3 +1,4 @@
+import Logger from "hive-keychain-commons/lib/logger/logger";
 import {
   Provider,
   SwapStep,
@@ -12,6 +13,7 @@ const getConversionEstimate = async (
   startToken: string,
   endToken: string
 ) => {
+  Logger.info(`Trying to convert ${amount} ${startToken} to ${endToken}`);
   if (startToken === HIVE) {
     return [await getDepositEstimates(amount)];
   } else if (startToken === HBD) {
@@ -47,14 +49,15 @@ const getInternalMarketConversionEstimate = async (
   endToken: string,
   amount: number
 ): Promise<SwapStep> => {
-  const internalMarket = await InternalMarketLogic.getMarket();
-  return {
-    step: SwapStepType.CONVERT_INTERNAL_MARKET,
-    estimate: 25,
-    startToken: startToken,
-    endToken: endToken,
-    provider: Provider.HIVE_INTERNAL_MARKET,
-  };
+  Logger.info(
+    `Trying to convert ${amount} ${startToken} to ${endToken} through Hive internal market`
+  );
+
+  if (startToken === HIVE) {
+    return InternalMarketLogic.estimateHiveToHbd(amount);
+  } else {
+    return InternalMarketLogic.estimateHbdToHive(amount);
+  }
 };
 
 const getWithdrawalEstimates = async (amount: number) => {
@@ -69,12 +72,16 @@ const getWithdrawalEstimates = async (amount: number) => {
   ]);
 
   let selectedWithdrawalStep: SwapStep = {
+    step: SwapStepType.WITHDRAWAL_FROM_HIVE_ENGINE,
+    provider: "",
     startToken: SWAP_HIVE,
     endToken: HIVE,
     estimate: 0,
-    provider: "",
-    step: SwapStepType.WITHDRAWAL_FROM_HIVE_ENGINE,
   };
+
+  console.log("------------getWithdrawalEstimates------------");
+  console.log(withdrawalSteps);
+  console.log("------------------------");
 
   for (const step of withdrawalSteps) {
     if (step.estimate > selectedWithdrawalStep.estimate) {
@@ -93,12 +100,16 @@ const getDepositEstimates = async (amount: number) => {
     ConvertProviderLogic.getDepositEstimate(amount, Provider.LEODEX),
   ]);
 
+  console.log("------------getDepositEstimates------------");
+  console.log(depositEstimateSteps);
+  console.log("------------------------");
+
   let selectedDepositStep: SwapStep = {
+    step: SwapStepType.DEPOSIT_TO_HIVE_ENGINE,
+    provider: "",
     startToken: HIVE,
     endToken: SWAP_HIVE,
     estimate: 0,
-    provider: "",
-    step: SwapStepType.DEPOSIT_TO_HIVE_ENGINE,
   };
 
   for (const step of depositEstimateSteps) {

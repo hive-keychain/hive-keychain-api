@@ -40,11 +40,11 @@ const getDepositEstimate = async (
     );
   }
   return {
+    step: SwapStepType.DEPOSIT_TO_HIVE_ENGINE,
     provider: providerConfig.name,
     startToken: HIVE,
     endToken: SWAP_HIVE,
     estimate: finalAmount,
-    step: SwapStepType.DEPOSIT_TO_HIVE_ENGINE,
   };
 };
 
@@ -69,7 +69,7 @@ const getWithdrawalEstimate = async (
       finalAmount = amount;
     } else {
       const fee = Math.max(
-        amount * providerConfig.withdrawal.fee,
+        (amount * providerConfig.withdrawal.fee) / 100.0,
         providerConfig.withdrawal.minimumFee
       );
       finalAmount = amount - fee;
@@ -80,11 +80,11 @@ const getWithdrawalEstimate = async (
     );
   }
   return {
+    step: SwapStepType.WITHDRAWAL_FROM_HIVE_ENGINE,
     provider: providerConfig.name,
     startToken: SWAP_HIVE,
     endToken: HIVE,
     estimate: finalAmount,
-    step: SwapStepType.WITHDRAWAL_FROM_HIVE_ENGINE,
   };
 };
 

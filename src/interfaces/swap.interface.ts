@@ -4,6 +4,7 @@ export interface SwapStep {
   startToken: string;
   endToken: string;
   provider: string;
+  res?: any;
 }
 
 export enum SwapStepType {
@@ -11,6 +12,8 @@ export enum SwapStepType {
   WITHDRAWAL_FROM_HIVE_ENGINE = "WITHDRAWAL_FROM_HIVE_ENGINE",
   CONVERT_INTERNAL_MARKET = "CONVERT_INTERNAL_MARKET",
   SWAP_TOKEN = "SWAP",
+  BUY_ON_HIVE_ENGINE_MARKET = "BUY_ON_HIVE_ENGINE_MARKET",
+  SELL_ON_HIVE_ENGINE_MARKET = "SELL_ON_HIVE_ENGINE_MARKET",
   BUY_ON_MARKET = "BUY_ON_MARKET",
   SELL_ON_MARKET = "SELL_ON_MARKET",
 }

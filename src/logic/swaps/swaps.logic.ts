@@ -10,7 +10,7 @@ const estimateSwapValue = async (
   amount: number
 ): Promise<SwapStep[] | string> => {
   let steps: SwapStep[] = [];
-  Logger.info(`Tring to swap ${amount} ${startToken} to ${endToken}`);
+  Logger.info(`Trying to swap ${amount} ${startToken} to ${endToken}`);
 
   if (
     (startToken === HIVE && endToken === HBD) ||
@@ -35,15 +35,24 @@ const estimateSwapValue = async (
     steps = [...steps, ...conversionSteps];
     if (endToken === SWAP_HIVE) return steps;
 
-    if (conversionSteps[conversionSteps.length - 1].estimate === 0)
+    if (
+      !conversionSteps ||
+      conversionSteps[conversionSteps.length - 1]?.estimate === 0
+    )
       return "Operation not possible at the moment";
   }
 
   // estimate swap token
+
+  const swapStepStartToken =
+    steps.length > 0 ? steps[steps.length - 1].endToken : startToken;
+  const swapStepAmount =
+    steps.length > 0 ? steps[steps.length - 1].estimate : amount;
+
   const swapValueSteps = await SwapTokenLogic.estimateSwapValue(
-    steps.length > 0 ? steps[steps.length - 1].endToken : startToken,
+    swapStepStartToken,
     endToken,
-    steps[steps.length - 1].estimate
+    swapStepAmount
   );
   steps = [...steps, ...swapValueSteps];
 
