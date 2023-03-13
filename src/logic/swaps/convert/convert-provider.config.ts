@@ -76,11 +76,13 @@ const config: IConvertProviderConfig = {
         fee: 0.75,
         minimumFee: 0.0,
         balancedFreeFee: false,
+        skipBalanceCheck: true,
       },
       deposit: {
         fee: 0.75,
         minimumFee: 0.0,
         balancedFreeFee: false,
+        skipBalanceCheck: true,
       },
     },
   },
@@ -104,4 +106,5 @@ interface IConvertOptions {
   fee: number;
   minimumFee: number;
   balancedFreeFee: boolean;
+  skipBalanceCheck?: boolean;
 }

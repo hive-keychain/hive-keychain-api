@@ -49,20 +49,27 @@ const estimateSwapValue = async (
   const swapStepAmount =
     steps.length > 0 ? steps[steps.length - 1].estimate : amount;
 
-  const swapValueSteps = await SwapTokenLogic.estimateSwapValue(
-    swapStepStartToken,
-    endToken,
-    swapStepAmount
-  );
-  steps = [...steps, ...swapValueSteps];
+  const swapEndToken =
+    endToken === HIVE || endToken === HBD ? SWAP_HIVE : endToken;
 
-  if (swapValueSteps[swapValueSteps.length - 1].estimate === 0)
-    return "Operation not possible at the moment";
+  if (startToken !== SWAP_HIVE) {
+    const swapValueSteps = await SwapTokenLogic.estimateSwapValue(
+      swapStepStartToken,
+      swapEndToken,
+      swapStepAmount
+    );
+    steps = [...steps, ...swapValueSteps];
+
+    if (swapValueSteps[swapValueSteps.length - 1].estimate === 0)
+      return "Operation not possible at the moment";
+  }
 
   if (endToken === HIVE || endToken === HBD) {
+    const convertAmount =
+      steps.length > 0 ? steps[steps.length - 1].estimate : amount;
     // estimate convert
     const finalConvertStep = await ConversionLogic.getConversionEstimate(
-      steps[steps.length - 1].estimate,
+      convertAmount,
       SWAP_HIVE,
       endToken
     );

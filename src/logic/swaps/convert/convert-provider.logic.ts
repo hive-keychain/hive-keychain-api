@@ -17,7 +17,7 @@ const getDepositEstimate = async (
   const balances = await BalancesUtils.getBalances(providerConfig.accountName);
 
   let finalAmount = 0;
-  if (balances.swapHive >= amount) {
+  if (balances.swapHive >= amount || providerConfig.deposit.skipBalanceCheck) {
     Logger.info(
       `${providerConfig.fullName} SWAP.HIVE balance (${balances.swapHive}) is sufficient for a deposit`
     );
@@ -29,7 +29,7 @@ const getDepositEstimate = async (
       finalAmount = amount;
     } else {
       const fee = Math.max(
-        amount * providerConfig.deposit.fee,
+        (amount * providerConfig.deposit.fee) / 100,
         providerConfig.deposit.minimumFee
       );
       finalAmount = amount - fee;
@@ -57,7 +57,7 @@ const getWithdrawalEstimate = async (
   const balances = await BalancesUtils.getBalances(providerConfig.accountName);
 
   let finalAmount = 0;
-  if (balances.hive >= amount) {
+  if (balances.hive >= amount || providerConfig.withdrawal.skipBalanceCheck) {
     Logger.info(
       `${providerConfig.fullName} HIVE balance (${balances.hive}) is sufficient for a withdrawal`
     );
@@ -72,6 +72,7 @@ const getWithdrawalEstimate = async (
         (amount * providerConfig.withdrawal.fee) / 100.0,
         providerConfig.withdrawal.minimumFee
       );
+      console.log(fee);
       finalAmount = amount - fee;
     }
   } else {

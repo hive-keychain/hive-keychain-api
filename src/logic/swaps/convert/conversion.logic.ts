@@ -19,7 +19,7 @@ const getConversionEstimate = async (
   } else if (startToken === HBD) {
     const internalMarketResult = await getInternalMarketConversionEstimate(
       startToken,
-      endToken,
+      HIVE,
       amount
     );
     return [
@@ -35,7 +35,7 @@ const getConversionEstimate = async (
     return [
       withdrawalEstimateStep,
       await getInternalMarketConversionEstimate(
-        startToken,
+        HIVE,
         endToken,
         withdrawalEstimateStep.estimate
       ),
@@ -69,6 +69,7 @@ const getWithdrawalEstimates = async (amount: number) => {
     ),
     ConvertProviderLogic.getWithdrawalEstimate(amount, Provider.HIVE_PAY),
     ConvertProviderLogic.getWithdrawalEstimate(amount, Provider.LEODEX),
+    ConvertProviderLogic.getWithdrawalEstimate(amount, Provider.HIVE_ENGINE),
   ]);
 
   let selectedWithdrawalStep: SwapStep = {
@@ -98,6 +99,7 @@ const getDepositEstimates = async (amount: number) => {
     ConvertProviderLogic.getDepositEstimate(amount, Provider.DISCOUNTED_BRIDGE),
     ConvertProviderLogic.getDepositEstimate(amount, Provider.HIVE_PAY),
     ConvertProviderLogic.getDepositEstimate(amount, Provider.LEODEX),
+    ConvertProviderLogic.getDepositEstimate(amount, Provider.HIVE_ENGINE),
   ]);
 
   console.log("------------getDepositEstimates------------");
