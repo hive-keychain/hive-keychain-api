@@ -3,6 +3,7 @@ import { SwapStep } from "../../interfaces/swap.interface";
 import { HBD, HIVE, SWAP_HIVE } from "../../interfaces/tokens.interface";
 import { ConversionLogic } from "./convert/conversion.logic";
 import { SwapTokenLogic } from "./swap-tokens/swap-token.logic";
+import { TransactionsLogic } from "./transactions/transactions.logic";
 
 const estimateSwapValue = async (
   startToken: string,
@@ -80,6 +81,12 @@ const estimateSwapValue = async (
   return steps;
 };
 
+const initializeSwapRoutine = async () => {
+  TransactionsLogic.startLayer1Routine();
+  TransactionsLogic.startLayer2Routine();
+};
+
 export const SwapsLogic = {
   estimateSwapValue,
+  initializeSwapRoutine,
 };

@@ -25,8 +25,11 @@ export const Config = {
     },
   },
   swaps: {
+    account: "cedric.tests2",
+    fetchIntervalInSec: 3,
     marketPool: {
       autoRefreshIntervalInSec: 30,
     },
+    blockInfoFilePath: process.env.BLOCK_INFO_FILE_PATH,
   },
 };

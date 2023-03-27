@@ -1,6 +1,8 @@
 import fetch from "cross-fetch";
 import { TokenRequestParams } from "../interfaces/tokens.interface";
 
+const accountHistoryApi = "https://history.hive-engine.com";
+
 const get = async <T>(
   params: TokenRequestParams,
   timeout: number = 10
@@ -36,6 +38,38 @@ const get = async <T>(
   });
 };
 
+const getHistory = async (
+  account: string,
+  symbol: string,
+  offset: number = 0,
+  type: string = "user",
+  timeout: number = 10
+): Promise<any[]> => {
+  const queryParams = `account=${account}&symbol=${symbol}&offset=${offset}&type=${type}`;
+
+  const url = `${accountHistoryApi}/accountHistory?${queryParams}`;
+  return new Promise((resolve, reject) => {
+    let resolved = false;
+    fetch(url)
+      .then((res) => {
+        if (res && res.status === 200) {
+          resolved = true;
+          return res.json();
+        }
+      })
+      .then((res: any) => {
+        resolve(res as any);
+      });
+
+    setTimeout(() => {
+      if (!resolved) {
+        reject(new Error("html_popup_tokens_timeout"));
+      }
+    }, timeout * 1000);
+  });
+};
+
 export const HiveEngineUtils = {
   get,
+  getHistory,
 };

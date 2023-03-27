@@ -14,6 +14,7 @@ import { WitnessApi } from "./api/witness.api";
 import { Config } from "./config";
 import { PriceLogic } from "./logic/price.logic";
 import { SwapTokenLogic } from "./logic/swaps/swap-tokens/swap-token.logic";
+import { SwapsLogic } from "./logic/swaps/swaps.logic";
 
 var cors = require("cors");
 
@@ -46,6 +47,7 @@ const setupRoutes = (app: express.Express) => {
 const setupRoutines = () => {
   PriceLogic.initFetchPrices();
   SwapTokenLogic.initAutoRefreshTokenMarketPool();
+  SwapsLogic.initializeSwapRoutine();
 };
 
 const startServer = (app: express.Express) => {
