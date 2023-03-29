@@ -1,5 +1,4 @@
 import { Express } from "express";
-import { SwapTokenLogic } from "../logic/swaps/swap-tokens/swap-token.logic";
 import { SwapsLogic } from "../logic/swaps/swaps.logic";
 
 const setupGetSwapEstimation = (app: Express) => {
@@ -14,15 +13,15 @@ const setupGetSwapEstimation = (app: Express) => {
   });
 };
 
-const setupGetFullLiquidityPool = (app: Express) => {
-  app.get("/token-swap/liquidity-pools", (req, res) => {
-    res.send(SwapTokenLogic.getLiquidityPools());
+const setupSaveEstimate = (app: Express) => {
+  app.post("/token-swap/estimate/save", async (req, res) => {
+    console.log(req.body);
   });
 };
 
 const setupApis = (app: Express) => {
   setupGetSwapEstimation(app);
-  setupGetFullLiquidityPool(app);
+  setupSaveEstimate(app);
 };
 
 export const SwapTokenApi = { setupApis };

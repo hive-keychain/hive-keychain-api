@@ -1,5 +1,5 @@
 import { Express } from "express";
-import { VersionLogLogic } from "../logic/version-log.logic";
+import { VersionLogLogic } from "../version-logs/version-log.logic";
 
 const setupGetLastExtensionVersion = (app: Express) => {
   app.get("/hive/last-extension-version", async (req, res) => {

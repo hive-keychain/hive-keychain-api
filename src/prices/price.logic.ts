@@ -1,7 +1,35 @@
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import req from "request";
 
-let prices;
+interface Prices {
+  bitcoin: {
+    usd: number;
+    usd_24h_change: number;
+  };
+  hive: {
+    usd: number;
+    usd_24h_change: number;
+  };
+  hive_dollar: {
+    usd: number;
+    usd_24h_change: number;
+  };
+}
+
+let prices: Prices = {
+  bitcoin: {
+    usd: 24971,
+    usd_24h_change: 2.8864365036934996,
+  },
+  hive: {
+    usd: 0.414219,
+    usd_24h_change: 3.615225340502734,
+  },
+  hive_dollar: {
+    usd: 1.004,
+    usd_24h_change: 2.0253892750535076,
+  },
+};
 const refreshPrices = async () => {
   Logger.info("Fetching prices");
 
@@ -14,16 +42,19 @@ const refreshPrices = async () => {
 const initFetchPrices = () => {
   Logger.technical("Initializing fetch prices...");
   refreshPrices();
-  setInterval(() => {
-    refreshPrices();
-  }, 20000);
+  setInterval(
+    () => {
+      refreshPrices();
+    },
+    process.env.DEV ? 100000 : 20000
+  );
 };
 
 const getPrices = async () => {
   return prices;
 };
 
-const fetchPrices = async () => {
+const fetchPrices = async (): Promise<Prices> => {
   return new Promise((fulfill) => {
     req(
       {
@@ -32,7 +63,11 @@ const fetchPrices = async () => {
       },
       (err, http, body) => {
         if (err || !body.bitcoin || !body.hive || !body.hive_dollar) {
-          console.log(err);
+          console.log("error while fetching price", err, {
+            bitcoin: body.bitcoin,
+            hive: body.hive,
+            hive_dollar: body.hive_dollar,
+          });
         } else {
           fulfill(body);
         }

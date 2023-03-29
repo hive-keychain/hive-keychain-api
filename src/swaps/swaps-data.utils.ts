@@ -1,7 +1,7 @@
 import path from "path";
 
 // load lib...
-const JSONFileStorage = require("node-json-file-storage"); // adjust the require path, if not installed via npm/yarn
+const JSONFileStorage = require("node-json-file-storage");
 
 // create store...
 const layer1 = path.join(

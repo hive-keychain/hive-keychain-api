@@ -12,17 +12,20 @@ import { SwapTokenApi } from "./api/swap-token.api";
 import { VersionLogApi } from "./api/version-log.api";
 import { WitnessApi } from "./api/witness.api";
 import { Config } from "./config";
-import { PriceLogic } from "./logic/price.logic";
 import { SwapTokenLogic } from "./logic/swaps/swap-tokens/swap-token.logic";
 import { SwapsLogic } from "./logic/swaps/swaps.logic";
+import { PriceLogic } from "./prices/price.logic";
+import { SwapDataSource } from "./swaps/database/data-source";
+import { SwapDatabaseModule } from "./swaps/database/swaps/typeorm";
 
 var cors = require("cors");
 
 const PORT = process.env.PORT || 3000;
 
-const initServerRoutine = () => {
+const initServerRoutine = async () => {
   const app = express();
   Logger.initLogger(Config.logger, process.env.NODE_ENV);
+  await SwapDatabaseModule.initDatabaseConnection(SwapDataSource);
   setupRoutes(app);
   setupRoutines();
   startServer(app);

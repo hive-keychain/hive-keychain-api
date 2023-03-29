@@ -1,10 +1,14 @@
-export interface SwapStep {
+export interface EstimateSwapStep {
   step: SwapStepType;
   estimate: number;
   startToken: string;
   endToken: string;
   provider: string;
-  res?: any;
+}
+
+export interface BaseEstimate {
+  slipperage: number;
+  estimate: EstimateSwapStep[];
 }
 
 export enum SwapStepType {

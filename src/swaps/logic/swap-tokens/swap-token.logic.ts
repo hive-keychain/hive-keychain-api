@@ -1,8 +1,8 @@
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import { Config } from "../../../config";
 import {
+  EstimateSwapStep,
   Provider,
-  SwapStep,
   SwapStepType,
 } from "../../../interfaces/swap.interface";
 import { LiquidityPool, SWAP_HIVE } from "../../../interfaces/tokens.interface";
@@ -15,7 +15,7 @@ const estimateSwapValue = async (
   startToken: string,
   endToken: string,
   amount: number
-): Promise<SwapStep[]> => {
+): Promise<EstimateSwapStep[]> => {
   const swapEstimates = await Promise.all([
     SwapTokenLogic.estimateLiquidityPoolValue(startToken, endToken, amount),
     SwapTokenLogic.estimateValueFromInternalMarket(
@@ -25,7 +25,7 @@ const estimateSwapValue = async (
     ),
   ]);
 
-  let selectedSwapSteps: SwapStep[] = [];
+  let selectedSwapSteps: EstimateSwapStep[] = [];
   let maxEstimate = 0;
 
   console.log("------------estimateSwapValue------------");
@@ -45,7 +45,7 @@ const estimateLiquidityPoolValue = (
   startToken: string,
   endToken: string,
   amount: number
-): SwapStep[] => {
+): EstimateSwapStep[] => {
   let liquidity = liquidityPools.find(
     (p) => p.tokenPair === `${startToken}:${endToken}`
   );
@@ -99,7 +99,7 @@ const estimateValueFromInternalMarket = async (
   let filteredMarketItems = [];
   let startTokenRemaining = amount;
 
-  const steps: SwapStep[] = [];
+  const steps: EstimateSwapStep[] = [];
 
   const sellMarket: Book[] = await InternalMarketLogic.getSellBookForToken(
     startToken

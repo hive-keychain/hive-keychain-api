@@ -1,16 +1,18 @@
 import Logger from "hive-keychain-commons/lib/logger/logger";
-import { SwapStep } from "../../interfaces/swap.interface";
+import {
+  BaseEstimate,
+  EstimateSwapStep,
+} from "../../interfaces/swap.interface";
 import { HBD, HIVE, SWAP_HIVE } from "../../interfaces/tokens.interface";
 import { ConversionLogic } from "./convert/conversion.logic";
 import { SwapTokenLogic } from "./swap-tokens/swap-token.logic";
-import { TransactionsLogic } from "./transactions/transactions.logic";
 
 const estimateSwapValue = async (
   startToken: string,
   endToken: string,
   amount: number
-): Promise<SwapStep[] | string> => {
-  let steps: SwapStep[] = [];
+): Promise<EstimateSwapStep[] | string> => {
+  let steps: EstimateSwapStep[] = [];
   Logger.info(`Trying to swap ${amount} ${startToken} to ${endToken}`);
 
   if (
@@ -82,11 +84,14 @@ const estimateSwapValue = async (
 };
 
 const initializeSwapRoutine = async () => {
-  TransactionsLogic.startLayer1Routine();
-  TransactionsLogic.startLayer2Routine();
+  // TransactionsLogic.startLayer1Routine();
+  // TransactionsLogic.startLayer2Routine();
 };
+
+const saveEstimate = async (baseEstimate: BaseEstimate) => {};
 
 export const SwapsLogic = {
   estimateSwapValue,
   initializeSwapRoutine,
+  saveEstimate,
 };

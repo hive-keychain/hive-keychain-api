@@ -1,7 +1,7 @@
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import {
+  EstimateSwapStep,
   Provider,
-  SwapStep,
   SwapStepType,
 } from "../../../interfaces/swap.interface";
 import { HIVE, SWAP_HIVE } from "../../../interfaces/tokens.interface";
@@ -11,7 +11,7 @@ import { ConvertProviderConfig } from "./convert-provider.config";
 const getDepositEstimate = async (
   amount: number,
   provider: Provider
-): Promise<SwapStep> => {
+): Promise<EstimateSwapStep> => {
   const providerConfig = ConvertProviderConfig.getConfig(provider);
 
   const balances = await BalancesUtils.getBalances(providerConfig.accountName);
@@ -51,7 +51,7 @@ const getDepositEstimate = async (
 const getWithdrawalEstimate = async (
   amount: number,
   provider: Provider
-): Promise<SwapStep> => {
+): Promise<EstimateSwapStep> => {
   const providerConfig = ConvertProviderConfig.getConfig(provider);
 
   const balances = await BalancesUtils.getBalances(providerConfig.accountName);
@@ -72,7 +72,6 @@ const getWithdrawalEstimate = async (
         (amount * providerConfig.withdrawal.fee) / 100.0,
         providerConfig.withdrawal.minimumFee
       );
-      console.log(fee);
       finalAmount = amount - fee;
     }
   } else {

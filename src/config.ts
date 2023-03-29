@@ -14,7 +14,7 @@ export const Config = {
   hive_rpc: process.env.HIVE_RPC,
   logger: {
     folder: path.join(__dirname, "..", "logs"),
-    file: "lease-market-%DATE%.log",
+    file: "api-%DATE%.log",
     levels: {
       TECHNICAL: 1,
       INFO: 1,

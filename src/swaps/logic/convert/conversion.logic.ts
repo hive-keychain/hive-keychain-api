@@ -1,7 +1,7 @@
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import {
+  EstimateSwapStep,
   Provider,
-  SwapStep,
   SwapStepType,
 } from "../../../interfaces/swap.interface";
 import { HBD, HIVE, SWAP_HIVE } from "../../../interfaces/tokens.interface";
@@ -48,7 +48,7 @@ const getInternalMarketConversionEstimate = async (
   startToken: string,
   endToken: string,
   amount: number
-): Promise<SwapStep> => {
+): Promise<EstimateSwapStep> => {
   Logger.info(
     `Trying to convert ${amount} ${startToken} to ${endToken} through Hive internal market`
   );
@@ -72,7 +72,7 @@ const getWithdrawalEstimates = async (amount: number) => {
     ConvertProviderLogic.getWithdrawalEstimate(amount, Provider.HIVE_ENGINE),
   ]);
 
-  let selectedWithdrawalStep: SwapStep = {
+  let selectedWithdrawalStep: EstimateSwapStep = {
     step: SwapStepType.WITHDRAWAL_FROM_HIVE_ENGINE,
     provider: "",
     startToken: SWAP_HIVE,
@@ -106,7 +106,7 @@ const getDepositEstimates = async (amount: number) => {
   console.log(depositEstimateSteps);
   console.log("------------------------");
 
-  let selectedDepositStep: SwapStep = {
+  let selectedDepositStep: EstimateSwapStep = {
     step: SwapStepType.DEPOSIT_TO_HIVE_ENGINE,
     provider: "",
     startToken: HIVE,
