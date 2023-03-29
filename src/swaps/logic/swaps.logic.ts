@@ -1,9 +1,6 @@
 import Logger from "hive-keychain-commons/lib/logger/logger";
-import {
-  BaseEstimate,
-  EstimateSwapStep,
-} from "../../interfaces/swap.interface";
-import { HBD, HIVE, SWAP_HIVE } from "../../interfaces/tokens.interface";
+import { BaseEstimate, EstimateSwapStep } from "../interfaces/swap.interface";
+import { HBD, HIVE, SWAP_HIVE } from "../interfaces/tokens.interface";
 import { ConversionLogic } from "./convert/conversion.logic";
 import { SwapTokenLogic } from "./swap-tokens/swap-token.logic";
 

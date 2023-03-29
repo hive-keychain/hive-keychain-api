@@ -4,8 +4,8 @@ import {
   EstimateSwapStep,
   Provider,
   SwapStepType,
-} from "../../../interfaces/swap.interface";
-import { LiquidityPool, SWAP_HIVE } from "../../../interfaces/tokens.interface";
+} from "../../interfaces/swap.interface";
+import { LiquidityPool, SWAP_HIVE } from "../../interfaces/tokens.interface";
 import { Book, InternalMarketLogic } from "./internal-market.logic";
 import { LiquidityPoolLogic } from "./liquidity-pool.logic";
 

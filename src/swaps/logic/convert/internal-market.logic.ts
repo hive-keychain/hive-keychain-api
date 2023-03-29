@@ -1,6 +1,6 @@
-import { Provider, SwapStepType } from "../../../interfaces/swap.interface";
-import { HBD, HIVE } from "../../../interfaces/tokens.interface";
 import { HiveUtils } from "../../../utils/hive.utils";
+import { Provider, SwapStepType } from "../../interfaces/swap.interface";
+import { HBD, HIVE } from "../../interfaces/tokens.interface";
 
 const getMarket = async () => {
   const orderBook = await HiveUtils.getClient().call(

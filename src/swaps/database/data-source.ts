@@ -3,8 +3,8 @@
 import "dotenv/config";
 import "reflect-metadata";
 import { DataSource } from "typeorm";
-import { BaseEstimate } from "../../entities/swaps/base-estimate.entity";
-import { SwapStep } from "../../entities/swaps/swap-step.entity";
+import { BaseEstimate } from "./entities/base-estimate.entity";
+import { SwapStep } from "./entities/swap-step.entity";
 
 export const SwapDataSource = new DataSource({
   type: "mysql",

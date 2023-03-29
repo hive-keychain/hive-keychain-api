@@ -1,5 +1,5 @@
-import { LiquidityPool } from "../../../interfaces/tokens.interface";
 import { HiveEngineUtils } from "../../../utils/hive-engine.utils";
+import { LiquidityPool } from "../../interfaces/tokens.interface";
 
 const getTokenMarketPool = async () => {
   let pool = [];

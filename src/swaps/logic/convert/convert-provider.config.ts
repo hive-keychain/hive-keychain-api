@@ -1,4 +1,4 @@
-import { Provider } from "../../../interfaces/swap.interface";
+import { Provider } from "../../interfaces/swap.interface";
 
 const getConfig = (provider: Provider) => {
   return config.providers[provider];

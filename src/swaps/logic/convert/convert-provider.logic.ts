@@ -1,11 +1,11 @@
 import Logger from "hive-keychain-commons/lib/logger/logger";
+import { BalancesUtils } from "../../../utils/balances.utils";
 import {
   EstimateSwapStep,
   Provider,
   SwapStepType,
-} from "../../../interfaces/swap.interface";
-import { HIVE, SWAP_HIVE } from "../../../interfaces/tokens.interface";
-import { BalancesUtils } from "../../../utils/balances.utils";
+} from "../../interfaces/swap.interface";
+import { HIVE, SWAP_HIVE } from "../../interfaces/tokens.interface";
 import { ConvertProviderConfig } from "./convert-provider.config";
 
 const getDepositEstimate = async (

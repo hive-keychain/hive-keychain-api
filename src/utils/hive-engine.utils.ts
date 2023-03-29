@@ -1,5 +1,5 @@
 import fetch from "cross-fetch";
-import { TokenRequestParams } from "../interfaces/tokens.interface";
+import { TokenRequestParams } from "../swaps/interfaces/tokens.interface";
 
 const accountHistoryApi = "https://history.hive-engine.com";
 

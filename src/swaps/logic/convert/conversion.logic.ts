@@ -3,8 +3,8 @@ import {
   EstimateSwapStep,
   Provider,
   SwapStepType,
-} from "../../../interfaces/swap.interface";
-import { HBD, HIVE, SWAP_HIVE } from "../../../interfaces/tokens.interface";
+} from "../../interfaces/swap.interface";
+import { HBD, HIVE, SWAP_HIVE } from "../../interfaces/tokens.interface";
 import { ConvertProviderLogic } from "./convert-provider.logic";
 import { InternalMarketLogic } from "./internal-market.logic";
 
