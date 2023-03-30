@@ -6,11 +6,6 @@ export interface EstimateSwapStep {
   provider: string;
 }
 
-export interface BaseEstimate {
-  slipperage: number;
-  estimate: EstimateSwapStep[];
-}
-
 export enum SwapStepType {
   DEPOSIT_TO_HIVE_ENGINE = "DEPOSIT_TO_HIVE_ENGINE",
   WITHDRAWAL_FROM_HIVE_ENGINE = "WITHDRAWAL_FROM_HIVE_ENGINE",

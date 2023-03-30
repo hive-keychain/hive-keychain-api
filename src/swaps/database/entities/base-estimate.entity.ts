@@ -3,8 +3,17 @@ import { SwapStep } from "./swap-step.entity";
 
 @Entity({ name: "base-estimate" })
 export class BaseEstimate {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn("uuid")
+  id: string;
+
+  @Column()
+  startToken: string;
+
+  @Column()
+  endToken: string;
+
+  @Column()
+  amount: number;
 
   @Column()
   slipperage: number;

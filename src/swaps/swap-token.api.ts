@@ -1,4 +1,6 @@
 import { Express } from "express";
+import { BaseEstimate } from "./database/entities/base-estimate.entity";
+import { BaseEstimateLogic } from "./logic/base-estimate.logic";
 import { SwapsLogic } from "./logic/swaps.logic";
 
 const setupGetSwapEstimation = (app: Express) => {
@@ -15,7 +17,7 @@ const setupGetSwapEstimation = (app: Express) => {
 
 const setupSaveEstimate = (app: Express) => {
   app.post("/token-swap/estimate/save", async (req, res) => {
-    console.log(req.body);
+    return await BaseEstimateLogic.saveBaseEstimate(req.body as BaseEstimate);
   });
 };
 
