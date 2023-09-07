@@ -6,11 +6,13 @@ import Logger from "hive-keychain-commons/lib/logger/logger";
 import https from "https";
 import { BadActorsApi } from "./api/bad-actors.api";
 import { DelegationApi } from "./api/delegation.api";
+import { HistoricalDataApi } from "./api/historical-data.api";
 import { PriceApi } from "./api/price.api";
 import { RpcApi } from "./api/rpc.api";
 import { VersionLogApi } from "./api/version-log.api";
 import { WitnessApi } from "./api/witness.api";
 import { Config } from "./config";
+import { HistoricalDataLogic } from "./logic/historical-data.logic";
 import { PriceLogic } from "./logic/price.logic";
 
 var cors = require("cors");
@@ -23,6 +25,7 @@ const initServerRoutine = () => {
   setupRoutes(app);
 
   PriceLogic.initFetchPrices();
+  HistoricalDataLogic.init();
 
   startServer(app);
 };
@@ -37,6 +40,7 @@ const setupRoutes = (app: express.Express) => {
   BadActorsApi.setupApis(app);
   DelegationApi.setupApis(app);
   PriceApi.setupApis(app);
+  HistoricalDataApi.setupApis(app);
   RpcApi.setupApis(app);
   VersionLogApi.setupApis(app);
   WitnessApi.setupApis(app);
