@@ -14,7 +14,10 @@ const getDappList = (chain: string) => {
   }
 
   const ecosystem = [];
-
+  ecosystem.push({
+    category: "all",
+    dapps: dapps,
+  });
   for (const cat of categories) {
     ecosystem.push({
       category: cat,
