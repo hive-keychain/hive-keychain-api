@@ -4,6 +4,7 @@ import express from "express";
 import fs from "fs";
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import https from "https";
+import { TokensBackgroundColorsApi } from "./api/background-color.api";
 import { BadActorsApi } from "./api/bad-actors.api";
 import { DelegationApi } from "./api/delegation.api";
 import { HistoricalDataApi } from "./api/historical-data.api";
@@ -14,6 +15,7 @@ import { WitnessApi } from "./api/witness.api";
 import { Config } from "./config";
 import { HistoricalDataLogic } from "./logic/historical-data.logic";
 import { PriceLogic } from "./logic/price.logic";
+import { TokensBackgroundColorsLogic } from "./logic/token-background-color";
 
 var cors = require("cors");
 
@@ -26,7 +28,7 @@ const initServerRoutine = () => {
 
   PriceLogic.initFetchPrices();
   HistoricalDataLogic.init();
-
+  TokensBackgroundColorsLogic.initFetchColorMap();
   startServer(app);
 };
 
@@ -44,6 +46,7 @@ const setupRoutes = (app: express.Express) => {
   RpcApi.setupApis(app);
   VersionLogApi.setupApis(app);
   WitnessApi.setupApis(app);
+  TokensBackgroundColorsApi.setupApis(app);
 };
 
 const startServer = (app: express.Express) => {
