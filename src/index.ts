@@ -7,6 +7,7 @@ import https from "https";
 import { TokensBackgroundColorsApi } from "./api/background-color.api";
 import { BadActorsApi } from "./api/bad-actors.api";
 import { DelegationApi } from "./api/delegation.api";
+import { EcosystemApi } from "./api/ecosystem.api";
 import { HistoricalDataApi } from "./api/historical-data.api";
 import { PriceApi } from "./api/price.api";
 import { RpcApi } from "./api/rpc.api";
@@ -47,6 +48,7 @@ const setupRoutes = (app: express.Express) => {
   VersionLogApi.setupApis(app);
   WitnessApi.setupApis(app);
   TokensBackgroundColorsApi.setupApis(app);
+  EcosystemApi.setupApis(app);
 };
 
 const startServer = (app: express.Express) => {
