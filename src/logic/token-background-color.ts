@@ -1,9 +1,13 @@
 import { createCanvas, loadImage } from "canvas";
+import * as fs from "fs";
 import { getAllTokens } from "../utils/hive-engine.utils";
-const DEFAULT_COLOR = "#000000";
-let colorMap = {};
 
-const getColorMap = () => colorMap;
+const DEFAULT_COLOR = "#000000";
+
+const getColorMap = async () =>
+  await fs
+    .readFileSync(__dirname + `/../../json/tokensBackgroundColors.json`)
+    .toString();
 
 const initFetchColorMap = () => {
   createColorMap();
@@ -21,7 +25,16 @@ const createColorMap = async () => {
       : DEFAULT_COLOR;
   }
   console.log("new map generated!");
-  colorMap = map;
+  try {
+    await fs.writeFile(
+      __dirname + `/../../json/tokensBackgroundColors.json`,
+      JSON.stringify(map),
+      "utf8",
+      () => console.log(`Updated color map`)
+    );
+  } catch (e) {
+    console.log("Failed to update color map");
+  }
 };
 
 const getBackgroundColorFromImage = async (imgLink: string) => {

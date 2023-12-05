@@ -27,6 +27,7 @@ const getHistoricalData = async () => {
 };
 
 const fetchHistoricalData = async (currency: string) => {
+  // return;
   return new Promise((fulfill) => {
     req(
       {
