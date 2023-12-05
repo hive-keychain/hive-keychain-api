@@ -1,6 +1,6 @@
 import { createCanvas, loadImage } from "canvas";
 import { getAllTokens } from "../utils/hive-engine.utils";
-const DEFAULT_COLOR = "#0000002b";
+const DEFAULT_COLOR = "#000000";
 let colorMap = {};
 
 const getColorMap = () => colorMap;
@@ -38,7 +38,7 @@ const getBackgroundColorFromImage = async (imgLink: string) => {
     try {
       var imageData = context.getImageData(0, 0, img.width, img.height);
     } catch (err) {
-      return "#0000002b";
+      return DEFAULT_COLOR;
     }
     var data = imageData.data;
 
@@ -73,7 +73,7 @@ const getBackgroundColorFromImage = async (imgLink: string) => {
       }
     }
 
-    return `${dominantColor}2b`;
+    return dominantColor;
   } catch (e) {
     return DEFAULT_COLOR;
   }
