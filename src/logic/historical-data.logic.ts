@@ -35,7 +35,9 @@ const fetchHistoricalData = async (currency: string) => {
         json: true,
       },
       (err, http, body) => {
-        fulfill(body.map((e) => e[1]));
+        if (body.status) {
+          //do nothing
+        } else fulfill(body.map((e) => e[1]));
       }
     );
   });
