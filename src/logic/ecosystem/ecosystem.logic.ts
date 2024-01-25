@@ -32,7 +32,7 @@ const saveNewDapp = (newDapp: any, chain: string) => {
     "utf-8"
   );
   const dapps = JSON.parse(jsonString);
-  const id = Math.max(dapps.map((d) => d.id));
+  const id = Math.max(...dapps.map((d) => d.id));
   dapps.push({ ...newDapp, id: id + 1 });
   fs.writeFileSync(
     path.join(__dirname, `${chain}-dapps.json`),
