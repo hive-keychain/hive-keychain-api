@@ -1,15 +1,21 @@
 import * as fs from "fs";
+import path from "path";
 
-const getLastExtensionVersion = (mobile?: boolean) => {
-  const filename = mobile ? "mobile.json" : "extension.json";
-  return fs.readFileSync(__dirname + `/../../version/${filename}`);
+export enum VersionType {
+  MOBILE = "mobile",
+  EXTENSION = "extension",
+}
+
+const getLastExtensionVersion = (versionType: VersionType) => {
+  return fs.readFileSync(
+    path.join(__dirname, `/../../version/${versionType}.json`)
+  );
 };
 
-const setLastExtensionVersion = (json, mobile?: boolean) => {
+const setLastExtensionVersion = (json, versionType: VersionType) => {
   try {
-    const filename = mobile ? "mobile.json" : "extension.json";
     fs.writeFile(
-      __dirname + `/../../version/${filename}`,
+      path.join(__dirname, `/../../version/${versionType}.json`),
       JSON.stringify(json),
       "utf8",
       () => console.log(`Version updated to ${json.version}`)

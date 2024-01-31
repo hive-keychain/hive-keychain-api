@@ -1,38 +1,60 @@
 import { Express } from "express";
-import { VersionLogLogic } from "../logic/version-log.logic";
+import { VersionLogLogic, VersionType } from "../logic/version-log.logic";
+import { Role, accessCheck } from "../middleware/access.middleware";
 
 const setupGetLastExtensionVersion = (app: Express) => {
   app.get("/hive/last-extension-version", async (req, res) => {
-    res.send(VersionLogLogic.getLastExtensionVersion());
+    res.send(VersionLogLogic.getLastExtensionVersion(VersionType.EXTENSION));
   });
 };
 
 const setupSetLastExtensionVersion = (app: Express) => {
-  app.put("/hive/set-last-extension-version", async (req, res) => {
-    if (req.query["VERSION_PASSWORD"] !== process.env.VERSION_PASSWORD) {
-      res.status(401).send("Unauthorized");
-    } else {
-      VersionLogLogic.setLastExtensionVersion(req.body);
-      res.send("OK");
+  app.post(
+    "/hive/set-last-extension-version",
+    accessCheck(Role.ADMIN),
+    async (req, res) => {
+      try {
+        await VersionLogLogic.setLastExtensionVersion(
+          req.body,
+          VersionType.EXTENSION
+        );
+        res.send({ status: 200, message: `Success` });
+      } catch (err) {
+        res.send({
+          status: 500,
+          message: `Error while saving: ${err.message}`,
+        });
+      }
     }
-  });
+  );
 };
 
 const setupGetLastExtensionVersionMobile = (app: Express) => {
   app.get("/hive/last-version-mobile", async (req, res) => {
-    res.send(VersionLogLogic.getLastExtensionVersion(true));
+    res.send(VersionLogLogic.getLastExtensionVersion(VersionType.MOBILE));
   });
 };
 
 const setupSetLastExtensionVersionMobile = (app: Express) => {
-  app.put("/hive/set-last-version-mobile", async (req, res) => {
-    if (req.query["VERSION_PASSWORD"] !== process.env.VERSION_PASSWORD) {
-      res.status(401).send("Unauthorized");
-    } else {
-      VersionLogLogic.setLastExtensionVersion(req.body, true);
+  app.post(
+    "/hive/set-last-version-mobile",
+    accessCheck(Role.ADMIN),
+    async (req, res) => {
+      try {
+        await VersionLogLogic.setLastExtensionVersion(
+          req.body,
+          VersionType.MOBILE
+        );
+        res.send({ status: 200, message: `Success` });
+      } catch (err) {
+        res.send({
+          status: 500,
+          message: `Error while saving: ${err.message}`,
+        });
+      }
       res.send("OK");
     }
-  });
+  );
 };
 
 const setupApis = (app: Express) => {
