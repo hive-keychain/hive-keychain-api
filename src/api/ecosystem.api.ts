@@ -38,10 +38,25 @@ const setupEditDapp = (app: Express) => {
   );
 };
 
+const setupDeleteDapp = (app: Express) => {
+  app.post(
+    "/:chain/ecosystem/delete",
+    accessCheck(Role.TEAM),
+    async (req, res) => {
+      const dapp = req.body;
+      console.log("req.body", req.body);
+      await EcosystemLogic.deleteDapp(dapp, req.params.chain);
+      Logger.info(`Deleting ${req.params.chain} dapp`);
+      res.status(200).send({ status: 200 });
+    }
+  );
+};
+
 const setupApis = (app: Express) => {
   setupGetEcosystem(app);
   setupSaveNewDapp(app);
   setupEditDapp(app);
+  setupDeleteDapp(app);
 };
 
 export const EcosystemApi = { setupApis };

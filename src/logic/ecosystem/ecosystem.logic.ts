@@ -56,4 +56,25 @@ const editDapp = (dapp: any, chain: string) => {
   }
 };
 
-export const EcosystemLogic = { getDappList, saveNewDapp, editDapp };
+const deleteDapp = (dapp: any, chain: string) => {
+  const jsonString = fs.readFileSync(
+    path.join(__dirname, `${chain}-dapps.json`),
+    "utf-8"
+  );
+  const dapps = JSON.parse(jsonString).filter((d) => d.id !== dapp.id);
+  try {
+    fs.writeFileSync(
+      path.join(__dirname, `${chain}-dapps.json`),
+      JSON.stringify(dapps)
+    );
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const EcosystemLogic = {
+  getDappList,
+  saveNewDapp,
+  editDapp,
+  deleteDapp,
+};
