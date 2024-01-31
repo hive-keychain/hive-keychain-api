@@ -26,7 +26,6 @@ const getDappList = (chain: string) => {
 };
 
 const saveNewDapp = (newDapp: any, chain: string) => {
-  console.log("save", newDapp);
   const jsonString = fs.readFileSync(
     path.join(__dirname, `${chain}-dapps.json`),
     "utf-8"
@@ -41,7 +40,6 @@ const saveNewDapp = (newDapp: any, chain: string) => {
 };
 
 const editDapp = (dapp: any, chain: string) => {
-  console.log("edit ", dapp);
   const jsonString = fs.readFileSync(
     path.join(__dirname, `${chain}-dapps.json`),
     "utf-8"
