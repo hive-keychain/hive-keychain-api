@@ -52,7 +52,6 @@ const setupSetLastExtensionVersionMobile = (app: Express) => {
           message: `Error while saving: ${err.message}`,
         });
       }
-      res.send("OK");
     }
   );
 };
