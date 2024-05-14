@@ -2,12 +2,24 @@ import fs from "fs";
 import path from "path";
 import { ArrayUtils } from "../../utils/array.utils";
 
+interface dApp {
+  id: number;
+  name: string;
+  description: string;
+  icon: string;
+  url: string;
+  mobileUrl: string;
+  categories: string[];
+  active: boolean;
+  order: number;
+}
+
 const getDappList = (chain: string) => {
   const jsonString = fs.readFileSync(
     path.join(__dirname, `${chain}-dapps.json`),
     "utf-8"
   );
-  const dapps = JSON.parse(jsonString);
+  const dapps: dApp[] = JSON.parse(jsonString);
   let categories = [];
   for (const item of dapps) {
     categories = ArrayUtils.mergeWithoutDuplicate(item.categories, categories);
@@ -18,11 +30,22 @@ const getDappList = (chain: string) => {
   for (const cat of categories) {
     ecosystem.push({
       category: cat,
-      dapps: dapps.filter((dapp) => dapp.categories.includes(cat)),
+      dapps: getOrderedDapps(
+        dapps.filter((dapp) => dapp.categories.includes(cat))
+      ),
     });
   }
 
   return ecosystem;
+};
+
+const getOrderedDapps = (dApps: dApp[]) => {
+  const withReferral = dApps.filter((e) => e.url.includes("?ref=")),
+    withoutReferral = dApps.filter((e) => !e.url.includes("?ref="));
+  return [
+    ...ArrayUtils.shuffle(withReferral),
+    ...ArrayUtils.shuffle(withoutReferral),
+  ];
 };
 
 const saveNewDapp = (newDapp: any, chain: string) => {
