@@ -7,4 +7,4 @@ logs/*
 logs
 .DS_Store
 src/logic/ecosystem/hive-dapps.json
-json/tokensBackgroundColors.json
+json/*

@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "ts-node src/index.ts",
-    "dev": "nodemon src/index.ts",
+    "dev": "nodemon src/index.ts --ignore json",
     "pm2-start": "pm2 start --name keychain-api npm -- start",
     "pm2-stop": "pm2 kill",
     "build": "tsc -p ."
@@ -30,6 +30,7 @@
     "hive-keychain-commons": "github:hive-keychain/hive-keychain-commons",
     "http": "0.0.0",
     "https": "^1.0.0",
+    "moralis": "^2.26.1",
     "mssql": "^6.2.0",
     "node-fetch": "^2.7.0",
     "request": "^2.88.2"

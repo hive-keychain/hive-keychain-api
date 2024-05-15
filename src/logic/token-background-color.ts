@@ -105,4 +105,5 @@ export const TokensBackgroundColorsLogic = {
   getColorMap,
   createColorMap,
   initFetchColorMap,
+  getBackgroundColorFromImage,
 };
