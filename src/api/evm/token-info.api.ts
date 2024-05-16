@@ -27,6 +27,7 @@ const setupGetTokensInfo = (app: Express) => {
         possibleSpam,
         verifiedContract,
       }) => ({
+        chainId,
         address,
         name,
         symbol,
