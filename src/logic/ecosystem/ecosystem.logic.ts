@@ -16,7 +16,7 @@ interface dApp {
 
 const getDappList = (chain: string) => {
   const jsonString = fs.readFileSync(
-    path.join(__dirname, `${chain}-dapps.json`),
+    path.join(__dirname, `../../../json/${chain}-dapps.json`),
     "utf-8"
   );
   const dapps: dApp[] = JSON.parse(jsonString);
