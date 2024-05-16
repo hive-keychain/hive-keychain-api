@@ -38,6 +38,7 @@ const createColorMap = async () => {
 };
 
 const getBackgroundColorFromImage = async (imgLink: string) => {
+  if (!imgLink) return DEFAULT_COLOR;
   try {
     const canvas = createCanvas(200, 200);
     var context = canvas.getContext("2d");
