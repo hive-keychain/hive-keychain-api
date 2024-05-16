@@ -8,14 +8,14 @@ export enum VersionType {
 
 const getLastExtensionVersion = (versionType: VersionType) => {
   return fs.readFileSync(
-    path.join(__dirname, `/../../version/${versionType}.json`)
+    path.join(__dirname, `/../../json/version/${versionType}.json`)
   );
 };
 
 const setLastExtensionVersion = (json, versionType: VersionType) => {
   try {
     fs.writeFile(
-      path.join(__dirname, `/../../version/${versionType}.json`),
+      path.join(__dirname, `/../../json/version/${versionType}.json`),
       JSON.stringify(json),
       "utf8",
       () => console.log(`Version updated to ${json.version}`)
