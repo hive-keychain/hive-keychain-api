@@ -4,6 +4,10 @@ import Moralis from "moralis";
 import { TokensBackgroundColorsLogic } from "../token-background-color";
 let isInit = false;
 
+export enum EVMTokenType {
+  NATIVE = "NATIVE",
+  ERC20 = "ERC20",
+}
 export interface EVMTokenInfoShort {
   address: string;
   name: string;
@@ -59,6 +63,7 @@ const getFromMoralis = async (chain: string, addresses: string[]) => {
     return Promise.all(
       moralisTokenMetadata.map(async (e) => {
         return {
+          type: EVMTokenType.ERC20,
           address: e.address,
           name: e.name,
           symbol: e.symbol,
