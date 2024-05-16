@@ -5,20 +5,20 @@ import { TokensBackgroundColorsLogic } from "../token-background-color";
 let isInit = false;
 interface EVMTokenInfo {
   address: string;
-  address_label: string;
+  addressLabel: string;
   name: string;
   symbol: string;
   decimals: number;
   logo: string;
-  total_supply_formatted: number;
-  fully_diluted_valuation: number;
-  block_number: number;
+  totalSupplyFormatted: number;
+  fullyDilutedValuation: number;
+  blockNumber: number;
   validated: number;
-  created_at: string;
-  possible_spam: false;
-  verified_contract: true;
-  chain_id: string;
-  background_color: string;
+  createdAt: string;
+  possibleSpam: boolean;
+  verifiedContract: boolean;
+  chainId: string;
+  backgroundColor: string;
   categories: string[];
   links: { [link: string]: string };
 }
@@ -26,7 +26,7 @@ interface EVMTokenInfo {
 const getTokensInfo = async (chain: string, addresses: string[]) => {
   const tokensList = await getCurrentTokensList();
   const existingTokensFromList = tokensList.filter(
-    (e) => e.chain_id === chain && addresses.includes(e.address)
+    (e) => e.chainId === chain && addresses.includes(e.address)
   );
   const newTokens = addresses.filter(
     (e) => !existingTokensFromList.map((t) => t.address).includes(e)
@@ -59,20 +59,27 @@ const getFromMoralis = async (chain: string, addresses: string[]) => {
 
     return Promise.all(
       moralisTokenMetadata.map(async (e) => {
-        delete e.logo_hash;
-        delete e.thumbnail;
-        //@ts-ignore
-        delete e.total_supply;
         return {
-          ...e,
-          chain_id: chain,
+          address: e.address,
+          name: e.name,
+          symbol: e.symbol,
           decimals: +e.decimals,
+          logo: e.logo,
           //@ts-ignore
-          total_supply_formatted: +e.total_supply_formatted,
+          totalSupplyFormatted: +e.total_supply_formatted,
           //@ts-ignore
-          fully_diluted_valuation: +e.fully_diluted_valuation,
-          block_number: +e.block_number,
-          background_color:
+          fullyDilutedValuation: +e.fully_diluted_valuation,
+          blockNumber: +e.block_number,
+          validated: e.validated,
+          createdAt: e.created_at,
+          possibleSpam: e.possible_spam,
+          verifiedContract: e.verified_contract,
+          chainId: chain,
+          //@ts-ignore
+          categories: e.categories,
+          //@ts-ignore
+          links: e.links,
+          backgroundColor:
             await TokensBackgroundColorsLogic.getBackgroundColorFromImage(
               e.logo
             ),
