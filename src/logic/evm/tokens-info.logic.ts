@@ -33,9 +33,6 @@ const getTokensInfo = async (chain: string, addresses: string[]) => {
   const newTokens = addresses.filter(
     (e) => !existingTokensFromList.map((t) => t.address).includes(e)
   );
-  console.log("list", tokensList);
-  console.log("old", existingTokensFromList);
-  console.log("new", newTokens);
   const newTokensFromMoralis = await getFromMoralis(chain, newTokens);
   if (newTokens.length)
     saveNewTokensList([...tokensList, ...newTokensFromMoralis]);
@@ -45,7 +42,7 @@ const getTokensInfo = async (chain: string, addresses: string[]) => {
 const getFromMoralis = async (chain: string, addresses: string[]) => {
   try {
     if (!addresses.length) return [];
-    Logger.info(`Getting ${addresses.join(",")} from moralis`);
+    Logger.info(`Getting ${addresses.join(",")} from Moralis`);
     if (!isInit) {
       await Moralis.start({
         apiKey: process.env.MORALIS_API_KEY,
@@ -108,15 +105,14 @@ const getCurrentTokensList = async () => {
 
 const saveNewTokensList = async (newList: any[]) => {
   try {
-    Logger.info("saving new tokens list");
     await fs.writeFile(
       __dirname + `/../../../json/evmTokensInfo.json`,
       JSON.stringify(newList),
       "utf8",
-      () => console.log(`Updated evm tokens list`)
+      () => Logger.info(`Updated evm tokens list`)
     );
   } catch (e) {
-    console.log("Failed to update evm tokens list");
+    Logger.info("Failed to update evm tokens list");
   }
 };
 

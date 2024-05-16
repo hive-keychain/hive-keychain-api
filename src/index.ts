@@ -8,6 +8,7 @@ import { TokensBackgroundColorsApi } from "./api/background-color.api";
 import { BadActorsApi } from "./api/bad-actors.api";
 import { DelegationApi } from "./api/delegation.api";
 import { EcosystemApi } from "./api/ecosystem.api";
+import { GasPriceEstimateApi } from "./api/evm/gas-price-estimate.api";
 import { TokensInfoApi } from "./api/evm/token-info.api";
 import { HistoricalDataApi } from "./api/historical-data.api";
 import { PriceApi } from "./api/price.api";
@@ -51,6 +52,7 @@ const setupRoutes = (app: express.Express) => {
   TokensBackgroundColorsApi.setupApis(app);
   EcosystemApi.setupApis(app);
   TokensInfoApi.setupApis(app);
+  GasPriceEstimateApi.setupApis(app);
 };
 
 const startServer = (app: express.Express) => {
