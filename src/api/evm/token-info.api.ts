@@ -1,5 +1,8 @@
 import { Express } from "express";
-import { TokensInfoLogic } from "../../logic/evm/tokens-info.logic";
+import {
+  EVMTokenInfoShort,
+  TokensInfoLogic,
+} from "../../logic/evm/tokens-info.logic";
 
 const setupGetTokensInfo = (app: Express) => {
   app.get("/evm/tokensInfo/:chainId/:addresses", async (req, res) => {
@@ -14,7 +17,7 @@ const setupGetTokensInfo = (app: Express) => {
       req.params.chainId,
       req.params.addresses.toLowerCase().split(",")
     );
-    const tokensInfoShort = tokensInfo.map(
+    const tokensInfoShort: EVMTokenInfoShort[] = tokensInfo.map(
       ({
         chainId,
         address,

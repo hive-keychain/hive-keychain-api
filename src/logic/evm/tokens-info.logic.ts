@@ -3,22 +3,24 @@ import Logger from "hive-keychain-commons/lib/logger/logger";
 import Moralis from "moralis";
 import { TokensBackgroundColorsLogic } from "../token-background-color";
 let isInit = false;
-interface EVMTokenInfo {
+
+export interface EVMTokenInfoShort {
   address: string;
-  addressLabel: string;
   name: string;
   symbol: string;
   decimals: number;
   logo: string;
-  totalSupplyFormatted: number;
-  fullyDilutedValuation: number;
-  blockNumber: number;
   validated: number;
-  createdAt: string;
   possibleSpam: boolean;
   verifiedContract: boolean;
   chainId: string;
   backgroundColor: string;
+}
+export interface EVMTokenInfo extends EVMTokenInfoShort {
+  totalSupplyFormatted: number;
+  fullyDilutedValuation: number;
+  blockNumber: number;
+  createdAt: string;
   categories: string[];
   links: { [link: string]: string };
 }
