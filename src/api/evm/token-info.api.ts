@@ -9,6 +9,37 @@ const setupGetTokensInfo = (app: Express) => {
     );
     res.status(200).send(tokensInfo);
   });
+  app.get("/evm/tokensInfoShort/:chainId/:addresses", async (req, res) => {
+    const tokensInfo = await TokensInfoLogic.getTokensInfo(
+      req.params.chainId,
+      req.params.addresses.toLowerCase().split(",")
+    );
+    const tokensInfoShort = tokensInfo.map(
+      ({
+        chainId,
+        address,
+        name,
+        symbol,
+        decimals,
+        logo,
+        backgroundColor,
+        validated,
+        possibleSpam,
+        verifiedContract,
+      }) => ({
+        address,
+        name,
+        symbol,
+        decimals,
+        logo,
+        backgroundColor,
+        validated,
+        possibleSpam,
+        verifiedContract,
+      })
+    );
+    res.status(200).send(tokensInfoShort);
+  });
 };
 
 const setupApis = (app: Express) => {
