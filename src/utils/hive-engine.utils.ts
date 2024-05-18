@@ -58,7 +58,8 @@ const get = async <T>(
         }
       })
       .then((res: any) => {
-        resolve(res.result as unknown as T);
+        if (res) resolve(res.result as unknown as T);
+        else reject("failed");
       });
 
     setTimeout(() => {
