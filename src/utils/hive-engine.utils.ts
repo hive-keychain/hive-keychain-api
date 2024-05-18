@@ -1,14 +1,19 @@
+import Logger from "hive-keychain-commons/lib/logger/logger";
 import fetch from "node-fetch";
 
 export const getAllTokens = async (): Promise<Token[]> => {
-  let tokens = [];
-  let offset = 0;
-  do {
-    const newTokens = await getTokens(offset);
-    tokens.push(...newTokens);
-    offset += 1000;
-  } while (tokens.length % 1000 === 0);
-  return tokens;
+  try {
+    let tokens = [];
+    let offset = 0;
+    do {
+      const newTokens = await getTokens(offset);
+      tokens.push(...newTokens);
+      offset += 1000;
+    } while (tokens.length % 1000 === 0);
+    return tokens;
+  } catch (e) {
+    Logger.error("failed fetching colors");
+  }
 };
 
 const getTokens = async (offset: number) => {
