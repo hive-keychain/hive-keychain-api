@@ -38,7 +38,7 @@ const get = async <T>(
   params: TokenRequestParams,
   timeout: number = 10
 ): Promise<T> => {
-  const url = `https://engine.rishipanthee.com/contracts`;
+  const url = `https://api.hive-engine.com/rpc/contracts`;
   return new Promise((resolve, reject) => {
     let resolved = false;
     fetch(url, {
