@@ -18,6 +18,7 @@ const initFetchColorMap = () => {
 
 const createColorMap = async () => {
   const tokens = await getAllTokens();
+  if (!tokens) return;
   let map = {};
   for (const token of tokens) {
     map[token.symbol] = token.metadata.icon
