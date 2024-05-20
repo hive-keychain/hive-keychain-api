@@ -1,14 +1,19 @@
+import Logger from "hive-keychain-commons/lib/logger/logger";
 import fetch from "node-fetch";
 
 export const getAllTokens = async (): Promise<Token[]> => {
-  let tokens = [];
-  let offset = 0;
-  do {
-    const newTokens = await getTokens(offset);
-    tokens.push(...newTokens);
-    offset += 1000;
-  } while (tokens.length % 1000 === 0);
-  return tokens;
+  try {
+    let tokens = [];
+    let offset = 0;
+    do {
+      const newTokens = await getTokens(offset);
+      tokens.push(...newTokens);
+      offset += 1000;
+    } while (tokens.length % 1000 === 0);
+    return tokens;
+  } catch (e) {
+    Logger.error("failed fetching colors");
+  }
 };
 
 const getTokens = async (offset: number) => {
@@ -33,7 +38,7 @@ const get = async <T>(
   params: TokenRequestParams,
   timeout: number = 10
 ): Promise<T> => {
-  const url = `https://engine.rishipanthee.com/contracts`;
+  const url = `https://api.hive-engine.com/rpc/contracts`;
   return new Promise((resolve, reject) => {
     let resolved = false;
     fetch(url, {
@@ -53,7 +58,8 @@ const get = async <T>(
         }
       })
       .then((res: any) => {
-        resolve(res.result as unknown as T);
+        if (res) resolve(res.result as unknown as T);
+        else reject("failed");
       });
 
     setTimeout(() => {

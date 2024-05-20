@@ -1,6 +1,6 @@
 import { Express } from "express";
 import Logger from "hive-keychain-commons/lib/logger/logger";
-import { BadActorsLogic } from "../logic/bad-actors.logic";
+import { BadActorsLogic } from "../../logic/hive/bad-actors.logic";
 
 const setupGetPhishingAccount = (app: Express) => {
   app.get("/hive/phishingAccounts", async (req, res) => {

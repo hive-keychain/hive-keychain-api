@@ -1,5 +1,5 @@
 import { Express } from "express";
-import { TokensBackgroundColorsLogic } from "../logic/token-background-color";
+import { TokensBackgroundColorsLogic } from "../../logic/hive/token-background-color";
 
 const setupGetBackgroundColor = (app: Express) => {
   app.get("/hive/tokensBackgroundColors", async (req, res) => {

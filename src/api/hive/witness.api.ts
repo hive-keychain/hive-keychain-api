@@ -1,5 +1,5 @@
 import { Express } from "express";
-import { WitnessLogic } from "../logic/witness.logic";
+import { WitnessLogic } from "../../logic/hive/witness.logic";
 
 const setupGetWitnessApi = (app: Express) => {
   app.get("/hive/witness/:username", async function (req, res) {

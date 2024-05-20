@@ -1,5 +1,5 @@
 import { Express } from "express";
-import { PriceLogic } from "../logic/price.logic";
+import { PriceLogic } from "../../logic/hive/price.logic";
 
 const setupGetPriceApi = (app: Express) => {
   app.get("/hive/v2/price", async (req, res) => {

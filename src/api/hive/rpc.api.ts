@@ -1,5 +1,5 @@
 import { Express } from "express";
-import { Config } from "../config";
+import { Config } from "../../config";
 
 // RPC from env
 
