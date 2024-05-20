@@ -1,6 +1,6 @@
 import { Express } from "express";
 import Logger from "hive-keychain-commons/lib/logger/logger";
-import { DelegationLogic } from "../logic/delegation.logic";
+import { DelegationLogic } from "../../logic/hive/delegation.logic";
 
 const setupGetIncomingDelegations = (app: Express) => {
   app.get("/hive/delegators/:username", async function (req, res) {

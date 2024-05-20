@@ -1,6 +1,6 @@
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import sql from "mssql";
-import { Config } from "../config";
+import { Config } from "../../config";
 
 const getIncoming = (username) => {
   return new sql.ConnectionPool(Config.hiveSql)

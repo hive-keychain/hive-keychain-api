@@ -1,16 +1,13 @@
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import sql from "mssql";
-import { Config } from "../config";
+import { Config } from "../../config";
 
 const getWitness = function (username) {
   return new sql.ConnectionPool(Config.hiveSql)
     .connect()
     .then((pool) => {
-      return pool
-        .request()
-        .input("username", username)
-        .query(
-          "WITH Rewards (lastWeekValue, lastMonthValue, lastYearValue, allValue) AS \
+      return pool.request().input("username", username).query(
+        "WITH Rewards (lastWeekValue, lastMonthValue, lastYearValue, allValue) AS \
            ( SELECT \
                 SUM(IIF(timestamp >= DATEADD(day,-7, GETUTCDATE()),vesting_shares,0)) AS lastWeekValue, \
                 SUM(IIF(timestamp >= DATEADD(day,-31, GETUTCDATE()),vesting_shares,0)) AS lastMonthValue, \
@@ -23,7 +20,7 @@ const getWitness = function (username) {
             FROM Rewards, Witnesses \
             LEFT JOIN Blocks ON Witnesses.last_confirmed_block_num = Blocks.block_num \
             WHERE Witnesses.name = @username"
-        );
+      );
     })
     .then((result) => {
       sql.close();
