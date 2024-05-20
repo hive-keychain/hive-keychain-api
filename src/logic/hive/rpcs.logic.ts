@@ -2,7 +2,7 @@ import * as fs from "fs";
 import req from "request";
 import { Config } from "../../config";
 
-export interface RPCs {
+export interface RpcStatusResponse {
   updatedAt: number;
   hive: HiveRpcStatus[];
   hiveEngine: RpcStatus[];
@@ -43,7 +43,7 @@ export enum RpcStatusType {
 }
 
 const getRPCs = async (type?: RpcStatusType) => {
-  const nodes: RPCs =
+  const nodes: RpcStatusResponse =
     JSON.parse(
       await fs.readFileSync(__dirname + `/../../../json/rpcs.json`).toString()
     ) || {};
