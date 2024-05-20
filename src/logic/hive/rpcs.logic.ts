@@ -3,6 +3,7 @@ import req from "request";
 import { Config } from "../../config";
 
 export interface RPCs {
+  updatedAt: number;
   hive: HiveRpcStatus[];
   hiveEngine: RpcStatus[];
   hiveEngineHistory: RpcStatus[];
@@ -35,9 +36,24 @@ export interface RcCost {
   hp_needed: number;
 }
 
-const getRPCs = async () =>
-  (await fs.readFileSync(__dirname + `/../../../json/rpcs.json`).toString()) ||
-  {};
+export enum RpcStatusType {
+  hive = "hive",
+  hiveEngine = "hiveEngine",
+  hiveEngineHistory = "hiveEngineHistory",
+}
+
+const getRPCs = async (type?: RpcStatusType) => {
+  const nodes: RPCs =
+    JSON.parse(
+      await fs.readFileSync(__dirname + `/../../../json/rpcs.json`).toString()
+    ) || {};
+  if (!type) return nodes;
+  else {
+    const typedNodes = { updatedAt: nodes.updatedAt };
+    typedNodes[type] = nodes[type];
+    return typedNodes;
+  }
+};
 
 const initFetchRPCs = () => {
   fetchRPCs();
