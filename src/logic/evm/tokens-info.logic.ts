@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import Moralis from "moralis";
-import { TokensBackgroundColorsLogic } from "../token-background-color";
+import { TokensBackgroundColorsLogic } from "../hive/token-background-color";
 let isInit = false;
 
 export enum EVMTokenType {
