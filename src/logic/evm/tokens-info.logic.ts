@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import Moralis from "moralis";
+import { CoingeckoConfigLogic } from "../coingecko-config";
 import { TokensBackgroundColorsLogic } from "../hive/token-background-color";
 let isInit = false;
 
@@ -19,6 +20,7 @@ export interface EVMTokenInfoShort {
   verifiedContract: boolean;
   chainId: string;
   backgroundColor: string;
+  coingeckoId?: string;
 }
 export interface EVMTokenInfo extends EVMTokenInfoShort {
   totalSupplyFormatted: number;
@@ -40,7 +42,10 @@ const getTokensInfo = async (chain: string, addresses: string[]) => {
   const newTokensFromMoralis = await getFromMoralis(chain, newTokens);
   if (newTokens.length)
     saveNewTokensList([...tokensList, ...newTokensFromMoralis]);
-  return [...existingTokensFromList, ...newTokensFromMoralis];
+  return await CoingeckoConfigLogic.addCoingeckoIdToTokenInfo(chain, [
+    ...existingTokensFromList,
+    ...newTokensFromMoralis,
+  ]);
 };
 
 const getFromMoralis = async (chain: string, addresses: string[]) => {
