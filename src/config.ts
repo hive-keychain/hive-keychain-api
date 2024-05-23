@@ -12,7 +12,7 @@ export const Config = {
   },
   rpc: process.env.RPC,
   rpcs: {
-    interval: 5 * 60 * 1000,
+    interval: 10 * 60 * 1000,
   },
   hive_rpc: process.env.HIVE_RPC,
   logger: {
