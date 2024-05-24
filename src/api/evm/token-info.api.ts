@@ -51,7 +51,6 @@ const setupGetTokensInfo = (app: Express) => {
 
 const setupGetMainTokenCoingeckoId = (app: Express) => {
   app.get("/evm/coingecko-id/:chainId", async (req, res) => {
-    console.log(req.params.chainId);
     res.status(200).send({
       id: await CoingeckoConfigLogic.getCoingeckoId(req.params.chainId),
     });

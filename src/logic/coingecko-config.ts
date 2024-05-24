@@ -102,7 +102,7 @@ const addCoingeckoIdToTokenInfo = async (
   try {
     const coingeckoConfig = await getCoingeckoConfigFile();
     const chain = coingeckoConfig.platforms.find((e) => e.chain_id === chainId);
-    if (!chain) return [];
+    if (!chain) return tokens;
     return tokens.map((token) => {
       const tokenInfo = coingeckoConfig.tokens.find(
         (e) => e.platforms[chain.id] === token.address
@@ -111,7 +111,7 @@ const addCoingeckoIdToTokenInfo = async (
       return token;
     });
   } catch (e) {
-    console.log(e);
+    Logger.error("Error while getting coingeckoId", e);
     return tokens;
   }
 };
@@ -145,7 +145,6 @@ const getCoingeckoId = async (chainId: string) => {
   const platform = (await getCoingeckoConfigFile()).platforms.find(
     (p) => p.chain_id === chainId
   );
-  console.log(platform);
   return platform ? platform.native_coin_id : "";
 };
 
