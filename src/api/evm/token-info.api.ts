@@ -1,4 +1,5 @@
 import { Express } from "express";
+import { CoingeckoConfigLogic } from "../../logic/coingecko-config";
 import {
   EVMTokenInfoShort,
   TokensInfoLogic,
@@ -29,6 +30,7 @@ const setupGetTokensInfo = (app: Express) => {
         validated,
         possibleSpam,
         verifiedContract,
+        coingeckoId,
       }) => ({
         chainId,
         address,
@@ -40,14 +42,25 @@ const setupGetTokensInfo = (app: Express) => {
         validated,
         possibleSpam,
         verifiedContract,
+        coingeckoId,
       })
     );
     res.status(200).send(tokensInfoShort);
   });
 };
 
+const setupGetMainTokenCoingeckoId = (app: Express) => {
+  app.get("/evm/coingecko-id/:chainId", async (req, res) => {
+    console.log(req.params.chainId);
+    res.status(200).send({
+      id: await CoingeckoConfigLogic.getCoingeckoId(req.params.chainId),
+    });
+  });
+};
+
 const setupApis = (app: Express) => {
   setupGetTokensInfo(app);
+  setupGetMainTokenCoingeckoId(app);
 };
 
 export const TokensInfoApi = { setupApis };
