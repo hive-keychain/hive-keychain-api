@@ -1,7 +1,9 @@
 import { Express } from "express";
 import { CoingeckoConfigLogic } from "../../logic/coingecko-config";
 import {
-  EVMTokenInfoShort,
+  EVMTokenType,
+  EvmTokenInfo,
+  EvmTokenInfoShort,
   TokensInfoLogic,
 } from "../../logic/evm/tokens-info.logic";
 
@@ -18,32 +20,36 @@ const setupGetTokensInfo = (app: Express) => {
       req.params.chainId,
       req.params.addresses.toLowerCase().split(",")
     );
-    const tokensInfoShort: EVMTokenInfoShort[] = tokensInfo.map(
-      ({
-        chainId,
-        address,
-        name,
-        symbol,
-        decimals,
-        logo,
-        backgroundColor,
-        validated,
-        possibleSpam,
-        verifiedContract,
-        coingeckoId,
-      }) => ({
-        chainId,
-        address,
-        name,
-        symbol,
-        decimals,
-        logo,
-        backgroundColor,
-        validated,
-        possibleSpam,
-        verifiedContract,
-        coingeckoId,
-      })
+
+    const tokensInfoShort: EvmTokenInfoShort[] = tokensInfo.map(
+      (token: EvmTokenInfo) => {
+        const {
+          type,
+          chainId,
+          name,
+          symbol,
+          logo,
+          backgroundColor,
+          coingeckoId,
+        } = token;
+
+        return {
+          type,
+          chainId,
+          name,
+          symbol,
+          logo,
+          backgroundColor,
+          coingeckoId,
+          validated: type === EVMTokenType.ERC20 ? token.validated : undefined,
+          possibleSpam:
+            type === EVMTokenType.ERC20 ? token.possibleSpam : undefined,
+          verifiedContract:
+            type === EVMTokenType.ERC20 ? token.verifiedContract : undefined,
+          address: type === EVMTokenType.ERC20 ? token.address : undefined,
+          decimals: type === EVMTokenType.ERC20 ? token.decimals : undefined,
+        };
+      }
     );
     res.status(200).send(tokensInfoShort);
   });

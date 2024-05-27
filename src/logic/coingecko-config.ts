@@ -1,14 +1,14 @@
 import * as fs from "fs";
 import Logger from "hive-keychain-commons/lib/logger/logger";
-import req from "request";
-import { EVMTokenInfoShort } from "./evm/tokens-info.logic";
+import { CoingeckoUtils } from "../utils/coingecko.utils";
+import { EVMTokenType, EvmTokenInfo } from "./evm/tokens-info.logic";
 
-interface CoingeckoConfig {
+export interface CoingeckoConfig {
   platforms: CoingeckoPlatform[];
   tokens: CoingeckoToken[];
 }
 
-interface CoingeckoPlatform {
+export interface CoingeckoPlatform {
   id: string;
   chain_identifier: number;
   chain_id: string;
@@ -17,7 +17,7 @@ interface CoingeckoPlatform {
   native_coin_id: string;
 }
 
-interface CoingeckoToken {
+export interface CoingeckoToken {
   id: string;
   symbol: string;
   name: string;
@@ -35,8 +35,8 @@ const initFetchCoingeckoConfig = () => {
 
 const fetchCoingeckoFullConfig = async () => {
   const [tokens, platforms] = await Promise.all([
-    fetchCoingeckoTokensConfig(),
-    fetchCoingeckoPlatformsConfig(),
+    CoingeckoUtils.fetchCoingeckoTokensConfig(),
+    CoingeckoUtils.fetchCoingeckoPlatformsConfig(),
   ]);
   const fullConfig = await getCoingeckoConfigFile();
   if (tokens) {
@@ -57,53 +57,16 @@ const fetchCoingeckoFullConfig = async () => {
   saveCoingeckoConfigFile(fullConfig);
 };
 
-const fetchCoingeckoTokensConfig = (): Promise<CoingeckoToken[]> => {
-  return new Promise((fulfill) => {
-    req(
-      {
-        url: `https://api.coingecko.com/api/v3/coins/list?include_platform=true`,
-        json: true,
-      },
-      (err, http, body) => {
-        if (err) {
-          fulfill(null);
-        } else {
-          if (body?.status?.error_code) fulfill(null);
-          else fulfill(body);
-        }
-      }
-    );
-  });
-};
-
-const fetchCoingeckoPlatformsConfig = (): Promise<CoingeckoPlatform[]> => {
-  return new Promise((fulfill) => {
-    req(
-      {
-        url: `https://api.coingecko.com/api/v3/asset_platforms`,
-        json: true,
-      },
-      (err, http, body) => {
-        if (err) {
-          fulfill(null);
-        } else {
-          if (body?.status?.error_code) fulfill(null);
-          else fulfill(body);
-        }
-      }
-    );
-  });
-};
-
 const addCoingeckoIdToTokenInfo = async (
   chainId: string,
-  tokens: EVMTokenInfoShort[]
+  tokens: EvmTokenInfo[]
 ) => {
   try {
     const coingeckoConfig = await getCoingeckoConfigFile();
     const chain = coingeckoConfig.platforms.find((e) => e.chain_id === chainId);
     if (!chain) return tokens;
     return tokens.map((token) => {
+      if (token.type === EVMTokenType.NATIVE) return token;
       const tokenInfo = coingeckoConfig.tokens.find(
         (e) => e.platforms[chain.id] === token.address
       );
@@ -152,4 +115,5 @@ export const CoingeckoConfigLogic = {
   initFetchCoingeckoConfig,
   addCoingeckoIdToTokenInfo,
   getCoingeckoId,
+  getCoingeckoConfigFile,
 };

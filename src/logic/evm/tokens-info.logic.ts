@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import Moralis from "moralis";
+import { CoingeckoUtils } from "../../utils/coingecko.utils";
 import { CoingeckoConfigLogic } from "../coingecko-config";
 import { TokensBackgroundColorsLogic } from "../hive/token-background-color";
 let isInit = false;
@@ -9,46 +10,108 @@ export enum EVMTokenType {
   NATIVE = "NATIVE",
   ERC20 = "ERC20",
 }
-export interface EVMTokenInfoShort {
-  address: string;
+
+type EvmTokenInfoBase = {
   name: string;
   symbol: string;
-  decimals: number;
   logo: string;
-  validated: number;
-  possibleSpam: boolean;
-  verifiedContract: boolean;
   chainId: string;
   backgroundColor: string;
   coingeckoId?: string;
-}
-export interface EVMTokenInfo extends EVMTokenInfoShort {
-  totalSupplyFormatted: number;
-  fullyDilutedValuation: number;
+};
+
+export type EvmTokenInfoShortNative = EvmTokenInfoBase & {
+  type: EVMTokenType.NATIVE;
+  coingeckoId: string;
+};
+
+export type EvmTokenInfoShortErc20 = EvmTokenInfoBase & {
+  type: EVMTokenType.ERC20;
+  address: string;
+  decimals: number;
+  validated: number;
+  possibleSpam: boolean;
+  verifiedContract: boolean;
+};
+export type EvmTokenInfoShort =
+  | EvmTokenInfoShortErc20
+  | EvmTokenInfoShortNative;
+
+export type EvmTokenInfo = EvmTokenInfoShort & {
   blockNumber: number;
   createdAt: string;
   categories: string[];
-  links: { [link: string]: string };
-}
+  links: { [link: string]: any };
+};
 
 const getTokensInfo = async (chain: string, addresses: string[]) => {
   const tokensList = await getCurrentTokensList();
   const existingTokensFromList = tokensList.filter(
-    (e) => e.chainId === chain && addresses.includes(e.address)
+    (e) =>
+      e.chainId === chain &&
+      e.type === EVMTokenType.ERC20 &&
+      addresses.includes(e.address)
   );
   const newTokens = addresses.filter(
-    (e) => !existingTokensFromList.map((t) => t.address).includes(e)
+    (e) =>
+      !existingTokensFromList
+        .map((t) => t.type === EVMTokenType.ERC20 && t.address)
+        .includes(e)
   );
-  const newTokensFromMoralis = await getFromMoralis(chain, newTokens);
-  if (newTokens.length)
-    saveNewTokensList([...tokensList, ...newTokensFromMoralis]);
+  const savedNativeToken = tokensList.find(
+    (e) => e.chainId === chain && e.type === EVMTokenType.NATIVE
+  );
+
+  const [newTokensFromMoralis, newNativeToken] = await Promise.all([
+    getFromMoralis(chain, newTokens),
+    !savedNativeToken && getFromCoingecko(chain),
+  ]);
+
+  let newNativeTokens = newNativeToken ? [newNativeToken] : [];
+  if (newTokens.length || newNativeToken)
+    saveNewTokensList([
+      ...newNativeTokens,
+      ...tokensList,
+      ...newTokensFromMoralis,
+    ]);
   return await CoingeckoConfigLogic.addCoingeckoIdToTokenInfo(chain, [
+    newNativeToken || savedNativeToken,
     ...existingTokensFromList,
     ...newTokensFromMoralis,
   ]);
 };
 
-const getFromMoralis = async (chain: string, addresses: string[]) => {
+const getFromCoingecko = async (chainId: string): Promise<EvmTokenInfo> => {
+  console.log("getting from coingecko");
+  const coingeckoConfig = await CoingeckoConfigLogic.getCoingeckoConfigFile();
+  const chain = coingeckoConfig.platforms.find((e) => e.chain_id === chainId);
+  const nativeTokenId = chain.native_coin_id;
+  if (nativeTokenId) {
+    const nativeToken = await CoingeckoUtils.fetchCoingeckoCoinData(
+      nativeTokenId
+    );
+    return {
+      blockNumber: 0,
+      type: EVMTokenType.NATIVE,
+      createdAt: nativeToken.genesis_date,
+      categories: nativeToken.categories,
+      links: nativeToken.links,
+      name: nativeToken.name,
+      logo: nativeToken.image.large,
+      backgroundColor:
+        await TokensBackgroundColorsLogic.getBackgroundColorFromImage(
+          nativeToken.image.large
+        ),
+      symbol: nativeToken.symbol,
+      chainId,
+      coingeckoId: nativeTokenId,
+    };
+  }
+};
+const getFromMoralis = async (
+  chain: string,
+  addresses: string[]
+): Promise<EvmTokenInfo[]> => {
   try {
     if (!addresses.length) return [];
     Logger.info(`Getting ${addresses.join(",")} from Moralis`);
@@ -74,10 +137,6 @@ const getFromMoralis = async (chain: string, addresses: string[]) => {
           symbol: e.symbol,
           decimals: +e.decimals,
           logo: e.logo,
-          //@ts-ignore
-          totalSupplyFormatted: +e.total_supply_formatted,
-          //@ts-ignore
-          fullyDilutedValuation: +e.fully_diluted_valuation,
           blockNumber: +e.block_number,
           validated: e.validated,
           createdAt: e.created_at,
@@ -107,7 +166,7 @@ const getCurrentTokensList = async () => {
       await fs
         .readFileSync(__dirname + `/../../../json/evmTokensInfo.json`)
         .toString()
-    ) as EVMTokenInfo[];
+    ) as EvmTokenInfo[];
   } catch (e) {
     return [];
   }

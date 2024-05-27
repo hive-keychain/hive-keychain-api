@@ -30,7 +30,7 @@ const initServerRoutine = () => {
   Logger.initLogger(Config.logger, process.env.NODE_ENV);
   setupRoutes(app);
 
-  PriceLogic.initFetchPrices();
+  setTimeout(() => PriceLogic.initFetchPrices(), 2 * 60 * 1000);
   HistoricalDataLogic.init();
   TokensBackgroundColorsLogic.initFetchColorMap();
   CoingeckoConfigLogic.initFetchCoingeckoConfig();
