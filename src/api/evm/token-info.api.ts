@@ -1,5 +1,4 @@
 import { Express } from "express";
-import { CoingeckoConfigLogic } from "../../logic/coingecko-config";
 import {
   EVMTokenType,
   EvmTokenInfo,
@@ -55,17 +54,8 @@ const setupGetTokensInfo = (app: Express) => {
   });
 };
 
-const setupGetMainTokenCoingeckoId = (app: Express) => {
-  app.get("/evm/coingecko-id/:chainId", async (req, res) => {
-    res.status(200).send({
-      id: await CoingeckoConfigLogic.getCoingeckoId(req.params.chainId),
-    });
-  });
-};
-
 const setupApis = (app: Express) => {
   setupGetTokensInfo(app);
-  setupGetMainTokenCoingeckoId(app);
 };
 
 export const TokensInfoApi = { setupApis };
