@@ -54,9 +54,8 @@ const getGasDataFromInfura = (chainId: string): Promise<GasFees> => {
   return new Promise((fulfill) => {
     req(
       {
-        url: `https://gas.api.infura.io/networks/${chainId.replace(
-          "0x",
-          ""
+        url: `https://gas.api.infura.io/networks/${parseInt(
+          chainId
         )}/suggestedGasFees`,
         json: true,
         headers: { Authorization: `Basic ${Auth}` },

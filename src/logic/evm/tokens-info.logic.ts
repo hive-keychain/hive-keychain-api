@@ -47,19 +47,19 @@ export type EvmTokenInfo = EvmTokenInfoShort & {
 const getTokensInfo = async (chain: string, addresses: string[]) => {
   const tokensList = await getCurrentTokensList();
   const existingTokensFromList = tokensList.filter(
-    (e) =>
-      e.chainId === chain &&
-      e.type === EVMTokenType.ERC20 &&
-      addresses.includes(e.address)
+    (token) =>
+      token.chainId === chain &&
+      token.type === EVMTokenType.ERC20 &&
+      addresses.includes(token.address)
   );
   const newTokens = addresses.filter(
-    (e) =>
+    (address) =>
       !existingTokensFromList
         .map((t) => t.type === EVMTokenType.ERC20 && t.address)
-        .includes(e)
+        .includes(address)
   );
   const savedNativeToken = tokensList.find(
-    (e) => e.chainId === chain && e.type === EVMTokenType.NATIVE
+    (token) => token.chainId === chain && token.type === EVMTokenType.NATIVE
   );
 
   const [newTokensFromMoralis, newNativeToken] = await Promise.all([
@@ -68,24 +68,29 @@ const getTokensInfo = async (chain: string, addresses: string[]) => {
   ]);
 
   let newNativeTokens = newNativeToken ? [newNativeToken] : [];
-  if (newTokens.length || newNativeToken)
+  if (newTokensFromMoralis.length || newNativeToken) {
     saveNewTokensList([
       ...newNativeTokens,
       ...tokensList,
       ...newTokensFromMoralis,
     ]);
-  return await CoingeckoConfigLogic.addCoingeckoIdToTokenInfo(chain, [
-    newNativeToken || savedNativeToken,
-    ...existingTokensFromList,
-    ...newTokensFromMoralis,
-  ]);
+  }
+
+  const tokens = [...existingTokensFromList, ...newTokensFromMoralis];
+
+  const nativeToken = newNativeToken || savedNativeToken;
+  if (nativeToken) {
+    tokens.push(nativeToken);
+  }
+
+  return await CoingeckoConfigLogic.addCoingeckoIdToTokenInfo(chain, tokens);
 };
 
 const getFromCoingecko = async (chainId: string): Promise<EvmTokenInfo> => {
   console.log("getting from coingecko");
   const coingeckoConfig = await CoingeckoConfigLogic.getCoingeckoConfigFile();
   const chain = coingeckoConfig.platforms.find((e) => e.chain_id === chainId);
-  const nativeTokenId = chain.native_coin_id;
+  const nativeTokenId = chain?.native_coin_id;
   if (nativeTokenId) {
     const nativeToken = await CoingeckoUtils.fetchCoingeckoCoinData(
       nativeTokenId
@@ -108,6 +113,7 @@ const getFromCoingecko = async (chainId: string): Promise<EvmTokenInfo> => {
     };
   }
 };
+
 const getFromMoralis = async (
   chain: string,
   addresses: string[]
