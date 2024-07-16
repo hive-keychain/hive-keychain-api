@@ -91,6 +91,7 @@ const getFromCoingecko = async (chainId: string): Promise<EvmTokenInfo> => {
   const coingeckoConfig = await CoingeckoConfigLogic.getCoingeckoConfigFile();
   const chain = coingeckoConfig.platforms.find((e) => e.chain_id === chainId);
   const nativeTokenId = chain?.native_coin_id;
+  console.log(chain);
   if (nativeTokenId) {
     const nativeToken = await CoingeckoUtils.fetchCoingeckoCoinData(
       nativeTokenId
@@ -191,6 +192,33 @@ const saveNewTokensList = async (newList: any[]) => {
   }
 };
 
+const getTokenInfoShort = async (chainId: string, addresses?: string[]) => {
+  const tokensInfo = await TokensInfoLogic.getTokensInfo(chainId, addresses);
+
+  return tokensInfo.map((token: EvmTokenInfo) => {
+    const { type, chainId, name, symbol, logo, backgroundColor, coingeckoId } =
+      token;
+
+    return {
+      type,
+      chainId,
+      name,
+      symbol,
+      logo,
+      backgroundColor,
+      coingeckoId,
+      validated: type === EVMTokenType.ERC20 ? token.validated : undefined,
+      possibleSpam:
+        type === EVMTokenType.ERC20 ? token.possibleSpam : undefined,
+      verifiedContract:
+        type === EVMTokenType.ERC20 ? token.verifiedContract : undefined,
+      address: type === EVMTokenType.ERC20 ? token.address : undefined,
+      decimals: type === EVMTokenType.ERC20 ? token.decimals : undefined,
+    };
+  });
+};
+
 export const TokensInfoLogic = {
   getTokensInfo,
+  getTokenInfoShort,
 };

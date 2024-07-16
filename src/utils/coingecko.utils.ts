@@ -1,3 +1,4 @@
+import Logger from "hive-keychain-commons/lib/logger/logger";
 import req from "request";
 import { CoingeckoPlatform, CoingeckoToken } from "../logic/coingecko-config";
 
@@ -128,8 +129,10 @@ const fetchCoingeckoCoinData = (id: string): Promise<CoingeckoCoinData> => {
         if (err) {
           fulfill(null);
         } else {
-          if (body?.status?.error_code) fulfill(null);
-          else fulfill(body);
+          if (body?.status?.error_code) {
+            Logger.error(body.status.error_message);
+            fulfill(null);
+          } else fulfill(body);
         }
       }
     );
