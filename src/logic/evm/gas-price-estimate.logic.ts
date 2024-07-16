@@ -35,7 +35,8 @@ const Auth = Buffer.from(
 const getGasPriceEstimate = async (chainId: string) => {
   const gasFeeChainData = await getCurrentGasFees();
   const upToDateFeesForChainId = gasFeeChainData.find(
-    (e) => e.chainId === chainId && ((+new Date() / 1000) | 0) < e.updatedAt + 0
+    (e) =>
+      e.chainId === chainId && ((+new Date() / 1000) | 0) < e.updatedAt + 30
   );
   if (upToDateFeesForChainId) {
     return upToDateFeesForChainId.data;
