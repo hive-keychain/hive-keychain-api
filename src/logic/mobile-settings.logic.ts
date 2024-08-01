@@ -3,9 +3,9 @@ import path from "path";
 
 const getSettings = () => {
   try {
-    return fs.readFileSync(
-      path.join(__dirname, `/../../json/settings/mobile.json`)
-    );
+    return fs
+      .readFileSync(path.join(__dirname, `/../../json/settings/mobile.json`))
+      .toJSON();
   } catch (e) {
     return {};
   }
