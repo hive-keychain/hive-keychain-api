@@ -12,6 +12,7 @@ import { HistoricalDataApi } from "./api/hive/historical-data.api";
 import { PriceApi } from "./api/hive/price.api";
 import { RpcApi } from "./api/hive/rpc.api";
 import { WitnessApi } from "./api/hive/witness.api";
+import { SettingsApi } from "./api/mobile-settings.api";
 import { VersionLogApi } from "./api/version-log.api";
 import { Config } from "./config";
 import { HistoricalDataLogic } from "./logic/hive/historical-data.logic";
@@ -49,6 +50,7 @@ const setupRoutes = (app: express.Express) => {
   WitnessApi.setupApis(app);
   TokensBackgroundColorsApi.setupApis(app);
   EcosystemApi.setupApis(app);
+  SettingsApi.setupApis(app);
 };
 
 const startServer = (app: express.Express) => {
