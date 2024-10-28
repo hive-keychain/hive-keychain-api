@@ -9,6 +9,7 @@ import { TokensBackgroundColorsApi } from "./api/hive/background-color.api";
 import { BadActorsApi } from "./api/hive/bad-actors.api";
 import { DelegationApi } from "./api/hive/delegation.api";
 import { HistoricalDataApi } from "./api/hive/historical-data.api";
+import { InvoiceRedirectApi } from "./api/hive/invoice-redirect.api";
 import { PriceApi } from "./api/hive/price.api";
 import { RpcApi } from "./api/hive/rpc.api";
 import { WitnessApi } from "./api/hive/witness.api";
@@ -51,6 +52,7 @@ const setupRoutes = (app: express.Express) => {
   TokensBackgroundColorsApi.setupApis(app);
   EcosystemApi.setupApis(app);
   SettingsApi.setupApis(app);
+  InvoiceRedirectApi.setupApis(app);
 };
 
 const startServer = (app: express.Express) => {
