@@ -7,6 +7,7 @@ import https from "https";
 import { EcosystemApi } from "./api/ecosystem.api";
 import { GasPriceEstimateApi } from "./api/evm/gas-price-estimate.api";
 import { TokensInfoApi } from "./api/evm/token-info.api";
+import { VerifyTransactionApi } from "./api/evm/verify-transaction.api";
 import { TokensBackgroundColorsApi } from "./api/hive/background-color.api";
 import { BadActorsApi } from "./api/hive/bad-actors.api";
 import { DelegationApi } from "./api/hive/delegation.api";
@@ -55,6 +56,7 @@ const setupRoutes = (app: express.Express) => {
   EcosystemApi.setupApis(app);
   TokensInfoApi.setupApis(app);
   GasPriceEstimateApi.setupApis(app);
+  VerifyTransactionApi.setupApis(app);
 };
 
 const startServer = (app: express.Express) => {
