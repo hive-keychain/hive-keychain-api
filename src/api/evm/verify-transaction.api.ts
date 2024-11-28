@@ -1,7 +1,7 @@
 import { Express } from "express";
 
 const VerifyTransaction = (app: Express) => {
-  app.get("/evm/verifyTransaction", async (req, res) => {
+  app.get("/evm/verify-transaction", async (req, res) => {
     const { domain, to, contract } = req.query;
     const mock = {
       domain: {
