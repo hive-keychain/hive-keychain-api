@@ -17,7 +17,8 @@ import { RpcApi } from "./api/hive/rpc.api";
 import { WitnessApi } from "./api/hive/witness.api";
 import { VersionLogApi } from "./api/version-log.api";
 import { Config } from "./config";
-import { CoingeckoConfigLogic } from "./logic/coingecko-config";
+import { CoingeckoConfigLogic } from "./logic/evm/coingecko-config";
+import { ScamSnifferLogic } from "./logic/evm/verify-transaction/scamsniffer.logic";
 import { HistoricalDataLogic } from "./logic/hive/historical-data.logic";
 import { PriceLogic } from "./logic/hive/price.logic";
 import { TokensBackgroundColorsLogic } from "./logic/hive/token-background-color";
@@ -35,6 +36,7 @@ const initServerRoutine = () => {
   HistoricalDataLogic.init();
   TokensBackgroundColorsLogic.initFetchColorMap();
   CoingeckoConfigLogic.initFetchCoingeckoConfig();
+  ScamSnifferLogic.initFetchScamSniffer();
   startServer(app);
 };
 

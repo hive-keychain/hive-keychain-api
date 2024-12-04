@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import Logger from "hive-keychain-commons/lib/logger/logger";
-import { CoingeckoUtils } from "../utils/coingecko.utils";
-import { EVMTokenType, EvmTokenInfo } from "./evm/tokens-info.logic";
+import { CoingeckoUtils } from "../../utils/coingecko.utils";
+import { EVMTokenType, EvmTokenInfo } from "./tokens-info.logic";
 
 export interface CoingeckoConfig {
   platforms: CoingeckoPlatform[];
@@ -83,7 +83,7 @@ const getCoingeckoConfigFile = async (): Promise<CoingeckoConfig> => {
   try {
     return JSON.parse(
       await fs
-        .readFileSync(__dirname + `/../../json/coingeckoConfig.json`)
+        .readFileSync(__dirname + `/../../../json/coingeckoConfig.json`)
         .toString()
     );
   } catch (e) {
@@ -94,7 +94,7 @@ const getCoingeckoConfigFile = async (): Promise<CoingeckoConfig> => {
 const saveCoingeckoConfigFile = async (newList: CoingeckoConfig) => {
   try {
     await fs.writeFile(
-      __dirname + `/../../json/coingeckoConfig.json`,
+      __dirname + `/../../../json/coingeckoConfig.json`,
       JSON.stringify(newList),
       "utf8",
       () => Logger.info(`Updated coingecko config file`)

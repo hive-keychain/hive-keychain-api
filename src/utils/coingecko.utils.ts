@@ -1,6 +1,9 @@
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import req from "request";
-import { CoingeckoPlatform, CoingeckoToken } from "../logic/coingecko-config";
+import {
+  CoingeckoPlatform,
+  CoingeckoToken,
+} from "../logic/evm/coingecko-config";
 
 const fetchCoingeckoTokensConfig = (): Promise<CoingeckoToken[]> => {
   return new Promise((fulfill) => {

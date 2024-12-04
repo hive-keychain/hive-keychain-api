@@ -2,8 +2,8 @@ import * as fs from "fs";
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import Moralis from "moralis";
 import { CoingeckoUtils } from "../../utils/coingecko.utils";
-import { CoingeckoConfigLogic } from "../coingecko-config";
 import { TokensBackgroundColorsLogic } from "../hive/token-background-color";
+import { CoingeckoConfigLogic } from "./coingecko-config";
 let isInit = false;
 
 export enum EVMTokenType {
