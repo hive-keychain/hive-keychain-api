@@ -18,6 +18,7 @@ import { WitnessApi } from "./api/hive/witness.api";
 import { VersionLogApi } from "./api/version-log.api";
 import { Config } from "./config";
 import { CoingeckoConfigLogic } from "./logic/evm/coingecko-config";
+import { MetaMaskBlacklistLogic } from "./logic/evm/verify-transaction/metamask.logic";
 import { ScamSnifferLogic } from "./logic/evm/verify-transaction/scamsniffer.logic";
 import { HistoricalDataLogic } from "./logic/hive/historical-data.logic";
 import { PriceLogic } from "./logic/hive/price.logic";
@@ -37,6 +38,7 @@ const initServerRoutine = () => {
   TokensBackgroundColorsLogic.initFetchColorMap();
   CoingeckoConfigLogic.initFetchCoingeckoConfig();
   ScamSnifferLogic.initFetchScamSniffer();
+  MetaMaskBlacklistLogic.initFetchMetamaskBlacklist();
   startServer(app);
 };
 

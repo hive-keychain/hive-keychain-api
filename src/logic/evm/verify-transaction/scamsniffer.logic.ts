@@ -41,7 +41,9 @@ const getScamSnifferBlacklistFile = async (): Promise<ScamSnifferBlacklist> => {
   try {
     return JSON.parse(
       await fs
-        .readFileSync(__dirname + `/../../../../json/scamSniffer.json`)
+        .readFileSync(
+          __dirname + `/../../../../json/blacklists/scamSniffer.json`
+        )
         .toString()
     );
   } catch (e) {
@@ -52,7 +54,7 @@ const getScamSnifferBlacklistFile = async (): Promise<ScamSnifferBlacklist> => {
 const saveScamSnifferBlacklistFile = async (newList: ScamSnifferBlacklist) => {
   try {
     await fs.writeFile(
-      __dirname + `/../../../../json/scamSniffer.json`,
+      __dirname + `/../../../../json/blacklists/scamSniffer.json`,
       JSON.stringify(newList),
       "utf8",
       () => Logger.info(`Updated scamSniffer file`)

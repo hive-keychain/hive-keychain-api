@@ -12,11 +12,11 @@ const VerifyTransaction = (app: Express) => {
     const mock = {
       domain: {
         isBlacklisted: true,
-        popularity: "low",
+        isWhitelisted: false,
         isTrusted: "implement on frontend.",
-        verifiedBy: [
-          { name: "Coingecko", icon: "https://www.coingecko.com/favicon.ico" },
-        ],
+        // verifiedBy: [
+        //   { name: "Coingecko", icon: "https://www.coingecko.com/favicon.ico" },
+        // ],
       },
       contract: {
         isBlacklisted: true,
