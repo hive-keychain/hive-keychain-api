@@ -19,7 +19,12 @@ export interface ContractResult {
   };
 }
 
-const verify = async (domain?: string, to?: string, contract?: string) => {
+const verify = async (
+  domain?: string,
+  to?: string,
+  contract?: string,
+  chainId?: string
+) => {
   const [domainResult, toResult, contractResult] = await Promise.all([
     verifyDomain(domain),
     verifyTo(to),
@@ -57,6 +62,7 @@ const verifyContract = async (contract?: string) => {
     requestFunc
   );
   result.proxy = proxy;
+  return result;
 };
 
 export const VerifyTransactionLogic = {
