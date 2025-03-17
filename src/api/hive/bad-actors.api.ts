@@ -12,8 +12,17 @@ const setupGetPhishingAccount = (app: Express) => {
   });
 };
 
+const setupGetBlacklistedDomains = (app: Express) => {
+  app.get("/hive/blacklistedDomains", async (req, res) => {
+    const blacklistedDomains = await BadActorsLogic.getBlacklistedDomains();
+    Logger.info(`${blacklistedDomains.length} blacklisted domains listed.`);
+    res.status(200).send(blacklistedDomains);
+  });
+};
+
 const setupApis = (app: Express) => {
   setupGetPhishingAccount(app);
+  setupGetBlacklistedDomains(app);
 };
 
 export const BadActorsApi = { setupApis };
