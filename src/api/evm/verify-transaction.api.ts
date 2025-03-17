@@ -3,11 +3,12 @@ import { VerifyTransactionLogic } from "../../logic/evm/verify-transaction/verif
 
 const VerifyTransaction = (app: Express) => {
   app.get("/evm/verifyTransaction", async (req, res) => {
-    const { domain, to, contract } = req.query;
+    const { domain, to, contract, chainId } = req.query;
     const result = await VerifyTransactionLogic.verify(
       domain as string,
       to as string,
-      contract as string
+      contract as string,
+      chainId as string
     );
     const mock = {
       domain: {
