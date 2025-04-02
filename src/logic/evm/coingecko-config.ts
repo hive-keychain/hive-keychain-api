@@ -1,7 +1,10 @@
 import * as fs from "fs";
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import { CoingeckoUtils } from "../../utils/coingecko.utils";
-import { EVMTokenType, EvmTokenInfo } from "./tokens-info.logic";
+import {
+  EvmSmartContractInfo,
+  EVMSmartContractType,
+} from "./interfaces/evm-smart-contracts.interface";
 
 export interface CoingeckoConfig {
   platforms: CoingeckoPlatform[];
@@ -59,14 +62,14 @@ const fetchCoingeckoFullConfig = async () => {
 
 const addCoingeckoIdToTokenInfo = async (
   chainId: string,
-  tokens: EvmTokenInfo[]
+  tokens: EvmSmartContractInfo[]
 ) => {
   try {
     const coingeckoConfig = await getCoingeckoConfigFile();
     const chain = coingeckoConfig.platforms.find((e) => e.chain_id === chainId);
     if (!chain) return tokens;
     return tokens.map((token) => {
-      if (token.type === EVMTokenType.NATIVE) return token;
+      if (token.type === EVMSmartContractType.NATIVE) return token;
       const tokenInfo = coingeckoConfig.tokens.find(
         (e) => e.platforms[chain.id] === token.address
       );

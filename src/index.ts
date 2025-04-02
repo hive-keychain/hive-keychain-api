@@ -6,7 +6,7 @@ import Logger from "hive-keychain-commons/lib/logger/logger";
 import https from "https";
 import { EcosystemApi } from "./api/ecosystem.api";
 import { GasPriceEstimateApi } from "./api/evm/gas-price-estimate.api";
-import { TokensInfoApi } from "./api/evm/token-info.api";
+import { SmartContractsApi } from "./api/evm/smart-contracts-info.api";
 import { VerifyTransactionApi } from "./api/evm/verify-transaction.api";
 import { TokensBackgroundColorsApi } from "./api/hive/background-color.api";
 import { BadActorsApi } from "./api/hive/bad-actors.api";
@@ -58,7 +58,7 @@ const setupRoutes = (app: express.Express) => {
   WitnessApi.setupApis(app);
   TokensBackgroundColorsApi.setupApis(app);
   EcosystemApi.setupApis(app);
-  TokensInfoApi.setupApis(app);
+  SmartContractsApi.setupApis(app);
   GasPriceEstimateApi.setupApis(app);
   VerifyTransactionApi.setupApis(app);
 };
