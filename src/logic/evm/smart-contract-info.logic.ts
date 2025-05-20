@@ -29,6 +29,9 @@ const getSmartContractInfo = async (chain: string, addresses: string[]) => {
         .map((t) => t.type !== EVMSmartContractType.NATIVE && t.address)
         .includes(address)
   );
+
+  console.log({ newSmartContracts });
+
   const savedNativeToken = smartContractsList.find(
     (token) =>
       token.chainId === chain && token.type === EVMSmartContractType.NATIVE
@@ -39,7 +42,7 @@ const getSmartContractInfo = async (chain: string, addresses: string[]) => {
     !savedNativeToken && getFromCoingecko(chain),
   ]);
 
-  console.log(newSmartContracts, newSmartContractsFromMoralis);
+  console.log({ newSmartContracts, newSmartContractsFromMoralis });
 
   let newNativeTokens = newNativeToken ? [newNativeToken] : [];
   if (newSmartContractsFromMoralis.length || newNativeToken) {
@@ -141,28 +144,39 @@ const getFromMoralis = async (
   chain: string,
   addresses: string[]
 ): Promise<EvmSmartContractInfo[]> => {
+  let start = Date.now();
   const tokenAddresses = [];
   const nftAddresses = [];
 
+  const infoPromises = [];
+
   for (const address of addresses) {
-    const info = await EtherscanApi.getTokenInfo(chain, address);
+    infoPromises.push(EtherscanApi.getTokenInfo(chain, address));
+  }
+  const infoResult = await Promise.all(infoPromises);
+  console.log("etherscan took", (Date.now() - start) / 1000);
+  for (const info of infoResult) {
+    console.log({ info, chain });
+
     if (info) {
       switch (info.type) {
         case "ERC-20":
-          tokenAddresses.push(address);
+          tokenAddresses.push(info.address);
           break;
         case "ERC-721":
         case "ERC-1155":
-          nftAddresses.push(address);
+          nftAddresses.push(info.address);
           break;
       }
     }
   }
-
+  let startMoralis = Date.now();
   const [tokensFromMoralis, nftsFromMoralis] = await Promise.all([
     getTokensFromMoralis(chain, tokenAddresses),
     getNftsFromMoralis(chain, nftAddresses),
   ]);
+  console.log("moralis took", (Date.now() - startMoralis) / 1000);
+  console.log("total moralis function took", (Date.now() - start) / 1000);
   return [...tokensFromMoralis, ...nftsFromMoralis];
 };
 
@@ -182,6 +196,7 @@ const getNftsFromMoralis = async (
 
     return Promise.all(
       addresses.map(async (address) => {
+        console.log("address", address);
         const moralisNftMetadata = (
           await Moralis.EvmApi.nft.getNFTContractMetadata({
             address,
@@ -192,6 +207,7 @@ const getNftsFromMoralis = async (
           await TokensBackgroundColorsLogic.getBackgroundColorFromImage(
             moralisNftMetadata.collection_logo
           );
+        console.log({ moralisNftMetadata });
         return {
           type: moralisNftMetadata.contract_type as EVMSmartContractType,
           address: moralisNftMetadata.token_address,
@@ -240,7 +256,7 @@ const getTokensFromMoralis = async (
       })
     ).toJSON();
 
-    console.log(moralisTokensMetadata);
+    console.log({ moralisTokensMetadata });
 
     return Promise.all(
       moralisTokensMetadata.map(async (moralisTokenMD) => {
@@ -287,7 +303,7 @@ const findSmartContractType = async (chainId: string, address: string) => {
       .filter((f) => !!f.name)
       .map((f) => f.name);
 
-    console.log(abiFunctions);
+    console.log({ abiFunctions });
 
     for (const abi of AbiList) {
       const allMatch = abi.methods.every((method) => {
@@ -297,7 +313,7 @@ const findSmartContractType = async (chainId: string, address: string) => {
       if (allMatch) return abi.type;
     }
   } catch (err) {
-    console.log(err);
+    console.log({ err });
     return EVMSmartContractType.ERC20;
   }
 
@@ -318,6 +334,7 @@ const getCurrentSmartContractList = async () => {
 };
 
 const saveNewSmartContractsList = async (newList: any[]) => {
+  console.log(newList);
   try {
     await fs.writeFile(
       __dirname + `/../../../json/evm-smart-contracts.json`,

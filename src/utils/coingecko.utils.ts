@@ -133,7 +133,7 @@ const fetchCoingeckoCoinData = (id: string): Promise<CoingeckoCoinData> => {
           fulfill(null);
         } else {
           if (body?.status?.error_code) {
-            Logger.error(body.status.error_message);
+            Logger.error("hello", body.status.error_message);
             fulfill(null);
           } else fulfill(body);
         }

@@ -14,16 +14,22 @@ const getAbi = async (chainId: string, address: string) => {
 };
 
 const getTokenInfo = async (chainId: string, contractAddress: string) => {
-  const chain = defaultChainList.find((c) => c.chainId === chainId);
+  return new Promise(async (resolve, reject) => {
+    try {
+      const chain = defaultChainList.find((c) => c.chainId === chainId);
 
-  const res = await get(
-    `${chain.blockExplorerApi.url}/api?module=token&action=getToken&contractaddress=${contractAddress}`
-  );
-  console.log(res);
-  if (res.status === "1") {
-    return res.result;
-  }
-  return null;
+      const res = await get(
+        `${chain.blockExplorerApi.url}/api?module=token&action=getToken&contractaddress=${contractAddress}`
+      );
+      if (res.status === "1") {
+        resolve({ address: contractAddress, result: res.result });
+      } else {
+        resolve({ address: contractAddress, result: null });
+      }
+    } catch (err) {
+      resolve({ address: contractAddress, result: null });
+    }
+  });
 };
 
 const get = async (url: string): Promise<any> => {

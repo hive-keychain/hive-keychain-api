@@ -75,7 +75,7 @@ const editDapp = (dapp: any, chain: string) => {
       JSON.stringify(dapps)
     );
   } catch (err) {
-    console.log(err);
+    console.log({ err });
   }
 };
 

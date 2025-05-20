@@ -30,7 +30,6 @@ const setupEditDapp = (app: Express) => {
     accessCheck(Role.TEAM),
     async (req, res) => {
       const dapp = req.body;
-      console.log("req.body", req.body);
       await EcosystemLogic.editDapp(dapp, req.params.chain);
       Logger.info(`Editing ${req.params.chain} dapp`);
       res.status(200).send({ status: 200 });
@@ -44,7 +43,6 @@ const setupDeleteDapp = (app: Express) => {
     accessCheck(Role.TEAM),
     async (req, res) => {
       const dapp = req.body;
-      console.log("req.body", req.body);
       await EcosystemLogic.deleteDapp(dapp, req.params.chain);
       Logger.info(`Deleting ${req.params.chain} dapp`);
       res.status(200).send({ status: 200 });
