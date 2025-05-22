@@ -2,8 +2,9 @@ import Logger from "hive-keychain-commons/lib/logger/logger";
 import sql from "mssql";
 import { Config } from "../../config";
 
-const getWitness = function (username) {
-  return new sql.ConnectionPool(Config.hiveSql)
+const getWitness = async function (username) {
+  const pool = new sql.ConnectionPool(Config.hiveSql);
+  return pool
     .connect()
     .then((pool) => {
       return pool.request().input("username", username).query(
@@ -23,18 +24,19 @@ const getWitness = function (username) {
       );
     })
     .then((result) => {
-      sql.close();
+      pool.close();
       return result.recordsets[0][0];
     })
     .catch((error) => {
-      sql.close();
+      pool.close();
       Logger.error(error);
       return null;
     });
 };
 
 const getWitnessesRank = function () {
-  return new sql.ConnectionPool(Config.hiveSql)
+  const pool = new sql.ConnectionPool(Config.hiveSql);
+  return pool
     .connect()
     .then((pool) => {
       return pool.request().query(
@@ -46,17 +48,18 @@ const getWitnessesRank = function () {
       );
     })
     .then((result) => {
-      sql.close();
+      pool.close();
       return result.recordsets[0];
     })
     .catch((error) => {
-      console.log(error);
-      sql.close();
+      pool.close();
+      Logger.error(error);
     });
 };
 
 const getWitnessesRankV2 = function () {
-  return new sql.ConnectionPool(Config.hiveSql)
+  const pool = new sql.ConnectionPool(Config.hiveSql);
+  return pool
     .connect()
     .then((pool) => {
       return pool.request().query(
@@ -68,7 +71,7 @@ const getWitnessesRankV2 = function () {
       );
     })
     .then((result) => {
-      sql.close();
+      pool.close();
       const res = result.recordsets[0];
       let inactive = 0;
       for (const wit of res) {
@@ -81,7 +84,7 @@ const getWitnessesRankV2 = function () {
       return res;
     })
     .catch((error) => {
-      sql.close();
+      pool.close();
       throw new Error(error);
     });
 };

@@ -2,8 +2,9 @@ import Logger from "hive-keychain-commons/lib/logger/logger";
 import sql from "mssql";
 import { Config } from "../../config";
 
-const getIncoming = (username) => {
-  return new sql.ConnectionPool(Config.hiveSql)
+const getIncoming = async (username) => {
+  const pool = new sql.ConnectionPool(Config.hiveSql);
+  return pool
     .connect()
     .then((pool) => {
       return pool
@@ -21,11 +22,11 @@ const getIncoming = (username) => {
         );
     })
     .then((result) => {
-      sql.close();
+      pool.close();
       return result.recordsets[0];
     })
     .catch((error) => {
-      sql.close();
+      pool.close();
       Logger.error(error);
       throw new Error(error);
     });

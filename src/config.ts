@@ -4,10 +4,14 @@ require("dotenv").config();
 
 export const Config = {
   hiveSql: {
-    user: process.env.LOGIN,
-    password: process.env.PASSWORD,
-    server: process.env.SQL_API,
-    database: process.env.DB,
+    user: process.env.LOGIN!,
+    password: process.env.PASSWORD!,
+    server: process.env.SQL_API!,
+    database: process.env.DB!,
+    options: {
+      encrypt: true, // Required if you're using Azure or encryption
+      trustServerCertificate: true, // Use true only in dev environments
+    },
     requestTimeout: 60000,
   },
   rpc: process.env.RPC,
