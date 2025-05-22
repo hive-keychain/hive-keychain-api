@@ -1,14 +1,19 @@
 import { Express } from "express";
+import { query } from "express-validator";
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import { EcosystemLogic } from "../logic/ecosystem/ecosystem.logic";
 import { Role, accessCheck } from "../middleware/access.middleware";
 
 const setupGetEcosystem = (app: Express) => {
-  app.get("/:chain/ecosystem/dapps", async (req, res) => {
-    const ecosystemDapps = await EcosystemLogic.getDappList(req.params.chain);
-    Logger.info(`Get ${req.params.chain} ecosystem`);
-    res.status(200).send(ecosystemDapps);
-  });
+  app.get(
+    "/:chain/ecosystem/dapps",
+    query("chain").isString().not().isEmpty().escape(),
+    async (req, res) => {
+      const ecosystemDapps = await EcosystemLogic.getDappList(req.params.chain);
+      Logger.info(`Get ${req.params.chain} ecosystem`);
+      res.status(200).send(ecosystemDapps);
+    }
+  );
 };
 
 const setupSaveNewDapp = (app: Express) => {

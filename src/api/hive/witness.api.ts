@@ -1,10 +1,15 @@
 import { Express } from "express";
+import { query } from "express-validator";
 import { WitnessLogic } from "../../logic/hive/witness.logic";
 
 const setupGetWitnessApi = (app: Express) => {
-  app.get("/hive/witness/:username", async function (req, res) {
-    res.status(200).send(await WitnessLogic.getWitness(req.params.username));
-  });
+  app.get(
+    "/hive/witness/:username",
+    query("username").isString().not().isEmpty().escape(),
+    async function (req, res) {
+      res.status(200).send(await WitnessLogic.getWitness(req.params.username));
+    }
+  );
 };
 const setupGetWitnessesRankApi = (app: Express) => {
   // Get witness ranking. This request doesn't include inactive witnesses
