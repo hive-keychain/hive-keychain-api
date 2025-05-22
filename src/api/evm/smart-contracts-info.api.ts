@@ -27,8 +27,24 @@ const setupGetSmartContractsInfo = (app: Express) => {
   // );
 };
 
+const setupRefreshSmartContractsInfo = (app: Express) => {
+  app.get("/evm/smart-contracts-info/refresh", async (req, res) => {
+    if (
+      req.query.refreshMetadataPassword &&
+      req.query.refreshMetadataPassword === process.env.REFRESH_METADATA_PWD
+    ) {
+      await SmartContractsInfoLogic.refreshNullTokens();
+      res.status(200).send("ok");
+    } else {
+      console.log(req.query.refreshMetadataPassword);
+      res.status(403).send("Non authorized");
+    }
+  });
+};
+
 const setupApis = (app: Express) => {
   setupGetSmartContractsInfo(app);
+  setupRefreshSmartContractsInfo(app);
 };
 
 export const SmartContractsApi = { setupApis };

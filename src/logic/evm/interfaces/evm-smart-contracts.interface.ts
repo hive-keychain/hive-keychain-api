@@ -13,6 +13,7 @@ export interface EvmSmartContractInfoBase {
   chainId: string;
   backgroundColor: string;
   coingeckoId?: string;
+  address?: string;
   // links: { [name: string]: string[] | string };
 }
 
