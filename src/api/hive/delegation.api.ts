@@ -9,8 +9,8 @@ const setupGetIncomingDelegations = (app: Express) => {
     query("username").isString().not().isEmpty().escape(),
     async function (req, res) {
       try {
-        Logger.debug(`Getting delegators for ${req.params.username}`);
-        const resp = await DelegationLogic.getIncoming(req.params.username);
+        Logger.debug(`Getting delegators for ${req.params?.username}`);
+        const resp = await DelegationLogic.getIncoming(req.params?.username);
         res.status(200).send(resp);
       } catch (e) {
         res.status(500).send(e);

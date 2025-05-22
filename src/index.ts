@@ -26,7 +26,7 @@ const PORT = process.env.PORT || 3000;
 
 const initServerRoutine = () => {
   const app = express();
-  Logger.initLogger(Config.logger, process.env.NODE_ENV);
+  Logger.initLogger(Config.logger, process.env.NODE_ENV || "development");
   setupRoutes(app);
 
   PriceLogic.initFetchPrices();

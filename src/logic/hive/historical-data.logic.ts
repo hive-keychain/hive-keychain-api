@@ -1,5 +1,5 @@
 import Logger from "hive-keychain-commons/lib/logger/logger";
-import req from "request";
+import fetch from "node-fetch";
 
 let historicalData;
 const refreshHistoricalData = async () => {
@@ -29,17 +29,21 @@ const getHistoricalData = async () => {
 const fetchHistoricalData = async (currency: string) => {
   // return;
   return new Promise((fulfill) => {
-    req(
+    fetch(
+      `https://api.coingecko.com/api/v3/coins/${currency}/ohlc?vs_currency=usd&days=1&precision=4`,
       {
-        url: `https://api.coingecko.com/api/v3/coins/${currency}/ohlc?vs_currency=usd&days=1&precision=4`,
-        json: true,
-      },
-      (err, http, body) => {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    )
+      .then((res) => res.json())
+      .then((body) => {
         if (body.status) {
           //do nothing
         } else fulfill(body.map((e) => e[1]));
-      }
-    );
+      });
   });
 };
 

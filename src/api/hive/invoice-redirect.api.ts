@@ -8,11 +8,11 @@ const setupApis = (app: Express) => {
     query("op").isString().not().isEmpty().escape(),
     async function (req, res) {
       try {
-        Logger.debug(`Redirecting to ${req.params.op}`);
+        Logger.debug(`Redirecting to ${req.params?.op}`);
         res
           .status(302)
 
-          .redirect(`hive://sign/op/${req.params.op}`);
+          .redirect(`hive://sign/op/${req.params?.op}`);
       } catch (e) {
         console.log("here");
         res.status(500).send(e);

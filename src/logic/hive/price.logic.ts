@@ -1,5 +1,5 @@
 import Logger from "hive-keychain-commons/lib/logger/logger";
-import req from "request";
+import fetch from "node-fetch";
 
 let prices;
 const refreshPrices = async () => {
@@ -25,19 +25,23 @@ const getPrices = async () => {
 
 const fetchPrices = async () => {
   return new Promise((fulfill) => {
-    req(
+    fetch(
+      "https://api.coingecko.com/api/v3/simple/price?ids=hive%2Chive_dollar%2Cbitcoin&vs_currencies=usd&include_24hr_change=true",
       {
-        url: "https://api.coingecko.com/api/v3/simple/price?ids=hive%2Chive_dollar%2Cbitcoin&vs_currencies=usd&include_24hr_change=true",
-        json: true,
-      },
-      (err, http, body) => {
-        if (err || !body.bitcoin || !body.hive || !body.hive_dollar) {
-          console.log(err);
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    )
+      .then((res) => res.json())
+      .then((body) => {
+        if (!body.bitcoin || !body.hive || !body.hive_dollar) {
+          console.log("error");
         } else {
           fulfill(body);
         }
-      }
-    );
+      });
   });
 };
 

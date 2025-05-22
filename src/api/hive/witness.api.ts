@@ -7,7 +7,7 @@ const setupGetWitnessApi = (app: Express) => {
     "/hive/witness/:username",
     query("username").isString().not().isEmpty().escape(),
     async function (req, res) {
-      res.status(200).send(await WitnessLogic.getWitness(req.params.username));
+      res.status(200).send(await WitnessLogic.getWitness(req.params?.username));
     }
   );
 };

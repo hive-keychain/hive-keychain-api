@@ -1,9 +1,9 @@
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import fetch from "node-fetch";
 
-export const getAllTokens = async (): Promise<Token[]> => {
+export const getAllTokens = async (): Promise<Token[] | undefined> => {
   try {
-    let tokens = [];
+    let tokens: Token[] = [];
     let offset = 0;
     do {
       const newTokens = await getTokens(offset);

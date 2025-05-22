@@ -9,8 +9,10 @@ const setupGetEcosystem = (app: Express) => {
     "/:chain/ecosystem/dapps",
     query("chain").isString().not().isEmpty().escape(),
     async (req, res) => {
-      const ecosystemDapps = await EcosystemLogic.getDappList(req.params.chain);
-      Logger.info(`Get ${req.params.chain} ecosystem`);
+      const ecosystemDapps = await EcosystemLogic.getDappList(
+        req.params?.chain
+      );
+      Logger.info(`Get ${req.params?.chain} ecosystem`);
       res.status(200).send(ecosystemDapps);
     }
   );
