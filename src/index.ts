@@ -12,9 +12,11 @@ import { TokensBackgroundColorsApi } from "./api/hive/background-color.api";
 import { BadActorsApi } from "./api/hive/bad-actors.api";
 import { DelegationApi } from "./api/hive/delegation.api";
 import { HistoricalDataApi } from "./api/hive/historical-data.api";
+import { InvoiceRedirectApi } from "./api/hive/invoice-redirect.api";
 import { PriceApi } from "./api/hive/price.api";
 import { RpcApi } from "./api/hive/rpc.api";
 import { WitnessApi } from "./api/hive/witness.api";
+import { SettingsApi } from "./api/mobile-settings.api";
 import { VersionLogApi } from "./api/version-log.api";
 import { Config } from "./config";
 import { CoingeckoConfigLogic } from "./logic/evm/coingecko-config";
@@ -30,7 +32,7 @@ const PORT = process.env.PORT || 3000;
 
 const initServerRoutine = () => {
   const app = express();
-  Logger.initLogger(Config.logger, process.env.NODE_ENV);
+  Logger.initLogger(Config.logger, process.env.NODE_ENV || "development");
   setupRoutes(app);
 
   setTimeout(() => PriceLogic.initFetchPrices(), 2 * 60 * 1000);
@@ -61,6 +63,8 @@ const setupRoutes = (app: express.Express) => {
   SmartContractsApi.setupApis(app);
   GasPriceEstimateApi.setupApis(app);
   VerifyTransactionApi.setupApis(app);
+  SettingsApi.setupApis(app);
+  InvoiceRedirectApi.setupApis(app);
 };
 
 const startServer = (app: express.Express) => {

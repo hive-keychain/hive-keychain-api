@@ -12,6 +12,7 @@ interface dApp {
   categories: string[];
   active: boolean;
   order: number;
+  hideOniOS: boolean;
 }
 
 const getDappList = (chain: string) => {
