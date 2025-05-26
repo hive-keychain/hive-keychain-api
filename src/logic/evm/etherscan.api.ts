@@ -1,8 +1,14 @@
+import Logger from "hive-keychain-commons/lib/logger/logger";
 import { BaseApi } from "../../utils/base";
 import { defaultChainList } from "./data/chains.list";
 
 const getAbi = async (chainId: string, address: string) => {
   const chain = defaultChainList.find((c) => c.chainId === chainId);
+
+  if (!chain) {
+    Logger.error(`Cannot find chain with chainId ${chainId}`);
+    return;
+  }
 
   const res = await get(
     `${chain.blockExplorerApi?.url}/api?module=contract&action=getabi&address=${address}`
@@ -13,10 +19,18 @@ const getAbi = async (chainId: string, address: string) => {
   return null;
 };
 
-const getTokenInfo = async (chainId: string, contractAddress: string) => {
+const getTokenInfo = async (
+  chainId: string,
+  contractAddress: string
+): Promise<any> => {
   return new Promise(async (resolve, reject) => {
     try {
       const chain = defaultChainList.find((c) => c.chainId === chainId);
+
+      if (!chain) {
+        reject(new Error(`Cannot find chain with chainId ${chainId}`));
+        return;
+      }
 
       const res = await get(
         `${chain.blockExplorerApi.url}/api?module=token&action=getToken&contractaddress=${contractAddress}`

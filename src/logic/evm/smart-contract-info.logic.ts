@@ -29,12 +29,12 @@ const refreshNullTokens = async () => {
   for (const chain of chainIds) {
     const smartContractsToFetch = savedSmartContractList
       .filter(
-        (smartContract) =>
+        (smartContract: EvmSmartContractInfo) =>
           smartContract.address &&
-          !smartContract.type &&
-          smartContract.chainId === chain
+          smartContract.chainId === chain &&
+          !smartContract.type
       )
-      .map((smartContract) => smartContract.address);
+      .map((smartContract) => smartContract.address!);
     const newSmartContractsFromMoralis = await getFromMoralis(
       chain,
       smartContractsToFetch
@@ -57,8 +57,8 @@ const refreshNullTokens = async () => {
 const getSmartContractInfo = async (chain: string, addresses: string[]) => {
   const savedSmartContractList = await getCurrentSmartContractList();
 
-  const existingSmartContractsFromList = [];
-  const smartContractsAddressesToFetch = [];
+  const existingSmartContractsFromList: EvmSmartContractInfo[] = [];
+  const smartContractsAddressesToFetch: string[] = [];
 
   for (const address of addresses) {
     const savedSmartContract = savedSmartContractList.find(
@@ -121,7 +121,7 @@ const getSmartContractInfo = async (chain: string, addresses: string[]) => {
 
 const getFromCoingecko = async (
   chainId: string
-): Promise<EvmSmartContractInfoNative> => {
+): Promise<EvmSmartContractInfoNative | null> => {
   console.log("getting from coingecko");
   const coingeckoConfig = await CoingeckoConfigLogic.getCoingeckoConfigFile();
   const chain = coingeckoConfig.platforms.find((e) => e.chain_id === chainId);
@@ -146,6 +146,7 @@ const getFromCoingecko = async (
       coingeckoId: nativeTokenId,
     };
   }
+  return null;
 };
 
 const getFromMoralis = async (
@@ -153,11 +154,11 @@ const getFromMoralis = async (
   addresses: string[]
 ): Promise<EvmSmartContractInfo[]> => {
   let start = Date.now();
-  const tokenAddresses = [];
-  const nftAddresses = [];
-  const otherTokens = [];
+  const tokenAddresses: string[] = [];
+  const nftAddresses: string[] = [];
+  const otherTokens: EvmSmartContractInfo[] = [];
 
-  const infoPromises = [];
+  const infoPromises: Promise<any>[] = [];
 
   for (const address of addresses) {
     infoPromises.push(EtherscanApi.getTokenInfo(chain, address));
@@ -213,15 +214,18 @@ const getNftsFromMoralis = async (
 
     return Promise.all(
       addresses.map(async (address) => {
-        const moralisNftMetadata = (
+        const moralisNftMetadataResult =
           await Moralis.EvmApi.nft.getNFTContractMetadata({
             address,
             chain,
-          })
-        ).toJSON();
+          });
+
+        const moralisNftMetadata = moralisNftMetadataResult
+          ? moralisNftMetadataResult.toJSON()
+          : ({} as any);
         const backgroundColor =
           await TokensBackgroundColorsLogic.getBackgroundColorFromImage(
-            moralisNftMetadata.collection_logo
+            moralisNftMetadata.collection_logo!
           );
         return {
           type: moralisNftMetadata.contract_type as EVMSmartContractType,
@@ -247,7 +251,7 @@ const getNftsFromMoralis = async (
     );
   } catch (e) {
     Logger.error("Moralis fetch error", e);
-    return [];
+    return [] as (EvmSmartContractInfoErc721 | EvmSmartContractInfoErc1155)[];
   }
 };
 
@@ -272,11 +276,12 @@ const getTokensFromMoralis = async (
       })
     ).toJSON();
 
+    //@ts-ignore
     return Promise.all(
       moralisTokensMetadata.map(async (moralisTokenMD) => {
         const backgroundColor =
           await TokensBackgroundColorsLogic.getBackgroundColorFromImage(
-            moralisTokenMD.logo
+            moralisTokenMD.logo!
           );
         return {
           type: EVMSmartContractType.ERC20,
@@ -285,7 +290,7 @@ const getTokensFromMoralis = async (
           symbol: moralisTokenMD.symbol,
           decimals: +moralisTokenMD.decimals,
           logo: moralisTokenMD.logo,
-          blockNumber: +moralisTokenMD.block_number,
+          blockNumber: +(moralisTokenMD.block_number ?? -1),
           validated: moralisTokenMD.validated,
           createdAt: moralisTokenMD.created_at,
           possibleSpam: moralisTokenMD.possible_spam,
