@@ -115,7 +115,7 @@ const getSmartContractInfo = async (chain: string, addresses: string[]) => {
 
   return await CoingeckoConfigLogic.addCoingeckoIdToTokenInfo(
     chain,
-    smartContracts
+    smartContracts.filter((info) => !!info.type)
   );
 };
 
