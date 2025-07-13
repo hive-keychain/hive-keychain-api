@@ -123,28 +123,33 @@ const getFromCoingecko = async (
   chainId: string
 ): Promise<EvmSmartContractInfoNative | null> => {
   console.log("getting from coingecko");
-  const coingeckoConfig = await CoingeckoConfigLogic.getCoingeckoConfigFile();
-  const chain = coingeckoConfig.platforms.find((e) => e.chain_id === chainId);
-  const nativeTokenId = chain?.native_coin_id;
-  if (nativeTokenId) {
-    const nativeToken = await CoingeckoUtils.fetchCoingeckoCoinData(
-      nativeTokenId
-    );
-    return {
-      type: EVMSmartContractType.NATIVE,
-      createdAt: nativeToken.genesis_date,
-      categories: nativeToken.categories,
-      // links: nativeToken.links,
-      name: nativeToken.name,
-      logo: nativeToken.image.large,
-      backgroundColor:
-        await TokensBackgroundColorsLogic.getBackgroundColorFromImage(
-          nativeToken.image.large
-        ),
-      symbol: nativeToken.symbol,
-      chainId,
-      coingeckoId: nativeTokenId,
-    };
+  try {
+    const coingeckoConfig = await CoingeckoConfigLogic.getCoingeckoConfigFile();
+
+    const chain = coingeckoConfig.platforms.find((e) => e.chain_id === chainId);
+    const nativeTokenId = chain?.native_coin_id;
+    if (nativeTokenId) {
+      const nativeToken = await CoingeckoUtils.fetchCoingeckoCoinData(
+        nativeTokenId
+      );
+      return {
+        type: EVMSmartContractType.NATIVE,
+        createdAt: nativeToken.genesis_date,
+        categories: nativeToken.categories,
+        // links: nativeToken.links,
+        name: nativeToken.name,
+        logo: nativeToken.image.large,
+        backgroundColor:
+          await TokensBackgroundColorsLogic.getBackgroundColorFromImage(
+            nativeToken.image.large
+          ),
+        symbol: nativeToken.symbol,
+        chainId,
+        coingeckoId: nativeTokenId,
+      };
+    }
+  } catch (err) {
+    console.log(err);
   }
   return null;
 };

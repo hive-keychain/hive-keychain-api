@@ -84,4 +84,4 @@ export const defaultChainList = [
       { url: "https://ethereum-sepolia-rpc.publicnode.com" },
     ],
   },
-];
+] as any[];

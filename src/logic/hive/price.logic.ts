@@ -25,23 +25,27 @@ const getPrices = async () => {
 
 const fetchPrices = async () => {
   return new Promise((fulfill) => {
-    fetch(
-      "https://api.coingecko.com/api/v3/simple/price?ids=hive%2Chive_dollar%2Cbitcoin&vs_currencies=usd&include_24hr_change=true",
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    )
-      .then((res) => res.json())
-      .then((body) => {
-        if (!body.bitcoin || !body.hive || !body.hive_dollar) {
-          console.log("error");
-        } else {
-          fulfill(body);
+    try {
+      fetch(
+        "https://api.coingecko.com/api/v3/simple/price?ids=hive%2Chive_dollar%2Cbitcoin&vs_currencies=usd&include_24hr_change=true",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
-      });
+      )
+        .then((res) => res.json())
+        .then((body) => {
+          if (!body || !body.bitcoin || !body.hive || !body.hive_dollar) {
+            console.log("error");
+          } else {
+            fulfill(body);
+          }
+        });
+    } catch (err) {
+      console.log("fetch coingecko error", err);
+    }
   });
 };
 
