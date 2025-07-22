@@ -113,6 +113,8 @@ const getSmartContractInfo = async (chain: string, addresses: string[]) => {
     smartContracts.push(nativeToken);
   }
 
+  console.log(smartContracts);
+
   return await CoingeckoConfigLogic.addCoingeckoIdToTokenInfo(
     chain,
     smartContracts.filter((info) => !!info.type)
@@ -127,7 +129,9 @@ const getFromCoingecko = async (
     const coingeckoConfig = await CoingeckoConfigLogic.getCoingeckoConfigFile();
 
     const chain = coingeckoConfig.platforms.find((e) => e.chain_id === chainId);
+
     const nativeTokenId = chain?.native_coin_id;
+
     if (nativeTokenId) {
       const nativeToken = await CoingeckoUtils.fetchCoingeckoCoinData(
         nativeTokenId

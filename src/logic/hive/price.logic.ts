@@ -16,7 +16,7 @@ const initFetchPrices = () => {
   refreshPrices();
   setInterval(() => {
     refreshPrices();
-  }, 20000);
+  }, 30000);
 };
 
 const getPrices = async () => {

@@ -2,10 +2,13 @@ import { Express } from "express";
 import { SmartContractsInfoLogic } from "../../logic/evm/smart-contract-info.logic";
 
 const setupGetSmartContractsInfo = (app: Express) => {
-  app.get("/evm/smart-contracts-info/:chainId/:addresses", async (req, res) => {
+  app.get("/evm/smart-contracts-info/:chainId", async (req, res) => {
+    const addresses = req.query.addresses
+      ? req.query.addresses.toString().toLowerCase().split(",")
+      : [];
     const tokensInfo = await SmartContractsInfoLogic.getSmartContractInfo(
       req.params.chainId,
-      req.params.addresses.toLowerCase().split(",")
+      addresses
     );
     res.status(200).send(tokensInfo);
   });
