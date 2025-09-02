@@ -194,8 +194,6 @@ const getFromMoralis = async (
     }
   }
 
-  console.log(otherTokens);
-
   let startMoralis = Date.now();
   const [tokensFromMoralis, nftsFromMoralis] = await Promise.all([
     getTokensFromMoralis(chain, tokenAddresses),

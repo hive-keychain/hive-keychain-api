@@ -15,10 +15,11 @@ const initFetchScamSniffer = () => {
 
 const fetchAndSaveScamSniffer = async () => {
   const list = await fetchScamSniffer();
+  if (!list) return;
   console.log("list", list.address.length, list.domains.length);
   await saveScamSnifferBlacklistFile(list);
 };
-const fetchScamSniffer = (): Promise<ScamSnifferBlacklist> => {
+const fetchScamSniffer = (): Promise<ScamSnifferBlacklist | null> => {
   return new Promise((fulfill) => {
     req(
       {
@@ -42,7 +43,7 @@ const getScamSnifferBlacklistFile = async (): Promise<ScamSnifferBlacklist> => {
     return JSON.parse(
       await fs
         .readFileSync(
-          __dirname + `/../../../../json/blacklists/scamSniffer.json`
+          __dirname + `/../../../../json/blacklists/scam-sniffer.json`
         )
         .toString()
     );
@@ -54,13 +55,17 @@ const getScamSnifferBlacklistFile = async (): Promise<ScamSnifferBlacklist> => {
 const saveScamSnifferBlacklistFile = async (newList: ScamSnifferBlacklist) => {
   try {
     await fs.writeFile(
-      __dirname + `/../../../../json/blacklists/scamSniffer.json`,
+      __dirname + `/../../../../json/blacklists/scam-sniffer.json`,
       JSON.stringify(newList),
-      "utf8",
-      () => Logger.info(`Updated scamSniffer file`)
+      { encoding: "utf8", flag: "wx" },
+      (err) => {
+        console.log("err", err);
+        Logger.info(`Updated scam-sniffer file`);
+      }
     );
   } catch (e) {
-    Logger.info("Failed to update scamSniffer file");
+    console.log("e", e);
+    Logger.info("Failed to update scam-sniffer file");
   }
 };
 

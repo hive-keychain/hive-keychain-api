@@ -16,10 +16,11 @@ const initFetchMetamaskBlacklist = () => {
 
 const fetchAndSaveMetamaskBlacklist = async () => {
   const list = await fetchMetamaskBlacklist();
+  if (!list) return;
   console.log("list", list.whitelist.length, list.blacklist.length);
   await saveMetamaskBlacklistFile(list);
 };
-const fetchMetamaskBlacklist = (): Promise<MetamaskBlacklist> => {
+const fetchMetamaskBlacklist = (): Promise<MetamaskBlacklist | null> => {
   return new Promise((fulfill) => {
     req(
       {
@@ -55,8 +56,11 @@ const saveMetamaskBlacklistFile = async (newList: MetamaskBlacklist) => {
     await fs.writeFile(
       __dirname + `/../../../../json/blacklists/metamask.json`,
       JSON.stringify(newList),
-      "utf8",
-      () => Logger.info(`Updated mm file`)
+      { encoding: "utf8", flag: "wx" },
+      (err) => {
+        console.log("err", err);
+        Logger.info(`Updated mm file`);
+      }
     );
   } catch (e) {
     Logger.info("Failed to update mm file");

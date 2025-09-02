@@ -16,7 +16,11 @@ export interface ContractResult {
   isBlacklisted: boolean;
   proxy: {
     target: string;
-  };
+  } | null;
+}
+
+export interface ToResult {
+  isBlacklisted: boolean;
 }
 
 const verify = async (
@@ -51,17 +55,30 @@ const verifyDomain = async (domain?: string) => {
 };
 
 const verifyTo = async (to?: string) => {
+  let result: Partial<ToResult> = {};
   if (!to) return;
+  const [scamSniffer] = await Promise.all([
+    ScamSnifferLogic.getScamSnifferBlacklistFile(),
+  ]);
+  result.isBlacklisted = scamSniffer.address.includes(to);
+  return result;
 };
 
+// TODO : remove hardcoded proxy
 const verifyContract = async (contract?: string) => {
   let result: Partial<ContractResult> = {};
+
   if (!contract) return;
+
+  const [scamSniffer] = await Promise.all([
+    ScamSnifferLogic.getScamSnifferBlacklistFile(),
+  ]);
   const proxy = await detectProxyTarget(
     "0xA7AeFeaD2F25972D80516628417ac46b3F2604Af",
     requestFunc
   );
   result.proxy = proxy;
+  result.isBlacklisted = scamSniffer.address.includes(contract);
   return result;
 };
 
