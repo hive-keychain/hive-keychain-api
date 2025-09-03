@@ -327,16 +327,17 @@ const getCurrentSmartContractList = async () => {
   }
 };
 
-const saveNewSmartContractsList = async (newList: any[]) => {
+const saveNewSmartContractsList = (newList: any[]) => {
   try {
-    await fs.writeFile(
+    fs.writeFileSync(
       __dirname + `/../../../json/evm-smart-contracts.json`,
       JSON.stringify(newList),
-      "utf8",
-      () => Logger.info(`Updated evm smart contracts list`)
+      "utf8"
     );
+    Logger.info(`Updated evm smart contracts list`);
   } catch (e) {
     Logger.info("Failed to update evm smart contracts list");
+    console.log(e);
   }
 };
 

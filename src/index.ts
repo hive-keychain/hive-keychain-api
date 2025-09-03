@@ -6,6 +6,7 @@ import Logger from "hive-keychain-commons/lib/logger/logger";
 import https from "https";
 import { EcosystemApi } from "./api/ecosystem.api";
 import { GasPriceEstimateApi } from "./api/evm/gas-price-estimate.api";
+import { KeychainPhishingApi } from "./api/evm/keychain-phishing.api";
 import { SmartContractsApi } from "./api/evm/smart-contracts-info.api";
 import { VerifyTransactionApi } from "./api/evm/verify-transaction.api";
 import { TokensBackgroundColorsApi } from "./api/hive/background-color.api";
@@ -20,7 +21,7 @@ import { SettingsApi } from "./api/mobile-settings.api";
 import { VersionLogApi } from "./api/version-log.api";
 import { Config } from "./config";
 import { CoingeckoConfigLogic } from "./logic/evm/coingecko-config";
-import { MetaMaskBlacklistLogic } from "./logic/evm/verify-transaction/metamask.logic";
+import { MetamaskPhishingLogic } from "./logic/evm/verify-transaction/phishing-list/metamask-phishing.logic";
 import { ScamSnifferLogic } from "./logic/evm/verify-transaction/scamsniffer.logic";
 import { HistoricalDataLogic } from "./logic/hive/historical-data.logic";
 import { PriceLogic } from "./logic/hive/price.logic";
@@ -40,8 +41,14 @@ const initServerRoutine = () => {
   TokensBackgroundColorsLogic.initFetchColorMap();
   CoingeckoConfigLogic.initFetchCoingeckoConfig();
   ScamSnifferLogic.initFetchScamSniffer();
-  MetaMaskBlacklistLogic.initFetchMetamaskBlacklist();
+  MetamaskPhishingLogic.initFetchMetamaskBlacklist();
   startServer(app);
+
+  // EvmPhishingLogic.verifyDomain("toto.com");
+  // EvmPhishingLogic.verifyDomain("tata.com");
+  // EvmPhishingLogic.verifyDomain("tati.com");
+  // EvmPhishingLogic.verifyDomain("tataa.com");
+  // EvmPhishingLogic.verifyDomain("jeanjaq.com");
 };
 
 const setupRoutes = (app: express.Express) => {
@@ -65,6 +72,7 @@ const setupRoutes = (app: express.Express) => {
   VerifyTransactionApi.setupApis(app);
   SettingsApi.setupApis(app);
   InvoiceRedirectApi.setupApis(app);
+  KeychainPhishingApi.setupApis(app);
 };
 
 const startServer = (app: express.Express) => {

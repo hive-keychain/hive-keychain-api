@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import Logger from "hive-keychain-commons/lib/logger/logger";
+import path from "path";
 import req from "request";
 export interface ScamSnifferBlacklist {
   address: string[];
@@ -43,7 +44,16 @@ const getScamSnifferBlacklistFile = async (): Promise<ScamSnifferBlacklist> => {
     return JSON.parse(
       await fs
         .readFileSync(
-          __dirname + `/../../../../json/blacklists/scam-sniffer.json`
+          path.join(
+            __dirname,
+            "..",
+            "..",
+            "..",
+            "..",
+            "json",
+            "phishing-lists",
+            "scam-sniffer.json"
+          )
         )
         .toString()
     );
@@ -52,20 +62,26 @@ const getScamSnifferBlacklistFile = async (): Promise<ScamSnifferBlacklist> => {
   }
 };
 
-const saveScamSnifferBlacklistFile = async (newList: ScamSnifferBlacklist) => {
+const saveScamSnifferBlacklistFile = (newList: ScamSnifferBlacklist) => {
   try {
-    await fs.writeFile(
-      __dirname + `/../../../../json/blacklists/scam-sniffer.json`,
+    fs.writeFileSync(
+      path.join(
+        __dirname,
+        "..",
+        "..",
+        "..",
+        "..",
+        "json",
+        "phishing-lists",
+        "scam-sniffer.json"
+      ),
       JSON.stringify(newList),
-      { encoding: "utf8", flag: "wx" },
-      (err) => {
-        console.log("err", err);
-        Logger.info(`Updated scam-sniffer file`);
-      }
+      "utf8"
     );
+    Logger.info(`Updated scam-sniffer file`);
   } catch (e) {
-    console.log("e", e);
     Logger.info("Failed to update scam-sniffer file");
+    console.log(e);
   }
 };
 

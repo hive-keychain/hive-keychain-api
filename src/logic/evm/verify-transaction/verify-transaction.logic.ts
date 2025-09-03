@@ -1,6 +1,6 @@
 import { InfuraProvider } from "@ethersproject/providers";
 import detectProxyTarget from "evm-proxy-detection";
-import { MetaMaskBlacklistLogic } from "./metamask.logic";
+import { EvmPhishingLogic } from "./phishing-list/evm-phishing.logic";
 import { ScamSnifferLogic } from "./scamsniffer.logic";
 
 const infuraProvider = new InfuraProvider(1, process.env.INFURA_API_KEY);
@@ -9,6 +9,7 @@ const requestFunc = ({ method, params }) => infuraProvider.send(method, params);
 export interface DomainResult {
   isBlacklisted: boolean;
   isWhitelisted: boolean;
+  fuzzy?: string;
   // verifiedBy: [{ name: string; icon: string }[]];
 }
 
@@ -42,15 +43,17 @@ const verify = async (
 };
 
 const verifyDomain = async (domain?: string) => {
+  domain = "metomask.io";
   let result: Partial<DomainResult> = {};
   if (!domain) return;
-  const [scamSniffer, metamask] = await Promise.all([
+  const [scamSniffer, verifyDomainResult] = await Promise.all([
     ScamSnifferLogic.getScamSnifferBlacklistFile(),
-    MetaMaskBlacklistLogic.getMetamaskBlacklistFile(),
+    EvmPhishingLogic.verifyDomain(domain),
   ]);
   result.isBlacklisted =
-    scamSniffer.domains.includes(domain) || metamask.blacklist.includes(domain);
-  result.isWhitelisted = metamask.whitelist.includes(domain);
+    scamSniffer.domains.includes(domain) || verifyDomainResult.isBlacklisted;
+  result.isWhitelisted = verifyDomainResult.isWhitelisted;
+  result.fuzzy = verifyDomainResult.fuzzy;
   return result;
 };
 
@@ -73,10 +76,7 @@ const verifyContract = async (contract?: string) => {
   const [scamSniffer] = await Promise.all([
     ScamSnifferLogic.getScamSnifferBlacklistFile(),
   ]);
-  const proxy = await detectProxyTarget(
-    "0xA7AeFeaD2F25972D80516628417ac46b3F2604Af",
-    requestFunc
-  );
+  const proxy = await detectProxyTarget(contract as `0x${string}`, requestFunc);
   result.proxy = proxy;
   result.isBlacklisted = scamSniffer.address.includes(contract);
   return result;

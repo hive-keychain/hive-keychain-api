@@ -1,11 +1,8 @@
 import * as fs from "fs";
 import Logger from "hive-keychain-commons/lib/logger/logger";
+import path from "path";
 import req from "request";
-export interface MetamaskBlacklist {
-  whitelist: string[];
-  blacklist: string[];
-  fuzzylist: string[];
-}
+import { EvmPhishingList } from "../../interfaces/evm-phishing-list.interface";
 
 const initFetchMetamaskBlacklist = () => {
   fetchAndSaveMetamaskBlacklist();
@@ -20,7 +17,7 @@ const fetchAndSaveMetamaskBlacklist = async () => {
   console.log("list", list.whitelist.length, list.blacklist.length);
   await saveMetamaskBlacklistFile(list);
 };
-const fetchMetamaskBlacklist = (): Promise<MetamaskBlacklist | null> => {
+const fetchMetamaskBlacklist = (): Promise<EvmPhishingList | null> => {
   return new Promise((fulfill) => {
     req(
       {
@@ -39,35 +36,61 @@ const fetchMetamaskBlacklist = (): Promise<MetamaskBlacklist | null> => {
   });
 };
 
-const getMetamaskBlacklistFile = async (): Promise<MetamaskBlacklist> => {
+const getPhishingList = async (): Promise<EvmPhishingList> => {
   try {
     return JSON.parse(
       await fs
-        .readFileSync(__dirname + `/../../../../json/blacklists/metamask.json`)
+        .readFileSync(
+          path.join(
+            __dirname,
+            "..",
+            "..",
+            "..",
+            "..",
+            "..",
+            "json",
+            "phishing-lists",
+            "metamask.json"
+          )
+        )
         .toString()
     );
   } catch (e) {
-    return { whitelist: [], blacklist: [], fuzzylist: [] };
+    return {
+      whitelist: [],
+      blacklist: [],
+      fuzzylist: [],
+      version: 0,
+      tolerance: 0,
+    };
   }
 };
 
-const saveMetamaskBlacklistFile = async (newList: MetamaskBlacklist) => {
+const saveMetamaskBlacklistFile = (newList: EvmPhishingList) => {
   try {
-    await fs.writeFile(
-      __dirname + `/../../../../json/blacklists/metamask.json`,
+    fs.writeFileSync(
+      path.join(
+        __dirname,
+        "..",
+        "..",
+        "..",
+        "..",
+        "..",
+        "json",
+        "phishing-lists",
+        "metamask.json"
+      ),
       JSON.stringify(newList),
-      { encoding: "utf8", flag: "wx" },
-      (err) => {
-        console.log("err", err);
-        Logger.info(`Updated mm file`);
-      }
+      "utf8"
     );
+    Logger.info(`Updated mm file`);
   } catch (e) {
     Logger.info("Failed to update mm file");
+    console.log(e);
   }
 };
 
-export const MetaMaskBlacklistLogic = {
+export const MetamaskPhishingLogic = {
   initFetchMetamaskBlacklist,
-  getMetamaskBlacklistFile,
+  getPhishingList,
 };
