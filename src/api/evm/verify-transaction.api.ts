@@ -1,8 +1,8 @@
 import { Express } from "express";
 import { VerifyTransactionLogic } from "../../logic/evm/verify-transaction/verify-transaction.logic";
 
-const VerifyTransaction = (app: Express) => {
-  app.get("/evm/verifyTransaction", async (req, res) => {
+const setupVerifyTransactionApi = (app: Express) => {
+  app.get("/evm/verify-transaction", async (req, res) => {
     const { domain, to, contract, chainId } = req.query;
     const result = await VerifyTransactionLogic.verify(
       domain as string,
@@ -37,7 +37,7 @@ const VerifyTransaction = (app: Express) => {
   });
 };
 const setupApis = (app: Express) => {
-  VerifyTransaction(app);
+  setupVerifyTransactionApi(app);
 };
 
 export const VerifyTransactionApi = { setupApis };
