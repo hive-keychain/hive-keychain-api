@@ -67,7 +67,6 @@ const verifyTo = async (to?: string) => {
   return result;
 };
 
-// TODO : remove hardcoded proxy
 const verifyContract = async (contract?: string) => {
   let result: Partial<ContractResult> = {};
 
