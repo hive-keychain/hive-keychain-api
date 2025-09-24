@@ -17,7 +17,6 @@ const initFetchScamSniffer = () => {
 const fetchAndSaveScamSniffer = async () => {
   const list = await fetchScamSniffer();
   if (!list) return;
-  console.log("list", list.address.length, list.domains.length);
   await saveScamSnifferBlacklistFile(list);
 };
 const fetchScamSniffer = (): Promise<ScamSnifferBlacklist | null> => {

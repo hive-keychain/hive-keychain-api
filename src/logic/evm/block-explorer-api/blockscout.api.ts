@@ -1,6 +1,6 @@
 import Logger from "hive-keychain-commons/lib/logger/logger";
-import { BaseApi } from "../../utils/base";
-import { defaultChainList } from "./data/chains.list";
+import { BaseApi } from "../../../utils/base";
+import { defaultChainList } from "../data/chains.list";
 
 const getAbi = async (chainId: string, address: string) => {
   const chain = defaultChainList.find((c) => c.chainId === chainId);
@@ -33,10 +33,13 @@ const getTokenInfo = async (
       }
 
       const res = await get(
-        `${chain.blockExplorerApi.url}/api?module=token&action=getToken&contractaddress=${contractAddress}`
+        `${chain.blockExplorerApi?.url}/api?module=token&action=getToken&contractaddress=${contractAddress}`
       );
       if (res.status === "1") {
-        resolve({ address: contractAddress, result: res.result });
+        resolve({
+          address: contractAddress,
+          result: { ...res.result, type: res.result.type.replace("-", "") },
+        });
       } else {
         resolve({ address: contractAddress, result: null });
       }
@@ -50,7 +53,7 @@ const get = async (url: string): Promise<any> => {
   return await BaseApi.get(url);
 };
 
-export const EtherscanApi = {
+export const BlockscoutApi = {
   get,
   getAbi,
   getTokenInfo,

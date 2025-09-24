@@ -1,6 +1,7 @@
 import fetch from "node-fetch";
 
 const get = async (url: string): Promise<any> => {
+  console.log({ get: url });
   return await new Promise((resolve, reject) => {
     try {
       fetch(url, {

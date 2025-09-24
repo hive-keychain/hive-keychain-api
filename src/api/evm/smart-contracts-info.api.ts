@@ -12,22 +12,6 @@ const setupGetSmartContractsInfo = (app: Express) => {
     );
     res.status(200).send(tokensInfo);
   });
-
-  // app.get(
-  //   "/evm/smart-contract-info-short/:chainId/:addresses?",
-  //   async (req, res) => {
-  //     res
-  //       .status(200)
-  //       .send(
-  //         await SmartContractsInfoLogic.getSmartContractsInfoShort(
-  //           req.params.chainId,
-  //           req.params.addresses
-  //             ? req.params.addresses.toLowerCase().split(",")
-  //             : []
-  //         )
-  //       );
-  //   }
-  // );
 };
 
 const setupRefreshSmartContractsInfo = (app: Express) => {
@@ -39,7 +23,6 @@ const setupRefreshSmartContractsInfo = (app: Express) => {
       await SmartContractsInfoLogic.refreshNullTokens();
       res.status(200).send("ok");
     } else {
-      console.log(req.query.refreshMetadataPassword);
       res.status(403).send("Non authorized");
     }
   });

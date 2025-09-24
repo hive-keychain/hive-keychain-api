@@ -14,7 +14,6 @@ const initFetchMetamaskBlacklist = () => {
 const fetchAndSaveMetamaskBlacklist = async () => {
   const list = await fetchMetamaskBlacklist();
   if (!list) return;
-  console.log("list", list.whitelist.length, list.blacklist.length);
   await saveMetamaskBlacklistFile(list);
 };
 const fetchMetamaskBlacklist = (): Promise<EvmPhishingList | null> => {

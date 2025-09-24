@@ -14,7 +14,6 @@ const setupApis = (app: Express) => {
 
           .redirect(`hive://sign/op/${req.params?.op}`);
       } catch (e) {
-        console.log("here");
         res.status(500).send(e);
       }
     }
