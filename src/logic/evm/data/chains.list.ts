@@ -130,12 +130,12 @@ export const defaultChainList = [
     mainToken: "ETH",
     defaultTransactionType: EvmTransactionType.EIP_1559,
     blockExplorer: {
-      type: BlockExplorerType.BLOCKSCOUT,
+      type: BlockExplorerType.ETHERSCAN,
       url: "https://bscscan.com",
     },
     blockExplorerApi: {
-      type: BlockExplorerType.BLOCKSCOUT,
-      url: "https://bscscan.com",
+      type: BlockExplorerType.ETHERSCAN,
+      url: "https://api.etherscan.io",
     },
     testnet: false,
     isEth: false,
@@ -159,12 +159,12 @@ export const defaultChainList = [
     mainToken: "ETH",
     defaultTransactionType: EvmTransactionType.EIP_1559,
     blockExplorer: {
-      type: BlockExplorerType.BLOCKSCOUT,
+      type: BlockExplorerType.ETHERSCAN,
       url: "https://bscscan.com",
     },
     blockExplorerApi: {
-      type: BlockExplorerType.BLOCKSCOUT,
-      url: "https://bscscan.com",
+      type: BlockExplorerType.ETHERSCAN,
+      url: "https://api.etherscan.io",
     },
     testnet: true,
     isEth: true,

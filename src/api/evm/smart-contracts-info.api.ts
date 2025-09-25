@@ -1,4 +1,5 @@
 import { Express } from "express";
+import { EtherscanApi } from "../../logic/evm/block-explorer-api/etherscan.api";
 import { SmartContractsInfoLogic } from "../../logic/evm/smart-contract-info.logic";
 
 const setupGetSmartContractsInfo = (app: Express) => {
@@ -28,9 +29,17 @@ const setupRefreshSmartContractsInfo = (app: Express) => {
   });
 };
 
+const setupEtherscanGetInfoApi = (app: Express) => {
+  app.get("/evm/smart-contracts-info/etherscan", async (req, res) => {
+    const info = await EtherscanApi.getEtherscanInfo(req.query);
+    res.status(200).send(info);
+  });
+};
+
 const setupApis = (app: Express) => {
-  setupGetSmartContractsInfo(app);
+  setupEtherscanGetInfoApi(app);
   setupRefreshSmartContractsInfo(app);
+  setupGetSmartContractsInfo(app);
 };
 
 export const SmartContractsApi = { setupApis };
