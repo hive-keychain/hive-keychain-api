@@ -53,7 +53,7 @@ const get = async (url: string): Promise<any> => {
   return await BaseApi.get(url);
 };
 
-export const BlockscoutApi = {
+export const BlockscoutLogic = {
   get,
   getAbi,
   getTokenInfo,

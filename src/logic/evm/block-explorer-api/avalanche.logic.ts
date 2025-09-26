@@ -55,4 +55,4 @@ const get = async (url: string): Promise<any> => {
   return await BaseApi.get(url);
 };
 
-export const AvalancheApi = { getTokenInfo };
+export const AvalancheLogic = { getTokenInfo };

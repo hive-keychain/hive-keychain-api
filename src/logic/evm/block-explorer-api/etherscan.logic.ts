@@ -193,7 +193,7 @@ const getPendingTransactions = async (chain: EvmChain, address: string) => {
   return result;
 };
 
-export const EtherscanApi = {
+export const EtherscanLogic = {
   get,
   getAbi,
   getTokenInfo,

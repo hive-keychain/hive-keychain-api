@@ -53,3 +53,10 @@ export type EvmSmartContractInfo =
   | EvmSmartContractInfoNative
   | EvmSmartContractInfoErc721
   | EvmSmartContractInfoErc1155;
+
+export interface PopularToken {
+  address: string;
+  symbol: string;
+  name: string;
+  logo: string;
+}

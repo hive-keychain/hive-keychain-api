@@ -3,8 +3,8 @@ import Logger from "hive-keychain-commons/lib/logger/logger";
 import Moralis from "moralis";
 import { CoingeckoUtils } from "../../utils/coingecko.utils";
 import { TokensBackgroundColorsLogic } from "../hive/token-background-color";
-import { AvalancheApi } from "./block-explorer-api/avalanche.api";
-import { BlockscoutApi } from "./block-explorer-api/blockscout.api";
+import { AvalancheLogic } from "./block-explorer-api/avalanche.logic";
+import { BlockscoutLogic } from "./block-explorer-api/blockscout.logic";
 import { CoingeckoConfigLogic } from "./coingecko-config";
 import { defaultChainList } from "./data/chains.list";
 import { BlockExplorerType } from "./interfaces/evm-chain.interfaces";
@@ -185,11 +185,11 @@ const getFromMoralis = async (
   for (const address of addresses) {
     switch (chain?.blockExplorerApi?.type) {
       case BlockExplorerType.BLOCKSCOUT:
-        infoPromises.push(BlockscoutApi.getTokenInfo(chainId, address));
+        infoPromises.push(BlockscoutLogic.getTokenInfo(chainId, address));
         break;
       case BlockExplorerType.AVALANCHE_SCAN:
         console.log("Avalanche scan getting", address);
-        infoPromises.push(AvalancheApi.getTokenInfo(chainId, address));
+        infoPromises.push(AvalancheLogic.getTokenInfo(chainId, address));
         break;
     }
   }

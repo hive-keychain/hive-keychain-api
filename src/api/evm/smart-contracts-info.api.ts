@@ -1,5 +1,6 @@
 import { Express } from "express";
-import { EtherscanApi } from "../../logic/evm/block-explorer-api/etherscan.api";
+import { EtherscanLogic } from "../../logic/evm/block-explorer-api/etherscan.logic";
+import { EvmChainsLogic } from "../../logic/evm/chains.logic";
 import { SmartContractsInfoLogic } from "../../logic/evm/smart-contract-info.logic";
 
 const setupGetSmartContractsInfo = (app: Express) => {
@@ -31,8 +32,15 @@ const setupRefreshSmartContractsInfo = (app: Express) => {
 
 const setupEtherscanGetInfoApi = (app: Express) => {
   app.get("/evm/smart-contracts-info/etherscan", async (req, res) => {
-    const info = await EtherscanApi.getEtherscanInfo(req.query);
+    const info = await EtherscanLogic.getEtherscanInfo(req.query);
     res.status(200).send(info);
+  });
+};
+
+const setupGetPopularToken = (app: Express) => {
+  app.get("/evm/token/:chainId/popular", async (req, res) => {
+    const tokens = await EvmChainsLogic.getPopularTokens(req.params.chainId);
+    res.status(200).send(tokens);
   });
 };
 
@@ -40,6 +48,7 @@ const setupApis = (app: Express) => {
   setupEtherscanGetInfoApi(app);
   setupRefreshSmartContractsInfo(app);
   setupGetSmartContractsInfo(app);
+  setupGetPopularToken(app);
 };
 
 export const SmartContractsApi = { setupApis };
