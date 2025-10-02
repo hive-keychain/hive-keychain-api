@@ -100,7 +100,11 @@ const discoverTokens = async (walletAddress: string, chain: EvmChain) => {
     }`
   );
   return result
-    ? result.map((r: any) => ({ ...r, type: r.type.replace("-", "") }))
+    ? result.map((r: any) => ({
+        ...r,
+        type: r.type.replace("-", ""),
+        address: r.contractAddress,
+      }))
     : [];
 };
 

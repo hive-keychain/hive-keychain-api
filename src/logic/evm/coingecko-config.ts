@@ -71,7 +71,7 @@ const addCoingeckoIdToTokenInfo = async (
     return tokens.map((token) => {
       if (token.type === EVMSmartContractType.NATIVE) return token;
       const tokenInfo = coingeckoConfig.tokens.find(
-        (e) => e.platforms[chain.id] === token.address
+        (e) => e.platforms[chain.id] === token.contractAddress
       );
       if (tokenInfo) token.coingeckoId = tokenInfo.id;
       return token;

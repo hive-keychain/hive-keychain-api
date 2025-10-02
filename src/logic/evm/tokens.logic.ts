@@ -10,7 +10,7 @@ const getTokensByChainId = async (chainId: string) => {
     return {
       name: token.name,
       symbol: token.symbol,
-      address: token.platforms[chainCoingeckoId],
+      contractAddress: token.platforms[chainCoingeckoId],
       logo: "https://picsum.photos/200/200",
     };
   });

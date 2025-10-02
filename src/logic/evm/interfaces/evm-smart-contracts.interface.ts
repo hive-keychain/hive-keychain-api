@@ -13,7 +13,7 @@ export interface EvmSmartContractInfoBase {
   chainId: string;
   backgroundColor: string;
   coingeckoId?: string;
-  address?: string;
+  contractAddress?: string;
   // links: { [name: string]: string[] | string };
 }
 
@@ -26,7 +26,7 @@ export interface EvmSmartContractInfoNative extends EvmSmartContractInfoBase {
 
 export interface EvmSmartContractInfoErc20 extends EvmSmartContractInfoBase {
   type: EVMSmartContractType.ERC20;
-  address: string;
+  contractAddress: string;
   decimals: number;
   validated: number;
   possibleSpam: boolean;
@@ -35,14 +35,14 @@ export interface EvmSmartContractInfoErc20 extends EvmSmartContractInfoBase {
 
 export interface EvmSmartContractInfoErc721 extends EvmSmartContractInfoBase {
   type: EVMSmartContractType;
-  address: string;
+  contractAddress: string;
   possibleSpam: boolean;
   verifiedContract: boolean;
   name: string;
 }
 export interface EvmSmartContractInfoErc1155 extends EvmSmartContractInfoBase {
   type: EVMSmartContractType;
-  address: string;
+  contractAddress: string;
   possibleSpam: boolean;
   verifiedContract: boolean;
   name: string;
@@ -55,7 +55,7 @@ export type EvmSmartContractInfo =
   | EvmSmartContractInfoErc1155;
 
 export interface PopularToken {
-  address: string;
+  contractAddress: string;
   symbol: string;
   name: string;
   logo: string;

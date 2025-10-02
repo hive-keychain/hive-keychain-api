@@ -24,13 +24,20 @@ const getBscErc20 = async (
 
   return erc20Tokens.map((token) => {
     return {
-      ...token,
       type: EVMSmartContractType.ERC20,
       chainId: chainId,
       contractAddress: token.token_address,
+      decimals: token.decimals,
+      possibleSpam: token.possible_spam,
+      verifiedContract: token.verified_contract,
+      symbol: token.symbol,
+      logo: token.logo,
+      name: token.name,
     };
   });
 };
+
+// TODO parse
 const getBscNfts = async (
   walletAddress: string,
   chainId: EvmChain["chainId"]

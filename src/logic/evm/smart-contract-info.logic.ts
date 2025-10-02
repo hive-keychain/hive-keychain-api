@@ -38,11 +38,11 @@ const refreshNullTokens = async () => {
     const smartContractsToFetch = savedSmartContractList
       .filter(
         (smartContract: EvmSmartContractInfo) =>
-          smartContract.address &&
+          smartContract.contractAddress &&
           smartContract.chainId === chain &&
           !smartContract.type
       )
-      .map((smartContract) => smartContract.address!);
+      .map((smartContract) => smartContract.contractAddress!);
     const newSmartContractsFromMoralis = await getFromMoralis(
       chain,
       smartContractsToFetch
@@ -53,7 +53,7 @@ const refreshNullTokens = async () => {
     for (const newSmartContract of newSmartContractsFromMoralis) {
       const index = savedSmartContractList.findIndex(
         (sc) =>
-          sc.address === newSmartContract.address &&
+          sc.contractAddress === newSmartContract.contractAddress &&
           sc.chainId === newSmartContract.chainId
       );
       savedSmartContractList[index] = newSmartContract;
@@ -70,7 +70,7 @@ const getSmartContractInfo = async (chain: string, addresses: string[]) => {
 
   for (const address of addresses) {
     const savedSmartContract = savedSmartContractList.find(
-      (sc) => sc.chainId === chain && address === sc.address
+      (sc) => sc.chainId === chain && address === sc.contractAddress
     );
     if (savedSmartContract) {
       existingSmartContractsFromList.push(savedSmartContract);
@@ -223,7 +223,7 @@ const getFromMoralis = async (
       }
     } else {
       otherTokens.push({
-        address: infoResult.address,
+        contractAddress: infoResult.address,
         chainId: chainId,
       } as EvmSmartContractInfo);
     }
@@ -286,7 +286,7 @@ const getNftsFromMoralis = async (
           );
         return {
           type: moralisNftMetadata.contract_type as EVMSmartContractType,
-          address: moralisNftMetadata.token_address,
+          contractAddress: moralisNftMetadata.token_address,
           name: moralisNftMetadata.name,
           symbol: moralisNftMetadata.symbol,
           logo: moralisNftMetadata.collection_logo,
