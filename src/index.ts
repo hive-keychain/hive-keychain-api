@@ -21,6 +21,7 @@ import { SettingsApi } from "./api/mobile-settings.api";
 import { VersionLogApi } from "./api/version-log.api";
 import { Config } from "./config";
 import { CoingeckoConfigLogic } from "./logic/evm/coingecko-config";
+import { SmartContractsInfoLogic } from "./logic/evm/smart-contract-info.logic";
 import { MetamaskPhishingLogic } from "./logic/evm/verify-transaction/phishing-list/metamask-phishing.logic";
 import { ScamSnifferLogic } from "./logic/evm/verify-transaction/scamsniffer.logic";
 import { HistoricalDataLogic } from "./logic/hive/historical-data.logic";
@@ -42,6 +43,7 @@ const initServerRoutine = () => {
   CoingeckoConfigLogic.initFetchCoingeckoConfig();
   ScamSnifferLogic.initFetchScamSniffer();
   MetamaskPhishingLogic.initFetchMetamaskBlacklist();
+  SmartContractsInfoLogic.initMoralisIfNeeded();
   startServer(app);
 
   // EvmPhishingLogic.verifyDomain("toto.com");

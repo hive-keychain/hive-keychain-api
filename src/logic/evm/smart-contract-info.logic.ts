@@ -5,6 +5,7 @@ import { CoingeckoUtils } from "../../utils/coingecko.utils";
 import { TokensBackgroundColorsLogic } from "../hive/token-background-color";
 import { AvalancheLogic } from "./block-explorer-api/avalanche.logic";
 import { BlockscoutLogic } from "./block-explorer-api/blockscout.logic";
+import { EtherscanLogic } from "./block-explorer-api/etherscan.logic";
 import { CoingeckoConfigLogic } from "./coingecko-config";
 import { defaultChainList } from "./data/chains.list";
 import { BlockExplorerType } from "./interfaces/evm-chain.interfaces";
@@ -27,7 +28,7 @@ const initMoralisIfNeeded = async () => {
 };
 
 const refreshNullTokens = async () => {
-  await initMoralisIfNeeded();
+  // await initMoralisIfNeeded();
 
   const savedSmartContractList = await getCurrentSmartContractList();
 
@@ -191,11 +192,18 @@ const getFromMoralis = async (
         console.log("Avalanche scan getting", address);
         infoPromises.push(AvalancheLogic.getTokenInfo(chainId, address));
         break;
+      case BlockExplorerType.ETHERSCAN:
+        infoPromises.push(EtherscanLogic.getTokenInfo(chainId, address));
+        break;
+      default: {
+        console.log("No block explorer api type found for chain", chainId);
+      }
     }
   }
   const infoResults = await Promise.all(infoPromises);
   console.log("Scan took", (Date.now() - start) / 1000);
   for (const infoResult of infoResults) {
+    console.log(infoResult);
     const info = infoResult.result;
     if (info) {
       switch (info.type) {
@@ -208,6 +216,10 @@ const getFromMoralis = async (
           nftAddresses.push(infoResult.address);
           nfts.push(infoResult.result);
           break;
+        case null: {
+          tokenAddresses.push(infoResult.address);
+          nftAddresses.push(infoResult.address);
+        }
       }
     } else {
       otherTokens.push({
@@ -222,12 +234,15 @@ const getFromMoralis = async (
     getTokensFromMoralis(chainId, tokenAddresses),
     getNftsFromMoralis(chainId, nftAddresses),
   ]);
+
   console.log("moralis took", (Date.now() - startMoralis) / 1000);
   console.log("total moralis function took", (Date.now() - start) / 1000);
 
   return [
-    ...(tokensFromMoralis ?? tokens),
-    ...(nftsFromMoralis ?? nfts),
+    ...(tokensFromMoralis && tokensFromMoralis.length > 0
+      ? tokensFromMoralis
+      : tokens),
+    ...(nftsFromMoralis && nftsFromMoralis.length > 0 ? nftsFromMoralis : nfts),
     ...otherTokens,
   ];
 };
@@ -241,8 +256,10 @@ const getNftsFromMoralis = async (
   try {
     console.log({ getNftsFromMoralis: addresses });
     if (!addresses.length) return [];
-    Logger.info(`Getting nfts ${addresses.join(",")} from Moralis`);
-    await initMoralisIfNeeded();
+    Logger.info(
+      `Getting nfts ${addresses.join(",")} from Moralis for chain ${chain}`
+    );
+    // await initMoralisIfNeeded();
 
     await Moralis.EvmApi.nft.getNFTContractMetadata({
       address: addresses[0],
@@ -300,10 +317,11 @@ const getTokensFromMoralis = async (
   addresses: string[]
 ): Promise<EvmSmartContractInfo[] | null> => {
   try {
-    console.log({ getTokensFromMoralis: addresses });
     if (!addresses.length) return [];
-    Logger.info(`Getting tokens ${addresses.join(",")} from Moralis`);
-    await initMoralisIfNeeded();
+    Logger.info(
+      `Getting tokens ${addresses.join(",")} from Moralis for chain ${chain}`
+    );
+    // await initMoralisIfNeeded();
 
     const moralisTokensMetadata = (
       await Moralis.EvmApi.token.getTokenMetadata({
@@ -312,9 +330,12 @@ const getTokensFromMoralis = async (
       })
     ).toJSON();
 
+    console.log({ moralisTokensMetadata });
+
     //@ts-ignore
     return Promise.all(
       moralisTokensMetadata.map(async (moralisTokenMD) => {
+        console.log({ moralisTokenMD });
         const backgroundColor =
           await TokensBackgroundColorsLogic.getBackgroundColorFromImage(
             moralisTokenMD.logo!
@@ -373,4 +394,7 @@ const saveNewSmartContractsList = (newList: any[]) => {
 export const SmartContractsInfoLogic = {
   getSmartContractInfo,
   refreshNullTokens,
+  getCurrentSmartContractList,
+  saveNewSmartContractsList,
+  initMoralisIfNeeded,
 };

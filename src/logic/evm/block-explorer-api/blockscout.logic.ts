@@ -1,6 +1,7 @@
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import { BaseApi } from "../../../utils/base";
 import { defaultChainList } from "../data/chains.list";
+import { EVMSmartContractType } from "../interfaces/evm-smart-contracts.interface";
 
 const getAbi = async (chainId: string, address: string) => {
   const chain = defaultChainList.find((c) => c.chainId === chainId);
@@ -22,7 +23,7 @@ const getAbi = async (chainId: string, address: string) => {
 const getTokenInfo = async (
   chainId: string,
   contractAddress: string
-): Promise<any> => {
+): Promise<{ address: string; result: any | null }> => {
   return new Promise(async (resolve, reject) => {
     try {
       const chain = defaultChainList.find((c) => c.chainId === chainId);
@@ -33,12 +34,30 @@ const getTokenInfo = async (
       }
 
       const res = await get(
-        `${chain.blockExplorerApi?.url}/api?module=token&action=getToken&contractaddress=${contractAddress}`
+        `${chain.blockExplorerApi?.url}/api/v2/addresses/${contractAddress}`
       );
-      if (res.status === "1") {
+      console.log({ res });
+      if (res && res.token) {
+        const result = {
+          address: contractAddress,
+          chainId: chainId,
+          type: res.token.type.replace("-", "") as EVMSmartContractType,
+          name: res.token.name,
+          symbol: res.token.symbol,
+          logo: res.token.icon_url,
+          backgroundColor: "#FFFFFF",
+          decimals: res.token.decimals ? Number(res.token.decimals) : null,
+          possibleSpam: res.is_scam,
+          verifiedContract: res.is_verified,
+        };
+
+        console.log({
+          address: contractAddress,
+          result: result,
+        });
         resolve({
           address: contractAddress,
-          result: { ...res.result, type: res.result.type.replace("-", "") },
+          result: result,
         });
       } else {
         resolve({ address: contractAddress, result: null });

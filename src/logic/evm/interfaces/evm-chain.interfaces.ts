@@ -10,11 +10,6 @@ export enum EvmTransactionType {
   EIP_4844 = "0x3",
 }
 
-export interface HiveMainTokens {
-  hbd: string;
-  hive: string;
-  hp: string;
-}
 export type EvmMainToken = string;
 
 export interface MultichainRpc {
@@ -53,11 +48,9 @@ export interface EvmChain extends Chain {
   isEth?: boolean;
   defaultTransactionType: EvmTransactionType;
   onlyCustomFee?: boolean;
+  addTokensManually?: boolean;
+  disableTokensAndHistoryAutoLoading?: boolean;
+  manualDiscoverAvailable?: boolean;
 }
 
 export interface EvmProviders {}
-
-export interface HiveChain extends Chain {
-  type: ChainType.HIVE;
-  mainTokens: HiveMainTokens;
-}

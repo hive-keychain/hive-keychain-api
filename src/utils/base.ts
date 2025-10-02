@@ -1,11 +1,18 @@
 import fetch from "node-fetch";
 
-const get = async (url: string): Promise<any> => {
+interface BaseApiGetOptions {
+  headers?: Record<string, string>;
+}
+
+const get = async (
+  url: string,
+  options: BaseApiGetOptions = {}
+): Promise<any> => {
   return await new Promise((resolve, reject) => {
     try {
       fetch(url, {
         method: "GET",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...options.headers },
       })
         .then((res) => {
           if (res && res.status === 200) {

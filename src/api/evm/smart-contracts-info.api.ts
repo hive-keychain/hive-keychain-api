@@ -1,5 +1,6 @@
 import { Express } from "express";
 import { EtherscanLogic } from "../../logic/evm/block-explorer-api/etherscan.logic";
+import { BscTokensLogic } from "../../logic/evm/bsc-tokens.logic";
 import { EvmChainsLogic } from "../../logic/evm/chains.logic";
 import { SmartContractsInfoLogic } from "../../logic/evm/smart-contract-info.logic";
 
@@ -44,11 +45,46 @@ const setupGetPopularToken = (app: Express) => {
   });
 };
 
+const setupGetTokensPerChain = (app: Express) => {
+  const ACCEPTED_CHAINS = ["0x38", "0x61"];
+  app.get(
+    "/evm/:chainId/wallet/:walletAddress/discover-tokens-erc20",
+    async (req, res) => {
+      if (!ACCEPTED_CHAINS.includes(req.params.chainId)) {
+        res.status(400).send("Invalid chainId");
+        return;
+      }
+      const tokens = await BscTokensLogic.getBscErc20(
+        req.params.walletAddress,
+        req.params.chainId
+      );
+      console.log({ tokens });
+      res.status(200).send(tokens);
+    }
+  );
+  app.get(
+    "/evm/:chainId/wallet/:walletAddress/discover-tokens-nfts",
+    async (req, res) => {
+      if (!ACCEPTED_CHAINS.includes(req.params.chainId)) {
+        res.status(400).send("Invalid chainId");
+        return;
+      }
+      const tokens = await BscTokensLogic.getBscNfts(
+        req.params.walletAddress,
+        req.params.chainId
+      );
+      console.log({ tokens });
+      res.status(200).send(tokens);
+    }
+  );
+};
+
 const setupApis = (app: Express) => {
   setupEtherscanGetInfoApi(app);
   setupRefreshSmartContractsInfo(app);
   setupGetSmartContractsInfo(app);
   setupGetPopularToken(app);
+  setupGetTokensPerChain(app);
 };
 
 export const SmartContractsApi = { setupApis };

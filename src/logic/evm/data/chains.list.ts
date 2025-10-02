@@ -3,22 +3,9 @@ import {
   ChainType,
   EvmChain,
   EvmTransactionType,
-  HiveChain,
 } from "../interfaces/evm-chain.interfaces";
 
 export const defaultChainList = [
-  {
-    name: "HIVE",
-    type: ChainType.HIVE,
-    logo: "https://files.peakd.com/file/peakd-hive/cedricguillas/AJmv1BzrF6W3vKz8ah9GJVfnHzA9khi4QAn95cZHNsNpEnSWxoRK61yTPpQcRcX.svg",
-    chainId: "beeab0de00000000000000000000000000000000000000000000000000000000",
-    mainTokens: {
-      hbd: "HBD",
-      hive: "HIVE",
-      hp: "HP",
-    },
-    isPopular: true,
-  } as HiveChain,
   {
     name: "Avalanche C-Chain",
     chainId: "0xa86a",
@@ -41,6 +28,7 @@ export const defaultChainList = [
       { url: "https://avalanche-mainnet.public.blastapi.io", isDefault: true },
     ],
     isPopular: true,
+    network: "mainnet",
   } as EvmChain,
   {
     name: "Avalanche Fuji",
@@ -63,6 +51,7 @@ export const defaultChainList = [
       { url: "https://api.avax-test.network/ext/bc/C/rpc", isDefault: true },
     ],
     isPopular: true,
+    network: "fuji",
   } as EvmChain,
   {
     name: "Arbitrum One Nitro",
@@ -127,7 +116,7 @@ export const defaultChainList = [
     chainId: "0x38",
     type: ChainType.EVM,
     logo: "https://icons.llamao.fi/icons/chains/rsz_binance.jpg",
-    mainToken: "ETH",
+    mainToken: "BNB",
     defaultTransactionType: EvmTransactionType.EIP_1559,
     blockExplorer: {
       type: BlockExplorerType.ETHERSCAN,
@@ -135,7 +124,7 @@ export const defaultChainList = [
     },
     blockExplorerApi: {
       type: BlockExplorerType.ETHERSCAN,
-      url: "https://api.etherscan.io",
+      url: "https://api.bscscan.com",
     },
     testnet: false,
     isEth: false,
@@ -150,13 +139,14 @@ export const defaultChainList = [
       },
     ],
     isPopular: true,
+    manualDiscoverAvailable: true,
   } as EvmChain,
   {
     name: "BNB",
     chainId: "0x61",
     type: ChainType.EVM,
     logo: "https://icons.llamao.fi/icons/chains/rsz_binance.jpg",
-    mainToken: "ETH",
+    mainToken: "BNB",
     defaultTransactionType: EvmTransactionType.EIP_1559,
     blockExplorer: {
       type: BlockExplorerType.ETHERSCAN,
@@ -164,10 +154,10 @@ export const defaultChainList = [
     },
     blockExplorerApi: {
       type: BlockExplorerType.ETHERSCAN,
-      url: "https://api.etherscan.io",
+      url: "https://api.bscscan.com",
     },
     testnet: true,
-    isEth: true,
+    isEth: false,
     rpcs: [
       {
         url: "https://bsc-testnet-rpc.publicnode.com",
@@ -179,6 +169,7 @@ export const defaultChainList = [
       },
     ],
     isPopular: true,
+    manualDiscoverAvailable: true,
   } as EvmChain,
   {
     name: "Base",

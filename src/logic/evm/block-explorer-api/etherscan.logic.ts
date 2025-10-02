@@ -8,28 +8,42 @@ const getTokenInfo = async (
   contractAddress: string
 ): Promise<any> => {
   return new Promise(async (resolve, reject) => {
-    try {
-      const chain = defaultChainList.find((c) => c.chainId === chainId);
+    resolve({
+      address: contractAddress,
+      result: {
+        type: null,
+        decimals: null,
+        logo: null,
+        name: null,
+        symbol: null,
+      },
+    });
+    // try {
+    //   const chain = defaultChainList.find((c) => c.chainId === chainId);
 
-      if (!chain) {
-        reject(new Error(`Cannot find chain with chainId ${chainId}`));
-        return;
-      }
+    //   if (!chain) {
+    //     reject(new Error(`Cannot find chain with chainId ${chainId}`));
+    //     return;
+    //   }
 
-      const res = await get(
-        `${chain.blockExplorerApi?.url}/v2/api?module=token&action=getToken&contractaddress=${contractAddress}`
-      );
-      if (res.status === "1") {
-        resolve({
-          address: contractAddress,
-          result: { ...res.result, type: res.result.type.replace("-", "") },
-        });
-      } else {
-        resolve({ address: contractAddress, result: null });
-      }
-    } catch (err) {
-      resolve({ address: contractAddress, result: null });
-    }
+    //   const res = await get(
+    //     `${chain.blockExplorerApi?.url}/v2/api?chainid=${Number(
+    //       chain.chainId
+    //     )}&module=token&action=getToken&contractaddress=${contractAddress}&apikey=${
+    //       process.env.ETHERSCAN_API_KEY
+    //     }`
+    //   );
+    //   if (res.status === "1") {
+    //     resolve({
+    //       address: contractAddress,
+    //       result: { ...res.result, type: res.result.type.replace("-", "") },
+    //     });
+    //   } else {
+    //     resolve({ address: contractAddress, result: null });
+    //   }
+    // } catch (err) {
+    //   resolve({ address: contractAddress, result: null });
+    // }
   });
 };
 
