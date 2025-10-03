@@ -14,6 +14,7 @@ import { PriceApi } from "./api/hive/price.api";
 import { RpcApi } from "./api/hive/rpc.api";
 import { WitnessApi } from "./api/hive/witness.api";
 import { SettingsApi } from "./api/mobile-settings.api";
+import { SwapCryptosApi } from "./api/swap-cryptos.api";
 import { VersionLogApi } from "./api/version-log.api";
 import { Config } from "./config";
 import { HistoricalDataLogic } from "./logic/hive/historical-data.logic";
@@ -53,6 +54,7 @@ const setupRoutes = (app: express.Express) => {
   EcosystemApi.setupApis(app);
   SettingsApi.setupApis(app);
   InvoiceRedirectApi.setupApis(app);
+  SwapCryptosApi.setupApis(app);
 };
 
 const startServer = (app: express.Express) => {

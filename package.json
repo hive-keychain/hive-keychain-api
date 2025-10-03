@@ -30,7 +30,7 @@
     "express": "^4.17.1",
     "express-validator": "^7.2.1",
     "fs": "0.0.1-security",
-    "hive-keychain-commons": "github:hive-keychain/hive-keychain-commons",
+    "hive-keychain-commons": "^1.10.3",
     "http": "0.0.0",
     "https": "^1.0.0",
     "mssql": "^11.0.1",
