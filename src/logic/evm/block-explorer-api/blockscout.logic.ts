@@ -39,7 +39,7 @@ const getTokenInfo = async (
       console.log({ res });
       if (res && res.token) {
         const result = {
-          address: contractAddress,
+          contractAddress: contractAddress,
           chainId: chainId,
           type: res.token.type.replace("-", "") as EVMSmartContractType,
           name: res.token.name,

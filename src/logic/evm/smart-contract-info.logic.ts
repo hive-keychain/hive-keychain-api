@@ -342,7 +342,7 @@ const getTokensFromMoralis = async (
           );
         return {
           type: EVMSmartContractType.ERC20,
-          address: moralisTokenMD.address,
+          contractAddress: moralisTokenMD.address,
           name: moralisTokenMD.name,
           symbol: moralisTokenMD.symbol,
           decimals: +moralisTokenMD.decimals,

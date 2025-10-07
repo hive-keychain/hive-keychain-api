@@ -42,6 +42,9 @@ const fetchPrices = async () => {
           } else {
             fulfill(body);
           }
+        })
+        .catch((err) => {
+          console.log("fetch coingecko error", err);
         });
     } catch (err) {
       console.log("fetch coingecko error", err);

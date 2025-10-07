@@ -25,7 +25,7 @@ const getTokenInfo = async (
           address: contractAddress,
           result: {
             type: res.ercType.replace("-", ""),
-            address: contractAddress,
+            contractAddress: contractAddress,
             name: res.name,
             symbol: res.symbol,
             logo: res.logoAsset?.imageUri || null,
