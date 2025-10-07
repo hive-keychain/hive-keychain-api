@@ -8,6 +8,44 @@ import {
   SwapCryptosExchangeResult,
 } from "hive-keychain-commons";
 
+const symbolsToPutAtTheBeginning = [
+  "btc",
+  "eth",
+  "usdt",
+  "usdc",
+  "dai",
+  "matic",
+  "solana",
+  "bnb",
+  "xrp",
+  "ada",
+  "dot",
+  "avax",
+  "doge",
+  "luna",
+  "ton",
+];
+const networkOrder = [
+  "mainnet",
+  "btc",
+  "hive",
+  "eth",
+  "bsc",
+  "matic",
+  "base",
+  "arbitrum",
+  "optimism",
+  "sol",
+  "avax-c",
+  "avaxc",
+  "polkadot",
+  "sui",
+  "ron",
+  "near",
+  "noble",
+  "trx",
+];
+
 export class SwapCryptosMerger {
   providers: SwapCryptosBaseProviderInterface[];
   currencyOptionsList: ExchangeableToken[] = [];
@@ -61,31 +99,28 @@ export class SwapCryptosMerger {
     this.currencyOptionsList = providersCurrencyOptionsList.sort((a, b) =>
       a.name.localeCompare(b.name)
     );
-    // put all symbols from the following list to the beginning of the array : btc,eth,usdt,usdc,dai,matic,solana,bnb,xrp,ada,dot,avax,doge,luna,ton regardless of the network or name and in this same order
-    const symbolsToPutAtTheBeginning = [
-      "btc",
-      "eth",
-      "usdt",
-      "usdc",
-      "dai",
-      "matic",
-      "solana",
-      "bnb",
-      "xrp",
-      "ada",
-      "dot",
-      "avax",
-      "doge",
-      "luna",
-      "ton",
-    ];
+
     this.currencyOptionsList = this.currencyOptionsList.sort((a, b) => {
       const aIndex = symbolsToPutAtTheBeginning.indexOf(a.symbol);
       const bIndex = symbolsToPutAtTheBeginning.indexOf(b.symbol);
 
       if (aIndex !== -1 && bIndex !== -1) {
         // Both are in the list, sort by their order in the array
-        return aIndex - bIndex;
+        if (aIndex !== bIndex) {
+          return aIndex - bIndex;
+        }
+        // If same symbol order, sort by networkOrder
+        const aNetworkIndex = networkOrder.indexOf(a.displayedNetwork);
+        const bNetworkIndex = networkOrder.indexOf(b.displayedNetwork);
+        if (aNetworkIndex !== -1 && bNetworkIndex !== -1) {
+          return aNetworkIndex - bNetworkIndex;
+        } else if (aNetworkIndex !== -1) {
+          return -1;
+        } else if (bNetworkIndex !== -1) {
+          return 1;
+        } else {
+          return a.displayedNetwork.localeCompare(b.displayedNetwork);
+        }
       } else if (aIndex !== -1) {
         // a is in the list, b is not
         return -1;
@@ -93,8 +128,23 @@ export class SwapCryptosMerger {
         // b is in the list, a is not
         return 1;
       } else {
-        // Neither is in the list, sort alphabetically by name
-        return a.name.localeCompare(b.name);
+        // Neither is in the list, sort alphabetically by name first
+        const nameCompare = a.name.localeCompare(b.name);
+        if (nameCompare !== 0) {
+          return nameCompare;
+        }
+        // If names are equal, sort by networkOrder
+        const aNetworkIndex = networkOrder.indexOf(a.displayedNetwork);
+        const bNetworkIndex = networkOrder.indexOf(b.displayedNetwork);
+        if (aNetworkIndex !== -1 && bNetworkIndex !== -1) {
+          return aNetworkIndex - bNetworkIndex;
+        } else if (aNetworkIndex !== -1) {
+          return -1;
+        } else if (bNetworkIndex !== -1) {
+          return 1;
+        } else {
+          return a.displayedNetwork.localeCompare(b.displayedNetwork);
+        }
       }
     });
 
@@ -142,31 +192,38 @@ export class SwapCryptosMerger {
     toNetwork: string
   ): Promise<ExchangeEstimation[] | undefined> => {
     let providerEstimationList: ExchangeEstimation[] = [];
-    for (const provider of this.providers) {
-      try {
-        const estimation = await provider.getExchangeEstimation(
-          amount,
-          from,
-          fromNetwork,
-          to,
-          toNetwork
-        );
-
+    try {
+      const estimations = await Promise.all(
+        this.providers.map(async (provider) => {
+          return provider.getExchangeEstimation(
+            amount,
+            from,
+            fromNetwork,
+            to,
+            toNetwork
+          );
+        })
+      );
+      for (const [i, estimation] of estimations.entries()) {
         if (!estimation || Number.isNaN(estimation.estimation)) continue;
         providerEstimationList.push({
-          provider: provider.name as SwapCryptos,
-          estimation: estimation,
+          provider: this.providers[i].name as SwapCryptos,
+          estimation: estimation ?? undefined,
         });
-      } catch (error) {
-        console.log("No estimation available in Exchange", { provider, error });
       }
+    } catch (error) {
+      console.log("No estimation available in Exchange", {
+        error,
+      });
+    } finally {
+      return providerEstimationList.length
+        ? providerEstimationList.sort(
+            (a, b) => b.estimation.estimation - a.estimation.estimation
+          )
+        : undefined;
     }
-    return providerEstimationList.length
-      ? providerEstimationList.sort(
-          (a, b) => b.estimation.estimation - a.estimation.estimation
-        )
-      : undefined;
   };
+
   getNewExchange = async (
     formData: ExchangeOperationForm,
     providerName: SwapCryptos

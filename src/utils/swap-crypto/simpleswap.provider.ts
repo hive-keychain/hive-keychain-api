@@ -108,6 +108,7 @@ export class SimpleSwapProvider
     const response = await (
       await fetch(this.buildUrl(minMaxRoute) + `?${params.toString()}`)
     ).json();
+    if (!response.result) return;
     return [response.result.min, response.result.max];
   };
   /**
@@ -144,7 +145,7 @@ export class SimpleSwapProvider
         } as any).toString()}`
       )
     ).json();
-    if (+amount > +estimation.result.max) return;
+    if (!estimation.result || +amount > +estimation.result.max) return;
     return {
       swapCrypto: SwapCryptos.SIMPLESWAP,
       link: link,
