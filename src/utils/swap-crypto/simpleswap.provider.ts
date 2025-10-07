@@ -145,7 +145,8 @@ export class SimpleSwapProvider
         } as any).toString()}`
       )
     ).json();
-    if (!estimation.result || +amount > +estimation.result.max) return;
+    if (!estimation.result || +amount > +(estimation.result.max || Infinity))
+      return;
     return {
       swapCrypto: SwapCryptos.SIMPLESWAP,
       link: link,
