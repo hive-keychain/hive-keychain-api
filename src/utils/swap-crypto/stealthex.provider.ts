@@ -209,6 +209,7 @@ export class StealthexProvider
         headers: requestHeaders,
       })
     ).json();
+    if (!estimation.estimated_amount) return;
 
     return {
       swapCrypto: SwapCryptos.STEALTHEX,
