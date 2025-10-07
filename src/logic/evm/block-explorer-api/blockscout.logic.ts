@@ -1,7 +1,10 @@
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import { BaseApi } from "../../../utils/base";
 import { defaultChainList } from "../data/chains.list";
-import { EVMSmartContractType } from "../interfaces/evm-smart-contracts.interface";
+import {
+  EVMSmartContractType,
+  SmartContractAddress,
+} from "../interfaces/evm-smart-contracts.interface";
 
 const getAbi = async (chainId: string, address: string) => {
   const chain = defaultChainList.find((c) => c.chainId === chainId);
@@ -22,8 +25,8 @@ const getAbi = async (chainId: string, address: string) => {
 
 const getTokenInfo = async (
   chainId: string,
-  contractAddress: string
-): Promise<{ address: string; result: any | null }> => {
+  contractAddress: SmartContractAddress
+): Promise<{ address: SmartContractAddress; result: any | null }> => {
   return new Promise(async (resolve, reject) => {
     try {
       const chain = defaultChainList.find((c) => c.chainId === chainId);
@@ -34,11 +37,11 @@ const getTokenInfo = async (
       }
 
       const res = await get(
-        `${chain.blockExplorerApi?.url}/api/v2/addresses/${contractAddress}`
+        `${chain.blockExplorerApi?.url}/api/v2/addresses/${contractAddress.address}`
       );
       if (res && res.token) {
         const result = {
-          contractAddress: contractAddress,
+          contractAddress: contractAddress.address,
           chainId: chainId,
           type: res.token.type.replace("-", "") as EVMSmartContractType,
           name: res.token.name,
@@ -50,10 +53,6 @@ const getTokenInfo = async (
           verifiedContract: res.is_verified,
         };
 
-        console.log({
-          address: contractAddress,
-          result: result,
-        });
         resolve({
           address: contractAddress,
           result: result,

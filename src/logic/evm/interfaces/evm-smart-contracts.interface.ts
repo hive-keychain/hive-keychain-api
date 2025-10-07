@@ -60,3 +60,8 @@ export interface PopularToken {
   name: string;
   logo: string;
 }
+
+export interface SmartContractAddress {
+  address: string;
+  tokenId?: string;
+}

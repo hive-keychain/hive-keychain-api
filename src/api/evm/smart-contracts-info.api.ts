@@ -3,12 +3,15 @@ import { EtherscanLogic } from "../../logic/evm/block-explorer-api/etherscan.log
 import { BscTokensLogic } from "../../logic/evm/bsc-tokens.logic";
 import { EvmChainsLogic } from "../../logic/evm/chains.logic";
 import { defaultChainList } from "../../logic/evm/data/chains.list";
+import { SmartContractAddress } from "../../logic/evm/interfaces/evm-smart-contracts.interface";
 import { NftLogic } from "../../logic/evm/nft.logic";
 import { SmartContractsInfoLogic } from "../../logic/evm/smart-contract-info.logic";
 
 const setupGetSmartContractsInfo = (app: Express) => {
   app.post("/evm/smart-contracts-info/:chainId", async (req, res) => {
-    const addresses = req.query.addresses ? req.body.addresses : [];
+    const addresses: SmartContractAddress[] = req.body.addresses
+      ? req.body.addresses
+      : [];
     const tokensInfo = await SmartContractsInfoLogic.getSmartContractInfo(
       req.params.chainId,
       addresses

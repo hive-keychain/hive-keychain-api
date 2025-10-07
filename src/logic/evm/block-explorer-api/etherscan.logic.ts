@@ -2,11 +2,12 @@ import Logger from "hive-keychain-commons/lib/logger/logger";
 import { BaseApi } from "../../../utils/base";
 import { defaultChainList } from "../data/chains.list";
 import { EvmChain } from "../interfaces/evm-chain.interfaces";
+import { SmartContractAddress } from "../interfaces/evm-smart-contracts.interface";
 
 const getTokenInfo = async (
   chainId: string,
-  contractAddress: string
-): Promise<any> => {
+  contractAddress: SmartContractAddress
+): Promise<{ address: SmartContractAddress; result: any | null }> => {
   return new Promise(async (resolve, reject) => {
     resolve({
       address: contractAddress,

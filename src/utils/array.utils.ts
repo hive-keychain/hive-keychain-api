@@ -24,7 +24,16 @@ const shuffle = (array) => {
   return array;
 };
 
+const splitArray = <T>(array: T[], size: number): T[][] => {
+  const result: any[] = [];
+  for (let i = 0; i < array.length; i += size) {
+    result.push(array.slice(i, i + size));
+  }
+  return result;
+};
+
 export const ArrayUtils = {
   mergeWithoutDuplicate,
   shuffle,
+  splitArray,
 };

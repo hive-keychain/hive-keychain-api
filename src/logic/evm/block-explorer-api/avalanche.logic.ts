@@ -1,10 +1,11 @@
 import { BaseApi } from "../../../utils/base";
 import { defaultChainList } from "../data/chains.list";
+import { SmartContractAddress } from "../interfaces/evm-smart-contracts.interface";
 
 const getTokenInfo = async (
   chainId: string,
-  contractAddress: string
-): Promise<any> => {
+  contractAddress: SmartContractAddress
+): Promise<{ address: SmartContractAddress; result: any | null }> => {
   return new Promise(async (resolve, reject) => {
     try {
       const chain = defaultChainList.find((c) => c.chainId === chainId);
@@ -16,7 +17,7 @@ const getTokenInfo = async (
       const res = await get(
         `${chain.blockExplorerApi?.url}/v1/chains/${Number(
           chain.chainId
-        )}/addresses/${contractAddress}`
+        )}/addresses/${contractAddress.address}`
       );
       if (!res || res.error) {
         resolve({ address: contractAddress, result: null });
@@ -25,7 +26,7 @@ const getTokenInfo = async (
           address: contractAddress,
           result: {
             type: res.ercType.replace("-", ""),
-            contractAddress: contractAddress,
+            contractAddress: contractAddress.address,
             name: res.name,
             symbol: res.symbol,
             logo: res.logoAsset?.imageUri || null,

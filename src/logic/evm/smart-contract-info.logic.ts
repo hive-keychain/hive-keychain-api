@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import Moralis from "moralis";
+import { ArrayUtils } from "../../utils/array.utils";
 import { CoingeckoUtils } from "../../utils/coingecko.utils";
 import { TokensBackgroundColorsLogic } from "../hive/token-background-color";
 import { AvalancheLogic } from "./block-explorer-api/avalanche.logic";
@@ -15,6 +16,7 @@ import {
   EvmSmartContractInfoErc721,
   EvmSmartContractInfoNative,
   EVMSmartContractType,
+  SmartContractAddress,
 } from "./interfaces/evm-smart-contracts.interface";
 let isMoralisInitialized = false;
 
@@ -42,7 +44,10 @@ const refreshNullTokens = async () => {
           smartContract.chainId === chain &&
           !smartContract.type
       )
-      .map((smartContract) => smartContract.contractAddress!);
+      .map((smartContract) => ({
+        address: smartContract.contractAddress!,
+        tokenId: (smartContract as any).tokenId,
+      }));
     const newSmartContractsFromMoralis = await getFromMoralis(
       chain,
       smartContractsToFetch
@@ -62,20 +67,25 @@ const refreshNullTokens = async () => {
   saveNewSmartContractsList(savedSmartContractList);
 };
 
-const getSmartContractInfo = async (chain: string, addresses: string[]) => {
+const getSmartContractInfo = async (
+  chain: string,
+  smartContractAddresses: SmartContractAddress[]
+) => {
   const savedSmartContractList = await getCurrentSmartContractList();
 
   const existingSmartContractsFromList: EvmSmartContractInfo[] = [];
-  const smartContractsAddressesToFetch: string[] = [];
+  const smartContractsAddressesToFetch: SmartContractAddress[] = [];
 
-  for (const address of addresses) {
+  for (const smartContractAddress of smartContractAddresses) {
     const savedSmartContract = savedSmartContractList.find(
-      (sc) => sc.chainId === chain && address === sc.contractAddress
+      (sc) =>
+        sc.chainId === chain &&
+        smartContractAddress.address === sc.contractAddress
     );
     if (savedSmartContract) {
       existingSmartContractsFromList.push(savedSmartContract);
     } else {
-      smartContractsAddressesToFetch.push(address);
+      smartContractsAddressesToFetch.push(smartContractAddress);
     }
   }
   console.log({ smartContractsAddressesToFetch });
@@ -118,6 +128,8 @@ const getSmartContractInfo = async (chain: string, addresses: string[]) => {
   if (nativeToken) {
     smartContracts.push(nativeToken);
   }
+
+  console.log(nativeToken);
 
   return await CoingeckoConfigLogic.addCoingeckoIdToTokenInfo(
     chain,
@@ -164,11 +176,12 @@ const getFromCoingecko = async (
 
 const getFromMoralis = async (
   chainId: string,
-  addresses: string[]
+  smartContractAddresses: SmartContractAddress[]
 ): Promise<EvmSmartContractInfo[]> => {
+  console.log("getting from moralis", smartContractAddresses);
   let start = Date.now();
-  const tokenAddresses: string[] = [];
-  const nftAddresses: string[] = [];
+  const tokenAddresses: SmartContractAddress[] = [];
+  const nftAddresses: SmartContractAddress[] = [];
   const otherTokens: EvmSmartContractInfo[] = [];
 
   const tokens: any[] = [];
@@ -179,17 +192,23 @@ const getFromMoralis = async (
   const chain = defaultChainList.find((c) => c.chainId === chainId);
   if (!chainId) return [];
 
-  for (const address of addresses) {
+  for (const smartContractAddress of smartContractAddresses) {
     switch (chain?.blockExplorerApi?.type) {
       case BlockExplorerType.BLOCKSCOUT:
-        infoPromises.push(BlockscoutLogic.getTokenInfo(chainId, address));
+        infoPromises.push(
+          BlockscoutLogic.getTokenInfo(chainId, smartContractAddress)
+        );
         break;
       case BlockExplorerType.AVALANCHE_SCAN:
-        console.log("Avalanche scan getting", address);
-        infoPromises.push(AvalancheLogic.getTokenInfo(chainId, address));
+        console.log("Avalanche scan getting", smartContractAddress);
+        infoPromises.push(
+          AvalancheLogic.getTokenInfo(chainId, smartContractAddress)
+        );
         break;
       case BlockExplorerType.ETHERSCAN:
-        infoPromises.push(EtherscanLogic.getTokenInfo(chainId, address));
+        infoPromises.push(
+          EtherscanLogic.getTokenInfo(chainId, smartContractAddress)
+        );
         break;
       default: {
         console.log("No block explorer api type found for chain", chainId);
@@ -233,6 +252,8 @@ const getFromMoralis = async (
   console.log("moralis took", (Date.now() - startMoralis) / 1000);
   console.log("total moralis function took", (Date.now() - start) / 1000);
 
+  // console.log({ tokensFromMoralis, nftsFromMoralis });
+
   return [
     ...(tokensFromMoralis && tokensFromMoralis.length > 0
       ? tokensFromMoralis
@@ -244,63 +265,99 @@ const getFromMoralis = async (
 
 const getNftsFromMoralis = async (
   chain: string,
-  addresses: string[]
+  contractsAddresses: SmartContractAddress[]
 ): Promise<
   (EvmSmartContractInfoErc721 | EvmSmartContractInfoErc1155)[] | null
 > => {
   try {
-    console.log({ getNftsFromMoralis: addresses });
-    if (!addresses.length) return [];
+    console.log({ getNftsFromMoralis: contractsAddresses });
+    if (!contractsAddresses.length) return [];
     Logger.info(
-      `Getting nfts ${addresses.join(",")} from Moralis for chain ${chain}`
+      `Getting nfts ${contractsAddresses
+        .map((ca) => ca.address)
+        .join(",")} from Moralis for chain ${chain}`
     );
     // await initMoralisIfNeeded();
 
     await Moralis.EvmApi.nft.getNFTContractMetadata({
-      address: addresses[0],
+      address: contractsAddresses[0].address,
       chain,
     });
 
-    return Promise.all(
-      addresses.map(async (address) => {
-        const moralisNftMetadataResult = await Moralis.EvmApi.nft
-          .getNFTContractMetadata({
-            address,
+    contractsAddresses = contractsAddresses.filter((ca) => ca.tokenId);
+
+    console.log(ArrayUtils.splitArray(contractsAddresses, 25));
+
+    const splitedContractsAddresses = ArrayUtils.splitArray(
+      contractsAddresses,
+      25
+    );
+
+    let result: any[] = [];
+    for (const subList of splitedContractsAddresses) {
+      result = [
+        ...result,
+        ...(
+          await Moralis.EvmApi.nft.getMultipleNFTs({
+            tokens: subList.map((contractAddress) => ({
+              tokenAddress: contractAddress.address,
+              tokenId: contractAddress.tokenId!,
+            })),
             chain,
           })
-          .catch((e) => {
-            throw e;
-          });
+        ).toJSON(),
+      ];
+    }
 
-        const moralisNftMetadata = moralisNftMetadataResult
-          ? moralisNftMetadataResult.toJSON()
-          : ({} as any);
-        const backgroundColor =
+    // const promises = ArrayUtils.splitArray(contractsAddresses, 25).map(
+    //   async (subList) => {
+    //     return Moralis.EvmApi.nft.getMultipleNFTs({
+    //       tokens: subList.map((contractAddress) => ({
+    //         tokenAddress: contractAddress.address,
+    //         tokenId: contractAddress.tokenId!,
+    //       })),
+    //       chain,
+    //     });
+    //   }
+    // );
+
+    // const result = await Promise.all(promises);
+
+    // console.log(result);
+
+    // const resultFlag = result.flat();
+    // console.log(resultFlag);
+
+    return (await Promise.all(
+      result.map(async (moralisNftMetadata) => {
+        console.log({ moralisNftMetadata });
+
+        if (!moralisNftMetadata) return null;
+
+        const metadata = moralisNftMetadata?.metadata
+          ? JSON.parse(moralisNftMetadata.metadata)
+          : null;
+
+        let backgroundColor;
+        if (metadata)
           await TokensBackgroundColorsLogic.getBackgroundColorFromImage(
-            moralisNftMetadata.collection_logo!
+            metadata.image
           );
+
         return {
-          type: moralisNftMetadata.contract_type as EVMSmartContractType,
+          type: moralisNftMetadata?.contract_type as EVMSmartContractType,
           contractAddress: moralisNftMetadata.token_address,
           name: moralisNftMetadata.name,
           symbol: moralisNftMetadata.symbol,
-          logo: moralisNftMetadata.collection_logo,
+          logo: (moralisNftMetadata as any).collection_logo,
           possibleSpam: moralisNftMetadata.possible_spam,
           verifiedContract: moralisNftMetadata.verified_collection,
           chainId: chain,
-          category: moralisNftMetadata.collection_category,
+          category: (moralisNftMetadata as any).collection_category,
           backgroundColor: backgroundColor,
-          links: {
-            project_url: moralisNftMetadata.project_url,
-            wiki_url: moralisNftMetadata.wiki_url,
-            discord_url: moralisNftMetadata.discord_url,
-            telegram_url: moralisNftMetadata.telegram_url,
-            twitter_username: moralisNftMetadata.twitter_username,
-            instagram_username: moralisNftMetadata.instagram_username,
-          },
         };
       })
-    );
+    )) as (EvmSmartContractInfoErc721 | EvmSmartContractInfoErc1155)[];
   } catch (e) {
     Logger.error("Moralis fetch error", e);
     return null;
@@ -309,18 +366,20 @@ const getNftsFromMoralis = async (
 
 const getTokensFromMoralis = async (
   chain: string,
-  addresses: string[]
+  addresses: SmartContractAddress[]
 ): Promise<EvmSmartContractInfo[] | null> => {
   try {
     if (!addresses.length) return [];
     Logger.info(
-      `Getting tokens ${addresses.join(",")} from Moralis for chain ${chain}`
+      `Getting tokens ${addresses
+        .map((a) => a.address)
+        .join(",")} from Moralis for chain ${chain}`
     );
     // await initMoralisIfNeeded();
 
     const moralisTokensMetadata = (
       await Moralis.EvmApi.token.getTokenMetadata({
-        addresses,
+        addresses: addresses.map((address) => address.address),
         chain,
       })
     ).toJSON();
