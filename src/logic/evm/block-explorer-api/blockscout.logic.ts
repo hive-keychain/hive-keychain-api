@@ -36,7 +36,6 @@ const getTokenInfo = async (
       const res = await get(
         `${chain.blockExplorerApi?.url}/api/v2/addresses/${contractAddress}`
       );
-      console.log({ res });
       if (res && res.token) {
         const result = {
           contractAddress: contractAddress,

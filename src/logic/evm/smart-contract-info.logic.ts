@@ -114,14 +114,10 @@ const getSmartContractInfo = async (chain: string, addresses: string[]) => {
     ...newSmartContractsFromMoralis,
   ];
 
-  // console.log({ smartContracts });
-
   const nativeToken = newNativeToken || savedNativeToken;
   if (nativeToken) {
     smartContracts.push(nativeToken);
   }
-
-  console.log(smartContracts);
 
   return await CoingeckoConfigLogic.addCoingeckoIdToTokenInfo(
     chain,
@@ -203,7 +199,6 @@ const getFromMoralis = async (
   const infoResults = await Promise.all(infoPromises);
   console.log("Scan took", (Date.now() - start) / 1000);
   for (const infoResult of infoResults) {
-    console.log(infoResult);
     const info = infoResult.result;
     if (info) {
       switch (info.type) {
@@ -330,12 +325,9 @@ const getTokensFromMoralis = async (
       })
     ).toJSON();
 
-    console.log({ moralisTokensMetadata });
-
     //@ts-ignore
     return Promise.all(
       moralisTokensMetadata.map(async (moralisTokenMD) => {
-        console.log({ moralisTokenMD });
         const backgroundColor =
           await TokensBackgroundColorsLogic.getBackgroundColorFromImage(
             moralisTokenMD.logo!

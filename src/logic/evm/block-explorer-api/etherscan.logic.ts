@@ -188,7 +188,6 @@ const getAbi = async (chain: EvmChain, address: string) => {
 const get = async (url: string): Promise<any> => {
   try {
     const res = await BaseApi.get(url);
-    console.log({ url: url, res: res });
     if (res && res.status === "1") {
       return res.result;
     } else {
