@@ -85,7 +85,7 @@ export class SimpleSwapProvider
     to: string,
     toNetwork: string
   ) => {
-    if (from === "HIVE") return;
+    if (from.toLowerCase() === "hive") return;
     const minMaxAcceptedRoute = this.urls.routes.minMaxAccepted;
     if (minMaxAcceptedRoute.trim().length === 0) return [];
     const minMaxRoute = `${this.urls.routes.minMaxAccepted}`;
