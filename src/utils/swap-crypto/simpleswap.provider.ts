@@ -121,7 +121,7 @@ export class SimpleSwapProvider
     to: string,
     toNetwork: string
   ) => {
-    if (from === "HIVE") return;
+    if (from.toLowerCase() === "hive") return;
     const tickersAndNetworks = this.getTickersAndNetworks(
       from,
       fromNetwork,
