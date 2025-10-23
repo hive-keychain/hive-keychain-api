@@ -215,8 +215,11 @@ const getFromMoralis = async (
       }
     }
   }
+
   const infoResults = await Promise.all(infoPromises);
+  console.log(JSON.stringify(infoResults));
   console.log("Scan took", (Date.now() - start) / 1000);
+
   for (const infoResult of infoResults) {
     const info = infoResult.result;
     if (info) {

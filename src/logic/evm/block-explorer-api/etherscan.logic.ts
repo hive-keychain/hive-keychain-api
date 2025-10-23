@@ -11,13 +11,7 @@ const getTokenInfo = async (
   return new Promise(async (resolve, reject) => {
     resolve({
       address: contractAddress,
-      result: {
-        type: null,
-        decimals: null,
-        logo: null,
-        name: null,
-        symbol: null,
-      },
+      result: null,
     });
     // try {
     //   const chain = defaultChainList.find((c) => c.chainId === chainId);
