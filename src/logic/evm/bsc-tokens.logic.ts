@@ -52,14 +52,38 @@ const getBscErc20 = async (
   });
 };
 
-// TODO parse
 const getBscNfts = async (
   walletAddress: string,
   chainId: EvmChain["chainId"]
 ) => {
-  const nfts = await MoralisApi.get(`${walletAddress}/nft?chain=${chainId}`);
+  let nfts: any[] = [];
+  let cursor = null;
 
-  return nfts.result;
+  do {
+    const res = await MoralisApi.get(
+      `${walletAddress}/nft?chain=${chainId}&format=decimal&limit=100&normalizeMetadata=true&media_items=true&include_prices=false&cursor=${cursor}`
+    );
+    nfts = [...nfts, ...res.result];
+    cursor = res.cursor;
+  } while (cursor !== null);
+
+  return nfts
+    ? nfts.map((nft) => {
+        return {
+          type: nft.contract_type,
+          contractAddress: nft.token_address,
+          possibleSpam: nft.possible_spam,
+          verifiedContract: nft.verified_collection,
+          name: nft.name,
+          symbol: nft.symbol,
+          chainId: chainId,
+          logo: nft.collection_logo,
+          tokenId: nft.token_id,
+          amount: nft.amount,
+          metadata: nft.metadata ? JSON.parse(nft.metadata) : null,
+        };
+      })
+    : [];
 };
 
 export const BscTokensLogic = {

@@ -76,7 +76,7 @@ const setupGetTokensPerChain = (app: Express) => {
         req.params.walletAddress,
         req.params.chainId
       );
-      console.log({ tokens });
+      // console.log({ tokens });
       res.status(200).send(tokens);
     }
   );
