@@ -109,15 +109,25 @@ const getNftTx = async (
   page: number,
   offset: number
 ) => {
-  const result = await get(`${
-    chain.blockExplorerApi?.url
-  }/v2/api?chainid=${Number(
-    chain.chainId
-  )}&module=account&action=tokennfttx&address=${walletAddress}&page=${page}&offset=${offset}&sort=desc&apikey=${
-    process.env.ETHERSCAN_API_KEY
-  }
-      `);
-  return result ?? [];
+  const erc721 = await get(
+    `${chain.blockExplorerApi?.url}/v2/api?apikey=${
+      process.env.ETHERSCAN_API_KEY
+    }&chainid=${Number(
+      chain.chainId
+    )}&module=account&action=tokennfttx&address=${walletAddress}&page=${page}&offset=${offset}&sort=desc`
+  );
+  const erc1155 = await get(
+    `${chain.blockExplorerApi?.url}/v2/api?apikey=${
+      process.env.ETHERSCAN_API_KEY
+    }&chainid=${Number(
+      chain.chainId
+    )}&module=account&action=token1155tx&address=${walletAddress}&page=${page}&offset=${offset}&sort=desc`
+  );
+
+  return [
+    ...(erc721?.map((item) => ({ ...item, type: "ERC721" })) ?? []),
+    ...(erc1155?.map((item) => ({ ...item, type: "ERC1155" })) ?? []),
+  ];
 };
 
 const getInternalsTx = async (
@@ -150,7 +160,7 @@ const getTokenTx = async (
       process.env.ETHERSCAN_API_KEY
     }`
   );
-  return result ?? [];
+  return result?.map((item) => ({ ...item, type: "ERC20" })) ?? [];
 };
 
 const getHistory = async (
@@ -159,14 +169,15 @@ const getHistory = async (
   page: number,
   offset: number
 ) => {
-  const result = await get(
-    `${chain.blockExplorerApi?.url}/v2/api?chainid=${Number(
-      chain.chainId
-    )}&module=account&action=txlist&address=${walletAddress}&sort=desc&page=${page}&offset=${offset}&apikey=${
-      process.env.ETHERSCAN_API_KEY
-    }`
-  );
-  return result ?? [];
+  // const result = await get(
+  //   `${chain.blockExplorerApi?.url}/v2/api?chainid=${Number(
+  //     chain.chainId
+  //   )}&module=account&action=txlist&address=${walletAddress}&sort=desc&page=${page}&offset=${offset}&apikey=${
+  //     process.env.ETHERSCAN_API_KEY
+  //   }`
+  // );
+  // return result ?? [];
+  return [];
 };
 
 const getAbi = async (chain: EvmChain, address: string) => {
@@ -183,6 +194,7 @@ const getAbi = async (chain: EvmChain, address: string) => {
 const get = async (url: string): Promise<any> => {
   try {
     const res = await BaseApi.get(url);
+    console.log({ res });
     if (res && res.status === "1") {
       return res.result;
     } else {
