@@ -18,6 +18,7 @@ import { PriceApi } from "./api/hive/price.api";
 import { RpcApi } from "./api/hive/rpc.api";
 import { WitnessApi } from "./api/hive/witness.api";
 import { SettingsApi } from "./api/mobile-settings.api";
+import { SwapCryptosApi } from "./api/swap-cryptos.api";
 import { VersionLogApi } from "./api/version-log.api";
 import { Config } from "./config";
 import { CoingeckoConfigLogic } from "./logic/evm/coingecko-config";
@@ -75,6 +76,7 @@ const setupRoutes = (app: express.Express) => {
   SettingsApi.setupApis(app);
   InvoiceRedirectApi.setupApis(app);
   KeychainPhishingApi.setupApis(app);
+  SwapCryptosApi.setupApis(app);
 };
 
 const startServer = (app: express.Express) => {
