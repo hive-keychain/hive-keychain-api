@@ -1,18 +1,39 @@
+import fs from "fs";
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import fetch from "node-fetch";
+import path from "path";
 
 let prices;
 const refreshPrices = async () => {
   Logger.info("Fetching prices");
 
-  const newPrices = await fetchPrices();
-  if (newPrices) {
-    prices = newPrices;
+  try {
+    const newPrices = await fetchPrices();
+    if (newPrices) {
+      prices = newPrices;
+      fs.writeFileSync(
+        path.join(__dirname, `../../../json/coingecko-prices.json`),
+        JSON.stringify(newPrices)
+      );
+    }
+  } catch (err) {
+    console.log("error while fetching prices", err);
   }
 };
 
 const initFetchPrices = () => {
   Logger.technical("Intializing fetch prices...");
+  try {
+    prices = JSON.parse(
+      fs.readFileSync(
+        path.join(__dirname, `../../../json/coingecko-prices.json`),
+        "utf-8"
+      )
+    );
+    console.log(prices);
+  } catch (err) {
+    console.log(err);
+  }
   refreshPrices();
   setInterval(() => {
     refreshPrices();
@@ -37,7 +58,7 @@ const fetchPrices = async () => {
       .then((res) => res.json())
       .then((body) => {
         if (!body.bitcoin || !body.hive || !body.hive_dollar) {
-          console.log("error");
+          console.log("error in coingecko fetching", body);
         } else {
           fulfill(body);
         }
