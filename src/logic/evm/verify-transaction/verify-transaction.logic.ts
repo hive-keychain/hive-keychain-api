@@ -43,7 +43,6 @@ const verify = async (
 };
 
 const verifyDomain = async (domain?: string) => {
-  domain = "metomask.io";
   let result: Partial<DomainResult> = {};
   if (!domain) return;
   const [scamSniffer, verifyDomainResult] = await Promise.all([

@@ -1,4 +1,5 @@
 import fs from "fs";
+import Logger from "hive-keychain-commons/lib/logger/logger";
 import path from "path";
 import { ArrayUtils } from "../../utils/array.utils";
 
@@ -16,28 +17,35 @@ interface dApp {
 }
 
 const getDappList = (chain: string) => {
-  const jsonString = fs.readFileSync(
-    path.join(__dirname, `../../../json/${chain}-dapps.json`),
-    "utf-8"
-  );
-  const dapps: dApp[] = JSON.parse(jsonString);
-  let categories = [];
-  for (const item of dapps) {
-    categories = ArrayUtils.mergeWithoutDuplicate(item.categories, categories);
+  try {
+    const jsonString = fs.readFileSync(
+      path.join(__dirname, `../../../json/${chain}-dapps.json`),
+      "utf-8"
+    );
+    const dapps: dApp[] = JSON.parse(jsonString);
+    let categories = [];
+    for (const item of dapps) {
+      categories = ArrayUtils.mergeWithoutDuplicate(
+        item.categories,
+        categories
+      );
+    }
+
+    const ecosystem = [];
+
+    for (const cat of categories) {
+      ecosystem.push({
+        category: cat,
+        dapps: getOrderedDapps(
+          dapps.filter((dapp) => dapp.categories.includes(cat))
+        ),
+      });
+    }
+    return ecosystem;
+  } catch (err) {
+    Logger.error(`Error while getting dapps list: ${err}`);
+    return [];
   }
-
-  const ecosystem = [];
-
-  for (const cat of categories) {
-    ecosystem.push({
-      category: cat,
-      dapps: getOrderedDapps(
-        dapps.filter((dapp) => dapp.categories.includes(cat))
-      ),
-    });
-  }
-
-  return ecosystem;
 };
 
 const getOrderedDapps = (dApps: dApp[]) => {
