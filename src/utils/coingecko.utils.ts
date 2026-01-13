@@ -11,6 +11,9 @@ const fetchCoingeckoTokensConfig = (): Promise<CoingeckoToken[]> => {
       {
         url: `https://api.coingecko.com/api/v3/coins/list?include_platform=true`,
         json: true,
+        headers: {
+          "User-Agent": "Hive Keychain/1.0",
+        },
       },
       (err, http, body) => {
         if (err) {
@@ -30,6 +33,9 @@ const fetchCoingeckoPlatformsConfig = (): Promise<CoingeckoPlatform[]> => {
       {
         url: `https://api.coingecko.com/api/v3/asset_platforms`,
         json: true,
+        headers: {
+          "User-Agent": "Hive Keychain/1.0",
+        },
       },
       (err, http, body) => {
         if (err) {
@@ -127,6 +133,9 @@ const fetchCoingeckoCoinData = (id: string): Promise<CoingeckoCoinData> => {
       {
         url: `https://api.coingecko.com/api/v3/coins/${id}?localization=false&tickers=false&market_data=false&community_data=false&developer_data=false&sparkline=false`,
         json: true,
+        headers: {
+          "User-Agent": "Hive Keychain/1.0",
+        },
       },
       (err, http, body) => {
         if (err) {

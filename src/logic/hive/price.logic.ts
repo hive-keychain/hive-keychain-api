@@ -63,14 +63,6 @@ const fetchPrices = async () => {
           fulfill(body);
         }
       })
-      .then((res) => res.json())
-      .then((body) => {
-        if (!body || !body.bitcoin || !body.hive || !body.hive_dollar) {
-          console.log("error");
-        } else {
-          fulfill(body);
-        }
-      })
       .catch((err) => {
         console.log("fetch coingecko error", err);
       });
