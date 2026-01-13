@@ -5,5 +5,5 @@ version/*
 logs/*
 logs
 .DS_Store
-src/logic/ecosystem/hive-dapps.json
+ecosystem/beeab0de00000000000000000000000000000000000000000000000000000000-dapps.json
 json/*
