@@ -67,21 +67,20 @@ const getPhishingList = async (): Promise<EvmPhishingList> => {
 
 const saveMetamaskBlacklistFile = (newList: EvmPhishingList) => {
   try {
-    fs.writeFileSync(
-      path.join(
-        __dirname,
-        "..",
-        "..",
-        "..",
-        "..",
-        "..",
-        "json",
-        "phishing-lists",
-        "metamask.json"
-      ),
-      JSON.stringify(newList),
-      "utf8"
+    const dirPath = path.join(
+      __dirname,
+      "..",
+      "..",
+      "..",
+      "..",
+      "..",
+      "json",
+      "phishing-lists"
     );
+    const filePath = path.join(dirPath, "metamask.json");
+    // Ensure destination directory exists to avoid ENOENT on first run
+    fs.mkdirSync(dirPath, { recursive: true });
+    fs.writeFileSync(filePath, JSON.stringify(newList), "utf8");
     Logger.info(`Updated mm file`);
   } catch (e) {
     Logger.info("Failed to update mm file");

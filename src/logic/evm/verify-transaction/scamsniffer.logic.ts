@@ -63,20 +63,19 @@ const getScamSnifferBlacklistFile = async (): Promise<ScamSnifferBlacklist> => {
 
 const saveScamSnifferBlacklistFile = (newList: ScamSnifferBlacklist) => {
   try {
-    fs.writeFileSync(
-      path.join(
-        __dirname,
-        "..",
-        "..",
-        "..",
-        "..",
-        "json",
-        "phishing-lists",
-        "scam-sniffer.json"
-      ),
-      JSON.stringify(newList),
-      "utf8"
+    const dirPath = path.join(
+      __dirname,
+      "..",
+      "..",
+      "..",
+      "..",
+      "json",
+      "phishing-lists"
     );
+    const filePath = path.join(dirPath, "scam-sniffer.json");
+    // Ensure destination directory exists to avoid ENOENT on first run
+    fs.mkdirSync(dirPath, { recursive: true });
+    fs.writeFileSync(filePath, JSON.stringify(newList), "utf8");
     Logger.info(`Updated scam-sniffer file`);
   } catch (e) {
     Logger.info("Failed to update scam-sniffer file");
