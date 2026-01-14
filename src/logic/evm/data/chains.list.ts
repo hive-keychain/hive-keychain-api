@@ -3,9 +3,22 @@ import {
   ChainType,
   EvmChain,
   EvmTransactionType,
+  HiveChain,
 } from "../interfaces/evm-chain.interfaces";
 
 export const defaultChainList = [
+  {
+    name: "HIVE",
+    type: ChainType.HIVE,
+    logo: "https://files.peakd.com/file/peakd-hive/cedricguillas/AJmv1BzrF6W3vKz8ah9GJVfnHzA9khi4QAn95cZHNsNpEnSWxoRK61yTPpQcRcX.svg",
+    chainId: "beeab0de00000000000000000000000000000000000000000000000000000000",
+    mainTokens: {
+      hbd: "HBD",
+      hive: "HIVE",
+      hp: "HP",
+    },
+    isPopular: true,
+  } as HiveChain,
   {
     name: "Avalanche C-Chain",
     chainId: "0xa86a",
@@ -24,6 +37,7 @@ export const defaultChainList = [
     testnet: false,
     isEth: false,
     rpcs: [
+      { url: "https://api.avax.network/ext/bc/C/rpc", isDefault: true },
       { url: "https://avalanche-c-chain-rpc.publicnode.com", isDefault: true },
       { url: "https://avalanche-mainnet.public.blastapi.io", isDefault: true },
     ],
@@ -126,7 +140,7 @@ export const defaultChainList = [
     },
     blockExplorerApi: {
       type: BlockExplorerType.ETHERSCAN,
-      url: "https://api.etherscan.io",
+      url: "https://api.bscscan.com",
     },
     testnet: false,
     isEth: false,
@@ -142,6 +156,7 @@ export const defaultChainList = [
     ],
     isPopular: true,
     manualDiscoverAvailable: true,
+    manualLoadHistory: true,
   } as EvmChain,
   {
     name: "BNB",
@@ -156,22 +171,27 @@ export const defaultChainList = [
     },
     blockExplorerApi: {
       type: BlockExplorerType.ETHERSCAN,
-      url: "https://api.etherscan.io",
+      url: "https://api.bscscan.com",
     },
     testnet: true,
     isEth: false,
     rpcs: [
       {
+        url: "https://data-seed-prebsc-1-s1.bnbchain.org:8545",
+        isDefault: true,
+      },
+      {
         url: "https://bsc-testnet-rpc.publicnode.com",
         isDefault: true,
       },
       {
-        url: "https://endpoints.omniatech.io/v1/bsc/testnet/public",
+        url: "https://bsc-testnet.drpc.org",
         isDefault: true,
       },
     ],
     isPopular: true,
     manualDiscoverAvailable: true,
+    manualLoadHistory: true,
   } as EvmChain,
   {
     name: "Base",

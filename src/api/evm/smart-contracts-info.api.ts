@@ -3,6 +3,10 @@ import { EtherscanLogic } from "../../logic/evm/block-explorer-api/etherscan.log
 import { BscTokensLogic } from "../../logic/evm/bsc-tokens.logic";
 import { EvmChainsLogic } from "../../logic/evm/chains.logic";
 import { defaultChainList } from "../../logic/evm/data/chains.list";
+import {
+  ChainType,
+  EvmChain,
+} from "../../logic/evm/interfaces/evm-chain.interfaces";
 import { SmartContractAddress } from "../../logic/evm/interfaces/evm-smart-contracts.interface";
 import { NftLogic } from "../../logic/evm/nft.logic";
 import { SmartContractsInfoLogic } from "../../logic/evm/smart-contract-info.logic";
@@ -86,10 +90,12 @@ const setupGetOpenSeaNftMetadata = (app: Express) => {
   app.get(
     "/evm/:openSeaChainId/nft/:contractAddress/:tokenId",
     async (req, res) => {
-      const chain = defaultChainList.find(
-        (c) =>
-          !!c.openSeaChainId && c.openSeaChainId === req.params.openSeaChainId
-      );
+      const chain: EvmChain = defaultChainList.find(
+        (c: EvmChain) =>
+          c.type === ChainType.EVM &&
+          !!c.openSeaChainId &&
+          c.openSeaChainId === req.params.openSeaChainId
+      ) as EvmChain;
 
       if (!chain) {
         res.status(400).send("Invalid chainId");

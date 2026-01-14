@@ -55,3 +55,13 @@ export interface EvmChain extends Chain {
 }
 
 export interface EvmProviders {}
+
+export interface HiveChain extends Chain {
+  type: ChainType.HIVE;
+  mainTokens: HiveMainTokens;
+}
+export interface HiveMainTokens {
+  hbd: string;
+  hive: string;
+  hp: string;
+}
