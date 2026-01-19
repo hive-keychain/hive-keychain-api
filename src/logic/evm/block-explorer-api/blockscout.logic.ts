@@ -1,13 +1,15 @@
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import { BaseApi } from "../../../utils/base";
-import { defaultChainList } from "../data/chains.list";
+import { ChainLogic } from "../../chain.logic";
 import {
   EVMSmartContractType,
   SmartContractAddress,
 } from "../interfaces/evm-smart-contracts.interface";
 
 const getAbi = async (chainId: string, address: string) => {
-  const chain = defaultChainList.find((c) => c.chainId === chainId);
+  const chain = (await ChainLogic.getEvmChains()).find(
+    (c) => c.chainId === chainId
+  );
 
   if (!chain) {
     Logger.error(`Cannot find chain with chainId ${chainId}`);
@@ -29,7 +31,9 @@ const getTokenInfo = async (
 ): Promise<{ address: SmartContractAddress; result: any | null }> => {
   return new Promise(async (resolve, reject) => {
     try {
-      const chain = defaultChainList.find((c) => c.chainId === chainId);
+      const chain = (await ChainLogic.getEvmChains()).find(
+        (c) => c.chainId === chainId
+      );
 
       if (!chain) {
         reject(new Error(`Cannot find chain with chainId ${chainId}`));

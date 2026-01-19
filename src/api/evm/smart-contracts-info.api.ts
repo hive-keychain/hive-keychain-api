@@ -1,8 +1,8 @@
 import { Express } from "express";
+import { ChainLogic } from "../../logic/chain.logic";
 import { EtherscanLogic } from "../../logic/evm/block-explorer-api/etherscan.logic";
 import { BscTokensLogic } from "../../logic/evm/bsc-tokens.logic";
 import { EvmChainsLogic } from "../../logic/evm/chains.logic";
-import { defaultChainList } from "../../logic/evm/data/chains.list";
 import {
   ChainType,
   EvmChain,
@@ -90,7 +90,7 @@ const setupGetOpenSeaNftMetadata = (app: Express) => {
   app.get(
     "/evm/:openSeaChainId/nft/:contractAddress/:tokenId",
     async (req, res) => {
-      const chain: EvmChain = defaultChainList.find(
+      const chain: EvmChain = (await ChainLogic.getEvmChains()).find(
         (c: EvmChain) =>
           c.type === ChainType.EVM &&
           !!c.openSeaChainId &&

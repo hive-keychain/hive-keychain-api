@@ -1,5 +1,5 @@
 import { BaseApi } from "../../../utils/base";
-import { defaultChainList } from "../data/chains.list";
+import { ChainLogic } from "../../chain.logic";
 import { SmartContractAddress } from "../interfaces/evm-smart-contracts.interface";
 
 const getTokenInfo = async (
@@ -8,7 +8,9 @@ const getTokenInfo = async (
 ): Promise<{ address: SmartContractAddress; result: any | null }> => {
   return new Promise(async (resolve, reject) => {
     try {
-      const chain = defaultChainList.find((c) => c.chainId === chainId);
+      const chain = (await ChainLogic.getEvmChains()).find(
+        (c) => c.chainId === chainId
+      );
 
       if (!chain) {
         reject(new Error(`Cannot find chain with chainId ${chainId}`));

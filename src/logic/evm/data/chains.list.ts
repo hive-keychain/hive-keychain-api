@@ -18,6 +18,7 @@ export const defaultChainList = [
       hp: "HP",
     },
     isPopular: true,
+    active: true,
   } as HiveChain,
   {
     name: "Avalanche C-Chain",
@@ -44,6 +45,7 @@ export const defaultChainList = [
     isPopular: true,
     network: "mainnet",
     openSeaChainId: "avalanche",
+    active: true,
   } as EvmChain,
   {
     name: "Avalanche Fuji",
@@ -67,6 +69,7 @@ export const defaultChainList = [
     ],
     isPopular: true,
     network: "fuji",
+    active: true,
   } as EvmChain,
   {
     name: "Arbitrum One Nitro",
@@ -97,6 +100,7 @@ export const defaultChainList = [
     ],
     isPopular: true,
     openSeaChainId: "arbitrum",
+    active: true,
   } as EvmChain,
   {
     name: "Arbitrum Sepolia",
@@ -126,6 +130,7 @@ export const defaultChainList = [
       },
     ],
     isPopular: true,
+    active: true,
   } as EvmChain,
   {
     name: "BNB",
@@ -157,6 +162,7 @@ export const defaultChainList = [
     isPopular: true,
     manualDiscoverAvailable: true,
     manualLoadHistory: true,
+    active: true,
   } as EvmChain,
   {
     name: "BNB",
@@ -192,6 +198,7 @@ export const defaultChainList = [
     isPopular: true,
     manualDiscoverAvailable: true,
     manualLoadHistory: true,
+    active: true,
   } as EvmChain,
   {
     name: "Base",
@@ -222,6 +229,7 @@ export const defaultChainList = [
     ],
     isPopular: true,
     openSeaChainId: "base",
+    active: true,
   } as EvmChain,
   {
     name: "Base Sepolia",
@@ -251,6 +259,7 @@ export const defaultChainList = [
       },
     ],
     isPopular: true,
+    active: true,
   } as EvmChain,
   {
     name: "Syscoin",
@@ -279,6 +288,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Ethereum",
@@ -309,6 +319,7 @@ export const defaultChainList = [
     ],
     isPopular: true,
     openSeaChainId: "ethereum",
+    active: true,
   } as EvmChain,
   {
     name: "Holesky",
@@ -338,6 +349,7 @@ export const defaultChainList = [
       },
     ],
     isPopular: true,
+    active: true,
   } as EvmChain,
 
   {
@@ -368,6 +380,7 @@ export const defaultChainList = [
       },
     ],
     isPopular: true,
+    active: true,
   } as EvmChain,
   {
     name: "Fantom Chain",
@@ -396,6 +409,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Flow",
@@ -421,6 +435,7 @@ export const defaultChainList = [
       },
     ],
     openSeaChainId: "flow",
+    active: false,
   } as EvmChain,
   {
     name: "Gnosis",
@@ -449,6 +464,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Linea",
@@ -477,6 +493,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Lisk",
@@ -505,6 +522,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "OP Sepolia",
@@ -534,6 +552,7 @@ export const defaultChainList = [
       },
     ],
     isPopular: true,
+    active: true,
   } as EvmChain,
   {
     name: "Polygon PoS",
@@ -564,6 +583,7 @@ export const defaultChainList = [
     ],
     isPopular: true,
     openSeaChainId: "matic",
+    active: true,
   } as EvmChain,
   {
     name: "Polygon Amoy",
@@ -593,6 +613,7 @@ export const defaultChainList = [
       },
     ],
     isPopular: true,
+    active: true,
   } as EvmChain,
   {
     name: "OP",
@@ -623,6 +644,7 @@ export const defaultChainList = [
     ],
     isPopular: true,
     openSeaChainId: "optimism",
+    active: true,
   } as EvmChain,
   {
     name: "Aleph Zero EVM",
@@ -651,6 +673,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "AlienX",
@@ -675,6 +698,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "ApeChain",
@@ -699,6 +723,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "OEV Network",
@@ -727,6 +752,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Arbitrum Nova",
@@ -756,6 +782,7 @@ export const defaultChainList = [
       },
     ],
     openSeaChainId: "arbitrum_nova",
+    active: false,
   } as EvmChain,
   {
     name: "Blessnet",
@@ -780,6 +807,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   // {
   //   name: 'ChainBounty',
@@ -832,6 +860,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Conwai",
@@ -856,6 +885,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Corn Maizenet",
@@ -884,6 +914,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Degen Chain",
@@ -908,6 +939,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "BirdLayer",
@@ -932,6 +964,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Rufus",
@@ -956,6 +989,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Edgeless",
@@ -980,6 +1014,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "EDU Chain",
@@ -1004,6 +1039,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Filecoin",
@@ -1032,6 +1068,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Fluence",
@@ -1056,6 +1093,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Forta Chain",
@@ -1080,6 +1118,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Gravity",
@@ -1108,6 +1147,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Ham",
@@ -1132,6 +1172,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Henez Finance",
@@ -1156,6 +1197,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Hoodi",
@@ -1184,6 +1226,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Huddle01",
@@ -1208,6 +1251,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "HyperEVM",
@@ -1236,6 +1280,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Immutable zkEVM",
@@ -1264,6 +1309,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Immutable zkEVM",
@@ -1288,6 +1334,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "inEVM",
@@ -1312,6 +1359,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Kinto",
@@ -1340,6 +1388,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   // {
   //   name: 'Lumiterra',
@@ -1396,6 +1445,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Matchain",
@@ -1424,6 +1474,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Mind Network",
@@ -1448,6 +1499,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Mint Chain",
@@ -1476,6 +1528,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Mode",
@@ -1504,6 +1557,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Onchain Points",
@@ -1528,6 +1582,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Onyx",
@@ -1552,6 +1607,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Orderly",
@@ -1576,6 +1632,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Playnance Playblock",
@@ -1600,6 +1657,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Proof of Play Apex",
@@ -1624,6 +1682,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Proof of Play",
@@ -1648,6 +1707,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Redstone",
@@ -1672,6 +1732,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Reya",
@@ -1696,6 +1757,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Sanko Nitro",
@@ -1720,6 +1782,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Scroll",
@@ -1748,6 +1811,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Scroll",
@@ -1776,6 +1840,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "SlingShot",
@@ -1800,6 +1865,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Soneium",
@@ -1824,6 +1890,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Superposition",
@@ -1848,6 +1915,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "TRUMPCHAIN",
@@ -1872,6 +1940,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Unichain",
@@ -1901,6 +1970,7 @@ export const defaultChainList = [
       },
     ],
     openSeaChainId: "unichain",
+    active: false,
   } as EvmChain,
   {
     name: "Unichain Sepolia",
@@ -1929,6 +1999,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "VEMP Horizon",
@@ -1953,6 +2024,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "WINR",
@@ -1977,6 +2049,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "ZetaChain",
@@ -2005,6 +2078,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "ZetaChain",
@@ -2033,6 +2107,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "ZkSync Era",
@@ -2061,6 +2136,7 @@ export const defaultChainList = [
         isDefault: true,
       },
     ],
+    active: false,
   } as EvmChain,
   {
     name: "Zora",
@@ -2086,5 +2162,6 @@ export const defaultChainList = [
       },
     ],
     openSeaChainId: "zora",
+    active: false,
   } as EvmChain,
 ];

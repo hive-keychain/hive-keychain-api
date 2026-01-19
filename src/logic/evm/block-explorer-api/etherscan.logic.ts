@@ -1,6 +1,6 @@
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import { BaseApi } from "../../../utils/base";
-import { defaultChainList } from "../data/chains.list";
+import { ChainLogic } from "../../chain.logic";
 import { EvmChain } from "../interfaces/evm-chain.interfaces";
 import { SmartContractAddress } from "../interfaces/evm-smart-contracts.interface";
 
@@ -43,7 +43,9 @@ const getTokenInfo = async (
 };
 
 const getEtherscanInfo = async (query: any) => {
-  const chain = defaultChainList.find((c) => c.chainId === query.chain);
+  const chain = (await ChainLogic.getEvmChains()).find(
+    (c) => c.chainId === query.chain
+  );
   if (!chain) {
     throw new Error(`Cannot find chain with chainId ${query.chain}`);
   }

@@ -3,12 +3,12 @@ import Logger from "hive-keychain-commons/lib/logger/logger";
 import Moralis from "moralis";
 import { ArrayUtils } from "../../utils/array.utils";
 import { CoingeckoUtils } from "../../utils/coingecko.utils";
+import { ChainLogic } from "../chain.logic";
 import { TokensBackgroundColorsLogic } from "../hive/token-background-color";
 import { AvalancheLogic } from "./block-explorer-api/avalanche.logic";
 import { BlockscoutLogic } from "./block-explorer-api/blockscout.logic";
 import { EtherscanLogic } from "./block-explorer-api/etherscan.logic";
 import { CoingeckoConfigLogic } from "./coingecko-config";
-import { defaultChainList } from "./data/chains.list";
 import { BlockExplorerType } from "./interfaces/evm-chain.interfaces";
 import {
   EvmSmartContractInfo,
@@ -189,7 +189,9 @@ const getFromMoralis = async (
 
   const infoPromises: Promise<any>[] = [];
 
-  const chain = defaultChainList.find((c) => c.chainId === chainId);
+  const chain = (await ChainLogic.getChains()).find(
+    (c) => c.chainId === chainId
+  );
   if (!chainId) return [];
 
   for (const smartContractAddress of smartContractAddresses) {

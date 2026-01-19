@@ -2,14 +2,24 @@ import fs from "fs";
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import path from "path";
 import { defaultChainList } from "./evm/data/chains.list";
-import { Chain } from "./evm/interfaces/evm-chain.interfaces";
+import {
+  Chain,
+  ChainType,
+  EvmChain,
+} from "./evm/interfaces/evm-chain.interfaces";
 
 const getChains = async (): Promise<Chain[]> => {
-  const chains = fs.readFileSync(
+  const chainsString = fs.readFileSync(
     path.join(__dirname, "..", "..", "json", "chains.json"),
     "utf8"
   );
-  return JSON.parse(chains) as Chain[];
+  const chains = JSON.parse(chainsString) as Chain[];
+  return chains.filter((chain) => chain.active);
+};
+
+const getEvmChains = async (): Promise<EvmChain[]> => {
+  const chains = await getChains();
+  return chains.filter((chain) => chain.type === ChainType.EVM) as EvmChain[];
 };
 
 const initChainList = async () => {
@@ -30,5 +40,6 @@ const initChainList = async () => {
 
 export const ChainLogic = {
   getChains,
+  getEvmChains,
   initChainList,
 };

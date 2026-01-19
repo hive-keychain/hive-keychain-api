@@ -28,6 +28,7 @@ export interface Chain {
   network?: string;
   rpcs: MultichainRpc[];
   isPopular?: boolean;
+  active: boolean;
 }
 
 export enum BlockExplorerType {
