@@ -9,6 +9,7 @@ import { AvalancheLogic } from "./block-explorer-api/avalanche.logic";
 import { BlockscoutLogic } from "./block-explorer-api/blockscout.logic";
 import { EtherscanLogic } from "./block-explorer-api/etherscan.logic";
 import { CoingeckoConfigLogic } from "./coingecko-config";
+import { getSmartContractMappingValue } from "./data/smart-contract-mapping";
 import { BlockExplorerType } from "./interfaces/evm-chain.interfaces";
 import {
   EvmSmartContractInfo,
@@ -129,12 +130,19 @@ const getSmartContractInfo = async (
     smartContracts.push(nativeToken);
   }
 
-  console.log(nativeToken);
-
-  return await CoingeckoConfigLogic.addCoingeckoIdToTokenInfo(
-    chain,
-    smartContracts.filter((info) => !!info.type)
-  );
+  const smartContractsWithCGInfo =
+    await CoingeckoConfigLogic.addCoingeckoIdToTokenInfo(
+      chain,
+      smartContracts.filter((info) => !!info.type)
+    );
+  for (const smartContract of smartContractsWithCGInfo) {
+    if (smartContract.type !== EVMSmartContractType.NATIVE) {
+      smartContract.name =
+        getSmartContractMappingValue(smartContract.contractAddress!, chain) ??
+        smartContract.name;
+    }
+  }
+  return smartContractsWithCGInfo;
 };
 
 const getFromCoingecko = async (
