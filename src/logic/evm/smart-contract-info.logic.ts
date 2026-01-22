@@ -89,7 +89,6 @@ const getSmartContractInfo = async (
       smartContractsAddressesToFetch.push(smartContractAddress);
     }
   }
-  console.log({ smartContractsAddressesToFetch });
 
   const newSmartContractsFromMoralis = await getFromMoralis(
     chain,
@@ -106,29 +105,16 @@ const getSmartContractInfo = async (
 
   let newNativeTokens = newNativeToken ? [newNativeToken] : [];
 
-  saveNewSmartContractsList([
+  const smartContracts = [
     ...newNativeTokens,
     ...savedSmartContractList,
     ...newSmartContractsFromMoralis,
-  ]);
-
-  // console.log({
-  //   savedTokens: [
-  //     ...newNativeTokens,
-  //     ...savedSmartContractList,
-  //     ...newSmartContractsFromMoralis,
-  //   ],
-  // });
-
-  const smartContracts = [
-    ...existingSmartContractsFromList,
-    ...newSmartContractsFromMoralis,
   ];
 
-  const nativeToken = newNativeToken || savedNativeToken;
-  if (nativeToken) {
-    smartContracts.push(nativeToken);
-  }
+  // const nativeToken = newNativeToken || savedNativeToken;
+  // if (nativeToken) {
+  //   smartContracts.push(nativeToken);
+  // }
 
   const smartContractsWithCGInfo =
     await CoingeckoConfigLogic.addCoingeckoIdToTokenInfo(
@@ -142,6 +128,9 @@ const getSmartContractInfo = async (
         smartContract.name;
     }
   }
+
+  saveNewSmartContractsList(smartContracts);
+
   return smartContractsWithCGInfo;
 };
 
@@ -152,7 +141,9 @@ const getFromCoingecko = async (
   try {
     const coingeckoConfig = await CoingeckoConfigLogic.getCoingeckoConfigFile();
 
-    const chain = coingeckoConfig.platforms.find((e) => e.chain_id === chainId);
+    const chain = coingeckoConfig.platforms.find(
+      (e) => Number(e.chain_id) === Number(chainId)
+    );
 
     const nativeTokenId = chain?.native_coin_id;
 
@@ -343,7 +334,7 @@ const getNftsFromMoralis = async (
 
     return (await Promise.all(
       result.map(async (moralisNftMetadata) => {
-        console.log({ moralisNftMetadata });
+        // console.log({ moralisNftMetadata });
 
         if (!moralisNftMetadata) return null;
 

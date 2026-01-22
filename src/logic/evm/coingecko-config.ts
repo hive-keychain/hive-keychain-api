@@ -66,7 +66,9 @@ const addCoingeckoIdToTokenInfo = async (
 ) => {
   try {
     const coingeckoConfig = await getCoingeckoConfigFile();
-    const chain = coingeckoConfig.platforms.find((e) => e.chain_id === chainId);
+    const chain = coingeckoConfig.platforms.find(
+      (e) => Number(e.chain_identifier) === Number(chainId)
+    );
     if (!chain) return tokens;
     return tokens.map((token) => {
       if (token.type === EVMSmartContractType.NATIVE) return token;
@@ -109,7 +111,7 @@ const saveCoingeckoConfigFile = async (newList: CoingeckoConfig) => {
 
 const getCoingeckoId = async (chainId: string) => {
   const platform = (await getCoingeckoConfigFile()).platforms.find(
-    (p) => p.chain_id === chainId
+    (p) => Number(p.chain_identifier) === Number(chainId)
   );
   return platform ? platform.native_coin_id : "";
 };

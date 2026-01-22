@@ -15,7 +15,6 @@ const get = async (
         headers: { "Content-Type": "application/json", ...options.headers },
       })
         .then((res) => {
-          console.log(res);
           if (res && res.status === 200) {
             return res.json();
           }

@@ -93,4 +93,10 @@ export const Config = {
       refId: "87338fbedd5a",
     } as SwapCryptosConfig,
   },
+  coingecko: {
+    prices: {
+      cooldownBetweenRefresh: 60000,
+      maxTokensToFetch: 500,
+    }
+  }
 };
