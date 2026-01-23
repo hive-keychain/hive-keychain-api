@@ -17,7 +17,6 @@ export const getSmartContractMappingValue = (
   contractAddress: string,
   chainId: string
 ) => {
-  console.log("getting", contractAddress, chainId);
   if (chainId) {
     if (
       smartContractMapping[chainId.toLowerCase()] &&

@@ -15,10 +15,10 @@ import { BadActorsApi } from "./api/hive/bad-actors.api";
 import { DelegationApi } from "./api/hive/delegation.api";
 import { HistoricalDataApi } from "./api/hive/historical-data.api";
 import { InvoiceRedirectApi } from "./api/hive/invoice-redirect.api";
-import { PriceApi } from "./api/hive/price.api";
 import { RpcApi } from "./api/hive/rpc.api";
 import { WitnessApi } from "./api/hive/witness.api";
 import { SettingsApi } from "./api/mobile-settings.api";
+import { PriceApi } from "./api/price.api";
 import { SwapCryptosApi } from "./api/swap-cryptos.api";
 import { VersionLogApi } from "./api/version-log.api";
 import { Config } from "./config";
@@ -28,8 +28,8 @@ import { SmartContractsInfoLogic } from "./logic/evm/smart-contract-info.logic";
 import { MetamaskPhishingLogic } from "./logic/evm/verify-transaction/phishing-list/metamask-phishing.logic";
 import { ScamSnifferLogic } from "./logic/evm/verify-transaction/scamsniffer.logic";
 import { HistoricalDataLogic } from "./logic/hive/historical-data.logic";
-import { PriceLogic } from "./logic/hive/price.logic";
 import { TokensBackgroundColorsLogic } from "./logic/hive/token-background-color";
+import { PriceLogic } from "./logic/price.logic";
 
 var cors = require("cors");
 

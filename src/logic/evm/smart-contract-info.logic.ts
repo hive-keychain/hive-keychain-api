@@ -131,7 +131,17 @@ const getSmartContractInfo = async (
 
   saveNewSmartContractsList(smartContracts);
 
-  return smartContractsWithCGInfo;
+  return smartContractsWithCGInfo.filter((e) => {
+    if(e.chainId === chain){
+      if(e.type === EVMSmartContractType.NATIVE){
+        return true;
+      }
+      else if(smartContractAddresses.map((address) => address.address).includes(e.contractAddress) ){
+        return true;
+      }
+    }
+    return false;
+  });
 };
 
 const getFromCoingecko = async (

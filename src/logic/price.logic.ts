@@ -2,18 +2,35 @@ import { sleep } from "@hiveio/dhive/lib/utils";
 import fs from "fs";
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import path from "path";
-import { Config } from "../../config";
-import { EvmSmartContractInfo } from "../evm/interfaces/evm-smart-contracts.interface";
-import { SmartContractsInfoLogic } from "../evm/smart-contract-info.logic";
+import { Config } from "../config";
+import { EvmSmartContractInfo } from "./evm/interfaces/evm-smart-contracts.interface";
+import { SmartContractsInfoLogic } from "./evm/smart-contract-info.logic";
 
 let prices;
+
+const getHivePrices = () => {
+  return {
+    hive: prices.hive,
+    hive_dollar: prices.hive_dollar,
+    bitcoin: prices.bitcoin,
+  };
+};
+
+const getEVMPrices = (coingeckoIds: string[]) => {
+  const result = {}
+  for(const id of coingeckoIds){
+    result[id] = prices[id];
+  }
+  return result;
+}
+
 
 const initFetchPrices = () => {
   Logger.technical("Intializing fetch prices...");
   try {
     prices = JSON.parse(
       fs.readFileSync(
-        path.join(__dirname, `../../../json/coingecko-prices.json`),
+        path.join(__dirname, `../../json/coingecko-prices.json`),
         "utf-8"
       )
     );
@@ -22,11 +39,6 @@ const initFetchPrices = () => {
   }
   refreshPrices();
 };
-
-const getPrices = async () => {
-  return prices;
-};
-
 
 const fetchPrices = async (ids: string) => {
   console.log("fetching prices", ids);
@@ -84,7 +96,7 @@ const refreshPrices = async () => {
     if(newPrices) {
       prices = {...prices, ...newPrices as  any};
       fs.writeFileSync(
-        path.join(__dirname, `../../../json/coingecko-prices.json`),
+        path.join(__dirname, `../../json/coingecko-prices.json`),
         JSON.stringify(prices)
       );
     }
@@ -106,7 +118,8 @@ const refreshPrices = async () => {
 };
 
 export const PriceLogic = {
-  getPrices,
+  getHivePrices,
+  getEVMPrices,
   fetchPrices,
   initFetchPrices,
 };
