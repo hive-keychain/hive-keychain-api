@@ -8,6 +8,7 @@ import { ChainsApi } from "./api/chains.api";
 import { EcosystemApi } from "./api/ecosystem.api";
 import { GasPriceEstimateApi } from "./api/evm/gas-price-estimate.api";
 import { KeychainPhishingApi } from "./api/evm/keychain-phishing.api";
+import { LifiApi } from "./api/evm/lifi.api";
 import { SmartContractsApi } from "./api/evm/smart-contracts-info.api";
 import { VerifyTransactionApi } from "./api/evm/verify-transaction.api";
 import { TokensBackgroundColorsApi } from "./api/hive/background-color.api";
@@ -24,6 +25,7 @@ import { VersionLogApi } from "./api/version-log.api";
 import { Config } from "./config";
 import { ChainLogic } from "./logic/chain.logic";
 import { CoingeckoConfigLogic } from "./logic/evm/coingecko-config";
+import { LifiLogic } from "./logic/evm/lifi.logic";
 import { SmartContractsInfoLogic } from "./logic/evm/smart-contract-info.logic";
 import { MetamaskPhishingLogic } from "./logic/evm/verify-transaction/phishing-list/metamask-phishing.logic";
 import { ScamSnifferLogic } from "./logic/evm/verify-transaction/scamsniffer.logic";
@@ -48,6 +50,7 @@ const initServerRoutine = () => {
   MetamaskPhishingLogic.initFetchMetamaskBlacklist();
   SmartContractsInfoLogic.initMoralisIfNeeded();
   ChainLogic.initChainList();
+  LifiLogic.initializeLifi();
   startServer(app);
 
   // EvmPhishingLogic.verifyDomain("toto.com");
@@ -81,6 +84,7 @@ const setupRoutes = (app: express.Express) => {
   KeychainPhishingApi.setupApis(app);
   SwapCryptosApi.setupApis(app);
   ChainsApi.setupApis(app);
+  LifiApi.setupApis(app);
 };
 
 const startServer = (app: express.Express) => {
