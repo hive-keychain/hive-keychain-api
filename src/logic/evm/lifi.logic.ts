@@ -12,9 +12,17 @@ import {
 } from "@lifi/sdk";
 import {
   GetStatusRequest,
+  StatusMessage,
   StatusResponse,
+  Substatus,
   TransactionAnalyticsRequest,
 } from "@lifi/types";
+import {
+  LifiHistoryItem,
+  LifiHistoryResponse,
+  LifiHistoryStatus,
+  LifiHistoryTransferSide,
+} from "hive-keychain-commons";
 
 type GetStatusRequestExtended = GetStatusRequest & { fromAddress?: string };
 
@@ -151,25 +159,61 @@ const verifyTransferStatus = async (transfer: StatusResponse) => {
   }
 };
 
+const normalizeStatus = (status?: StatusMessage): LifiHistoryStatus => {
+  if (!status || status === "NOT_FOUND") {
+    return "PENDING";
+  }
+  return status;
+};
+
+const pickSide = (side: any): LifiHistoryTransferSide | undefined => {
+  if (!side) {
+    return undefined;
+  }
+  return {
+    token: side.token,
+    chainId: side.chainId,
+    amountUSD: side.amountUSD,
+    amount: side.amount,
+    timestamp: side.timestamp,
+  };
+};
+
+const mapHistoryItem = (
+  transfer: StatusResponse,
+  verifiedStatus?: StatusMessage,
+  verifiedSubstatus?: Substatus,
+): LifiHistoryItem => {
+  const fullTransfer = transfer as any;
+  return {
+    transactionId: fullTransfer.transactionId,
+    lifiExplorerLink: fullTransfer.lifiExplorerLink,
+    status: normalizeStatus(verifiedStatus ?? transfer.status),
+    substatus: verifiedSubstatus ?? transfer.substatus,
+    receiving: pickSide(fullTransfer.receiving),
+    sending: pickSide(fullTransfer.sending),
+  };
+};
+
 const getHistory = async (params: TransactionAnalyticsRequest) => {
   try {
     const history = await LifiGetTransactionHistory(params);
-    console.log(params);
-    console.log(history);
-    const transfersWithVerification = await Promise.all(
-      history.transfers.map(async (transfer) => ({
-        ...transfer,
-        verification: await verifyTransferStatus(transfer),
-      })),
+    const transfers = await Promise.all(
+      history.transfers.map(async (transfer) => {
+        const verification = await verifyTransferStatus(transfer);
+        return mapHistoryItem(
+          transfer,
+          verification.status,
+          verification.substatus,
+        );
+      }),
     );
+
+    const result: LifiHistoryResponse = { transfers };
 
     return {
       status: 200,
-      result: {
-        wallet: params.wallet,
-        transfers: transfersWithVerification,
-        total: transfersWithVerification.length,
-      },
+      result,
     };
   } catch (error: any) {
     console.log("[LIFI] History error:", error);
