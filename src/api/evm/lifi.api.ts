@@ -15,7 +15,9 @@ const setupApis = (app: Express) => {
       toToken: req.body.toToken,
       toAddress: req.body.toAddress,
     } as QuoteRequestFromAmount);
-    res.status(result.status).send(result.result ?? result.error);
+    res
+      .status(result.status)
+      .send(result.result ?? { errorCode: result.errorCode });
   });
 
   app.get("/evm/lifi/tokens/:chainId", async (req, res) => {
