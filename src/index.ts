@@ -9,6 +9,7 @@ import { EcosystemApi } from "./api/ecosystem.api";
 import { GasPriceEstimateApi } from "./api/evm/gas-price-estimate.api";
 import { KeychainPhishingApi } from "./api/evm/keychain-phishing.api";
 import { LifiApi } from "./api/evm/lifi.api";
+import { LightNodeApi } from "./api/evm/light-node.api";
 import { SmartContractsApi } from "./api/evm/smart-contracts-info.api";
 import { VerifyTransactionApi } from "./api/evm/verify-transaction.api";
 import { TokensBackgroundColorsApi } from "./api/hive/background-color.api";
@@ -85,6 +86,7 @@ const setupRoutes = (app: express.Express) => {
   SwapCryptosApi.setupApis(app);
   ChainsApi.setupApis(app);
   LifiApi.setupApis(app);
+  LightNodeApi.setupApis(app);
 };
 
 const startServer = (app: express.Express) => {
