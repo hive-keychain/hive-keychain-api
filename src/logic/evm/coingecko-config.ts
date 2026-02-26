@@ -18,6 +18,11 @@ export interface CoingeckoPlatform {
   name: string;
   shortname: string;
   native_coin_id: string;
+  image: {
+    thumb: string;
+    small: string;
+    large: string;
+  };
 }
 
 export interface CoingeckoToken {
@@ -62,18 +67,18 @@ const fetchCoingeckoFullConfig = async () => {
 
 const addCoingeckoIdToTokenInfo = async (
   chainId: string,
-  tokens: EvmSmartContractInfo[]
+  tokens: EvmSmartContractInfo[],
 ) => {
   try {
     const coingeckoConfig = await getCoingeckoConfigFile();
     const chain = coingeckoConfig.platforms.find(
-      (e) => Number(e.chain_identifier) === Number(chainId)
+      (e) => Number(e.chain_identifier) === Number(chainId),
     );
     if (!chain) return tokens;
     return tokens.map((token) => {
       if (token.type === EVMSmartContractType.NATIVE) return token;
       const tokenInfo = coingeckoConfig.tokens.find(
-        (e) => e.platforms[chain.id] === token.contractAddress
+        (e) => e.platforms[chain.id] === token.contractAddress,
       );
       if (tokenInfo) token.coingeckoId = tokenInfo.id;
       return token;
@@ -89,7 +94,7 @@ const getCoingeckoConfigFile = async (): Promise<CoingeckoConfig> => {
     return JSON.parse(
       await fs
         .readFileSync(__dirname + `/../../../json/coingeckoConfig.json`)
-        .toString()
+        .toString(),
     );
   } catch (e) {
     return { platforms: [], tokens: [] };
@@ -102,7 +107,7 @@ const saveCoingeckoConfigFile = async (newList: CoingeckoConfig) => {
       __dirname + `/../../../json/coingeckoConfig.json`,
       JSON.stringify(newList),
       "utf8",
-      () => Logger.info(`Updated coingecko config file`)
+      () => Logger.info(`Updated coingecko config file`),
     );
   } catch (e) {
     Logger.info("Failed to update coingecko config file");
@@ -111,7 +116,7 @@ const saveCoingeckoConfigFile = async (newList: CoingeckoConfig) => {
 
 const getCoingeckoId = async (chainId: string) => {
   const platform = (await getCoingeckoConfigFile()).platforms.find(
-    (p) => Number(p.chain_identifier) === Number(chainId)
+    (p) => Number(p.chain_identifier) === Number(chainId),
   );
   return platform ? platform.native_coin_id : "";
 };

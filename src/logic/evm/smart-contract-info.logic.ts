@@ -8,7 +8,7 @@ import { TokensBackgroundColorsLogic } from "../hive/token-background-color";
 import { AvalancheLogic } from "./block-explorer-api/avalanche.logic";
 import { BlockscoutLogic } from "./block-explorer-api/blockscout.logic";
 import { EtherscanLogic } from "./block-explorer-api/etherscan.logic";
-import { CoingeckoConfigLogic } from "./coingecko-config";
+import { CoingeckoConfigLogic, CoingeckoPlatform } from "./coingecko-config";
 import { getSmartContractMappingValue } from "./data/smart-contract-mapping";
 import { BlockExplorerType } from "./interfaces/evm-chain.interfaces";
 import {
@@ -101,7 +101,7 @@ const getSmartContractInfo = async (
   );
   const newNativeToken = savedNativeToken
     ? null
-    : await getFromCoingecko(chain);
+    : await getNativeTokenFromCoingecko(chain);
 
   let newNativeTokens = newNativeToken ? [newNativeToken] : [];
 
@@ -147,18 +147,20 @@ const getSmartContractInfo = async (
   });
 };
 
-const getFromCoingecko = async (
+const getNativeTokenFromCoingecko = async (
   chainId: string,
 ): Promise<EvmSmartContractInfoNative | null> => {
   console.log("getting from coingecko");
+  let coingeckoPlatform: CoingeckoPlatform | undefined;
   try {
     const coingeckoConfig = await CoingeckoConfigLogic.getCoingeckoConfigFile();
 
-    const chain = coingeckoConfig.platforms.find(
+    console.log("chainId", chainId);
+    coingeckoPlatform = coingeckoConfig.platforms.find(
       (e) => Number(e.chain_id) === Number(chainId),
     );
-
-    const nativeTokenId = chain?.native_coin_id;
+    console.log("chain", coingeckoPlatform);
+    const nativeTokenId = coingeckoPlatform?.native_coin_id;
 
     if (nativeTokenId) {
       const nativeToken =
@@ -181,6 +183,25 @@ const getFromCoingecko = async (
     }
   } catch (err) {
     console.log(err);
+    const chainInfo = (await ChainLogic.getEvmChains()).find(
+      (c) => c.chainId === chainId,
+    );
+    if (coingeckoPlatform) {
+      return {
+        type: EVMSmartContractType.NATIVE,
+        createdAt: "",
+        categories: [],
+        name: coingeckoPlatform.name,
+        logo: coingeckoPlatform.image.large,
+        backgroundColor:
+          await TokensBackgroundColorsLogic.getBackgroundColorFromImage(
+            coingeckoPlatform.image.large,
+          ),
+        symbol: chainInfo?.mainToken,
+        coingeckoId: coingeckoPlatform.native_coin_id,
+        chainId: chainId,
+      };
+    }
   }
   return null;
 };
@@ -473,4 +494,5 @@ export const SmartContractsInfoLogic = {
   getCurrentSmartContractList,
   saveNewSmartContractsList,
   initMoralisIfNeeded,
+  getNativeTokenFromCoingecko,
 };

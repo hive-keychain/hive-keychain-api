@@ -32,7 +32,6 @@ import { MetamaskPhishingLogic } from "./logic/evm/verify-transaction/phishing-l
 import { ScamSnifferLogic } from "./logic/evm/verify-transaction/scamsniffer.logic";
 import { HistoricalDataLogic } from "./logic/hive/historical-data.logic";
 import { TokensBackgroundColorsLogic } from "./logic/hive/token-background-color";
-import { PriceLogic } from "./logic/price.logic";
 
 var cors = require("cors");
 
@@ -43,7 +42,7 @@ const initServerRoutine = () => {
   Logger.initLogger(Config.logger, process.env.NODE_ENV || "development");
   setupRoutes(app);
 
-  setTimeout(() => PriceLogic.initFetchPrices(), 2 * 1000);
+  // setTimeout(() => PriceLogic.initFetchPrices(), 2 * 1000); // TODO remove routine since we are using light node for prices
   HistoricalDataLogic.init();
   TokensBackgroundColorsLogic.initFetchColorMap();
   CoingeckoConfigLogic.initFetchCoingeckoConfig();
@@ -96,18 +95,18 @@ const startServer = (app: express.Express) => {
         {
           key: fs.readFileSync(
             "/etc/letsencrypt/live/api.hive-keychain.com/privkey.pem",
-            "utf8"
+            "utf8",
           ),
           cert: fs.readFileSync(
             "/etc/letsencrypt/live/api.hive-keychain.com/cert.pem",
-            "utf8"
+            "utf8",
           ),
           ca: fs.readFileSync(
             "/etc/letsencrypt/live/api.hive-keychain.com/chain.pem",
-            "utf8"
+            "utf8",
           ),
         },
-        app
+        app,
       )
       .listen(PORT, () => {
         console.log(`Server running on port ${PORT}`);
