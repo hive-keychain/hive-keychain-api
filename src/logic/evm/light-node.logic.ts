@@ -1,10 +1,10 @@
 import { BaseApi } from "../../utils/base";
+import { getSmartContractMappingValue } from "./data/smart-contract-mapping";
 import {
   EvmErc1155Token,
   EvmErc721Token,
   EvmNFTMetadata,
 } from "./interfaces/evm-nft.interface";
-import { getSmartContractMappingValue } from "./data/smart-contract-mapping";
 import { EVMSmartContractType } from "./interfaces/evm-smart-contracts.interface";
 import { SmartContractsInfoLogic } from "./smart-contract-info.logic";
 
@@ -181,7 +181,7 @@ const getContract = async <T = any>(
 };
 
 const getGasFee = async <T = any>(chainId: string): Promise<T> => {
-  return BaseApi.get(buildUrl(`/gas-fee/${encodeURIComponent(chainId)}`));
+  return BaseApi.get(buildUrl(`/gas-oracle/${encodeURIComponent(chainId)}`));
 };
 
 const getPrice = async <T = any>(
