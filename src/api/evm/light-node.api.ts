@@ -37,9 +37,22 @@ const setupGetNftDetailApi = (app: Express) => {
 
 const setupGetHistoryApi = (app: Express) => {
   app.get("/evm/light-node/history/:chainId/:address", async (req, res) => {
+    const cursor =
+      typeof req.query.cursor === "string" ? req.query.cursor : undefined;
+    const parsedLimit =
+      typeof req.query.limit === "string"
+        ? Number.parseInt(req.query.limit, 10)
+        : undefined;
+    const limit =
+      typeof parsedLimit === "number" && !Number.isNaN(parsedLimit)
+        ? parsedLimit
+        : undefined;
+
     const history = await EvmLightNodeLogic.getHistory(
       req.params.chainId,
-      req.params.address
+      req.params.address,
+      cursor,
+      limit
     );
     res.status(200).send(history);
   });

@@ -10,7 +10,6 @@ import { GasPriceEstimateApi } from "./api/evm/gas-price-estimate.api";
 import { KeychainPhishingApi } from "./api/evm/keychain-phishing.api";
 import { LifiApi } from "./api/evm/lifi.api";
 import { LightNodeApi } from "./api/evm/light-node.api";
-import { SmartContractsApi } from "./api/evm/smart-contracts-info.api";
 import { VerifyTransactionApi } from "./api/evm/verify-transaction.api";
 import { TokensBackgroundColorsApi } from "./api/hive/background-color.api";
 import { BadActorsApi } from "./api/hive/bad-actors.api";
@@ -76,7 +75,7 @@ const setupRoutes = (app: express.Express) => {
   WitnessApi.setupApis(app);
   TokensBackgroundColorsApi.setupApis(app);
   EcosystemApi.setupApis(app);
-  SmartContractsApi.setupApis(app);
+  // SmartContractsApi.setupApis(app);
   GasPriceEstimateApi.setupApis(app);
   VerifyTransactionApi.setupApis(app);
   SettingsApi.setupApis(app);

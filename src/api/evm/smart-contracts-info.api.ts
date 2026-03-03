@@ -18,7 +18,7 @@ const setupGetSmartContractsInfo = (app: Express) => {
       : [];
     const tokensInfo = await SmartContractsInfoLogic.getSmartContractInfo(
       req.params.chainId,
-      addresses
+      addresses,
     );
     res.status(200).send(tokensInfo);
   });
@@ -63,11 +63,11 @@ const setupGetTokensPerChain = (app: Express) => {
       }
       const tokens = await BscTokensLogic.getBscErc20(
         req.params.walletAddress,
-        req.params.chainId
+        req.params.chainId,
       );
       console.log({ tokens });
       res.status(200).send(tokens);
-    }
+    },
   );
   app.get(
     "/evm/:chainId/wallet/:walletAddress/discover-tokens-nfts",
@@ -78,11 +78,11 @@ const setupGetTokensPerChain = (app: Express) => {
       }
       const tokens = await BscTokensLogic.getBscNfts(
         req.params.walletAddress,
-        req.params.chainId
+        req.params.chainId,
       );
       // console.log({ tokens });
       res.status(200).send(tokens);
-    }
+    },
   );
 };
 
@@ -94,7 +94,7 @@ const setupGetOpenSeaNftMetadata = (app: Express) => {
         (c: EvmChain) =>
           c.type === ChainType.EVM &&
           !!c.openSeaChainId &&
-          c.openSeaChainId === req.params.openSeaChainId
+          c.openSeaChainId === req.params.openSeaChainId,
       ) as EvmChain;
 
       if (!chain) {
@@ -105,10 +105,10 @@ const setupGetOpenSeaNftMetadata = (app: Express) => {
       const metadata = await NftLogic.getOpenSeaMetadata(
         req.params.contractAddress,
         chain,
-        req.params.tokenId
+        req.params.tokenId,
       );
       res.status(200).send(metadata);
-    }
+    },
   );
 };
 
@@ -121,4 +121,4 @@ const setupApis = (app: Express) => {
   setupGetOpenSeaNftMetadata(app);
 };
 
-export const SmartContractsApi = { setupApis };
+// export const SmartContractsApi = { setupApis };

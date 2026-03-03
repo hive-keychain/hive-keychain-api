@@ -148,10 +148,22 @@ const getNftDetail = async <T = any>(
 const getHistory = async <T = any>(
   chainId: string,
   address: string,
+  cursor?: string,
+  limit?: number,
 ): Promise<T> => {
+  const query = new URLSearchParams();
+  if (typeof cursor === "string" && cursor.length > 0) {
+    query.set("cursor", cursor);
+  }
+  if (typeof limit === "number") {
+    query.set("limit", String(limit));
+  }
+
   return BaseApi.get(
     buildUrl(
-      `/history/${encodeURIComponent(chainId)}/${encodeURIComponent(address)}`,
+      `/history/${encodeURIComponent(chainId)}/${encodeURIComponent(address)}${
+        query.toString() ? `?${query.toString()}` : ""
+      }`,
     ),
   );
 };
