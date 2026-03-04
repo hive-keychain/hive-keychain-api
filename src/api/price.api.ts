@@ -1,4 +1,5 @@
 import { Express } from "express";
+import { EvmLightNodeLogic } from "../logic/evm/light-node.logic";
 import { PriceLogic } from "../logic/price.logic";
 
 const setupGetHivePriceApi = (app: Express) => {
@@ -6,16 +7,23 @@ const setupGetHivePriceApi = (app: Express) => {
     res.status(200).send(PriceLogic.getHivePrices());
   });
 };
-const setupGetEVMPriceApi = (app: Express) => {
-  app.post("/evm/v2/price", async (req, res) => {
-    console.log(req.body)
-    res.status(200).send(PriceLogic.getEVMPrices(req.body.coingeckoIds.filter((id:string) => id)));
+
+const setupGetEvmPriceApi = (app: Express) => {
+  app.get("/evm/light-node/price/:chainId/:tokenAddress?", async (req, res) => {
+    res
+      .status(200)
+      .send(
+        await EvmLightNodeLogic.getPrice(
+          req.params.chainId,
+          req.params.tokenAddress,
+        ),
+      );
   });
 };
 
 const setupApis = (app: Express) => {
   setupGetHivePriceApi(app);
-  setupGetEVMPriceApi(app);
+  setupGetEvmPriceApi(app);
 };
 
 export const PriceApi = {

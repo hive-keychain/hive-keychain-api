@@ -200,11 +200,23 @@ const getPrice = async <T = any>(
   chainId: string,
   tokenAddress: string,
 ): Promise<T> => {
-  return BaseApi.get(
-    buildUrl(
-      `/price/${encodeURIComponent(chainId)}/${encodeURIComponent(tokenAddress)}`,
-    ),
-  );
+  if (tokenAddress && tokenAddress.length > 0) {
+    return BaseApi.get(
+      buildUrl(
+        `/price/${encodeURIComponent(chainId)}/${encodeURIComponent(tokenAddress)}`,
+      ),
+    );
+  } else {
+    // TODO remove when light node is updated
+    return new Promise((resolve) => {
+      resolve({
+        priceUsd: 1977,
+        lastFetched: new Date().toISOString(),
+        tokenAddress: "",
+        chainId: "1",
+      } as T);
+    });
+  }
 };
 
 export const EvmLightNodeLogic = {

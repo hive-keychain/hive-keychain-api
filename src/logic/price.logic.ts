@@ -3,8 +3,6 @@ import fs from "fs";
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import path from "path";
 import { Config } from "../config";
-import { EvmSmartContractInfo } from "./evm/interfaces/evm-smart-contracts.interface";
-import { SmartContractsInfoLogic } from "./evm/smart-contract-info.logic";
 
 let prices;
 
@@ -16,14 +14,13 @@ const getHivePrices = () => {
   };
 };
 
-const getEVMPrices = (coingeckoIds: string[]) => {
-  const result = {}
-  for(const id of coingeckoIds){
-    result[id] = prices[id];
-  }
-  return result;
-}
-
+// const getEVMPrices = (coingeckoIds: string[]) => {
+//   const result = {}
+//   for(const id of coingeckoIds){
+//     result[id] = prices[id];
+//   }
+//   return result;
+// }
 
 const initFetchPrices = () => {
   Logger.technical("Intializing fetch prices...");
@@ -31,8 +28,8 @@ const initFetchPrices = () => {
     prices = JSON.parse(
       fs.readFileSync(
         path.join(__dirname, `../../json/coingecko-prices.json`),
-        "utf-8"
-      )
+        "utf-8",
+      ),
     );
   } catch (err) {
     console.log(err);
@@ -49,16 +46,16 @@ const fetchPrices = async (ids: string) => {
       headers: {
         "Content-Type": "application/json",
       },
-    }
+    },
   )
     .then((res) => {
       return res.json();
     })
     .then((body: any) => {
-      if(body.status?.error_code){
+      if (body.status?.error_code) {
         throw new Error(body.status.error_message);
       }
-      for(const key in body){
+      for (const key in body) {
         body[key].lastUpdateTimestamp = Date.now();
         body[key].lastUpdated = new Date().toISOString();
       }
@@ -68,12 +65,12 @@ const fetchPrices = async (ids: string) => {
       console.log("fetch coingecko error here", err.message);
       return null;
     });
-    if(newPrices) return newPrices;
-    else {
-      await sleep(2000);
-      return fetchPrices(ids);
-    }
-}
+  if (newPrices) return newPrices;
+  else {
+    await sleep(2000);
+    return fetchPrices(ids);
+  }
+};
 
 const refreshPrices = async () => {
   const start = Date.now();
@@ -81,45 +78,31 @@ const refreshPrices = async () => {
 
   let ids = "hive,hive_dollar,bitcoin";
 
-  const savedSmartContracts =
-    (await SmartContractsInfoLogic.getCurrentSmartContractList()).filter((e:EvmSmartContractInfo) => e.coingeckoId);
-
-  let i = 0;
-  let max = Math.min(Config.coingecko.prices.maxTokensToFetch, savedSmartContracts.length);;
-  do {
-    console.log(`Fetching prices from ${i} to ${max} `);
-    for (i; i < max; i++) {
-      ids += `,${savedSmartContracts[i].coingeckoId}`;
-    }
-
-    const newPrices = await fetchPrices(ids);
-    if(newPrices) {
-      prices = {...prices, ...newPrices as  any};
-      fs.writeFileSync(
-        path.join(__dirname, `../../json/coingecko-prices.json`),
-        JSON.stringify(prices)
-      );
-    }
-
-    ids = "";
-    max = Math.min(max + Config.coingecko.prices.maxTokensToFetch, savedSmartContracts.length);
-  } while (i < savedSmartContracts.length);
+  const newPrices = await fetchPrices(ids);
+  if (newPrices) {
+    prices = { ...prices, ...(newPrices as any) };
+    fs.writeFileSync(
+      path.join(__dirname, `../../json/coingecko-prices.json`),
+      JSON.stringify(prices),
+    );
+  }
 
   const end = Date.now();
   console.log(`Fetching prices took ${(end - start) / 1000}s`);
 
-  const waitingTime = Math.max(0, Config.coingecko.prices.cooldownBetweenRefresh-((end - start)));
+  const waitingTime = Math.max(
+    0,
+    Config.coingecko.prices.cooldownBetweenRefresh - (end - start),
+  );
 
-  console.log(`Waiting for ${(waitingTime) / 1000}s before starting again`);
+  console.log(`Waiting for ${waitingTime / 1000}s before starting again`);
   await sleep(waitingTime);
 
   refreshPrices();
-
 };
 
 export const PriceLogic = {
   getHivePrices,
-  getEVMPrices,
   fetchPrices,
   initFetchPrices,
 };

@@ -31,6 +31,7 @@ import { MetamaskPhishingLogic } from "./logic/evm/verify-transaction/phishing-l
 import { ScamSnifferLogic } from "./logic/evm/verify-transaction/scamsniffer.logic";
 import { HistoricalDataLogic } from "./logic/hive/historical-data.logic";
 import { TokensBackgroundColorsLogic } from "./logic/hive/token-background-color";
+import { PriceLogic } from "./logic/price.logic";
 
 var cors = require("cors");
 
@@ -41,7 +42,7 @@ const initServerRoutine = () => {
   Logger.initLogger(Config.logger, process.env.NODE_ENV || "development");
   setupRoutes(app);
 
-  // setTimeout(() => PriceLogic.initFetchPrices(), 2 * 1000); // TODO remove routine since we are using light node for prices
+  setTimeout(() => PriceLogic.initFetchPrices(), 2 * 1000);
   HistoricalDataLogic.init();
   TokensBackgroundColorsLogic.initFetchColorMap();
   CoingeckoConfigLogic.initFetchCoingeckoConfig();
@@ -75,7 +76,6 @@ const setupRoutes = (app: express.Express) => {
   WitnessApi.setupApis(app);
   TokensBackgroundColorsApi.setupApis(app);
   EcosystemApi.setupApis(app);
-  // SmartContractsApi.setupApis(app);
   GasPriceEstimateApi.setupApis(app);
   VerifyTransactionApi.setupApis(app);
   SettingsApi.setupApis(app);
