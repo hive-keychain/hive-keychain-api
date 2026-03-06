@@ -144,6 +144,10 @@ const getPrice = async <T = any>(
   }
 };
 
+const getNative = async <T = any>(chainId: string): Promise<T> => {
+  return BaseApi.get(buildUrl(`/native/${encodeURIComponent(chainId)}`));
+};
+
 export const registerAddress = async (
   chainId: string,
   address: string,
@@ -166,5 +170,6 @@ export const EvmLightNodeLogic = {
   getContract,
   getGasFee,
   getPrice,
+  getNative,
   registerAddress,
 };

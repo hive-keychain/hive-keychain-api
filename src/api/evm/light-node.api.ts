@@ -100,6 +100,13 @@ const setupGetPriceApi = (app: Express) => {
   });
 };
 
+const setupGetNativeApi = (app: Express) => {
+  app.get("/evm/light-node/native/:chainId", async (req, res) => {
+    const native = await EvmLightNodeLogic.getNative(req.params.chainId);
+    res.status(200).send(native);
+  });
+};
+
 const setupRegisterAddressApi = (app: Express) => {
   app.get(
     "/evm/light-node/register-address/:chainId/:address/:newAddress?",
@@ -123,6 +130,7 @@ const setupApis = (app: Express) => {
   setupGetContractApi(app);
   setupGetGasFeeApi(app);
   setupGetPriceApi(app);
+  setupGetNativeApi(app);
   setupRegisterAddressApi(app);
 };
 
