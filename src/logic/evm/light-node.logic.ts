@@ -1,12 +1,4 @@
 import { BaseApi } from "../../utils/base";
-import { getSmartContractMappingValue } from "./data/smart-contract-mapping";
-import {
-  EvmErc1155Token,
-  EvmErc721Token,
-  EvmNFTMetadata,
-} from "./interfaces/evm-nft.interface";
-import { EVMSmartContractType } from "./interfaces/evm-smart-contracts.interface";
-import { SmartContractsInfoLogic } from "./smart-contract-info.logic";
 
 const getLightNodeBaseUrl = () => {
   const baseUrl = process.env.EVM_LIGHT_NODE_API_URL;
@@ -44,94 +36,27 @@ interface LightNodeNftCollection {
 const getDiscoveredTokens = async <T = any>(
   chainId: string,
   address: string,
-  isNew?: boolean | string,
-): Promise<T[]> => {
-  const newSegment =
-    typeof isNew === "undefined" ? "" : `/${encodeURIComponent(String(isNew))}`;
-
-  const tokens: any[] = await BaseApi.get(
+): Promise<T> => {
+  return await BaseApi.get(
     buildUrl(
       `/discovery/tokens/${encodeURIComponent(chainId)}/${encodeURIComponent(
         address,
-      )}${newSegment}`,
+      )}`,
     ),
   );
-  const nativeToken =
-    await SmartContractsInfoLogic.getNativeTokenFromCoingecko(chainId);
-  console.log("native token", nativeToken);
-  tokens.unshift(nativeToken);
-
-  return tokens;
 };
 
-const getDiscoveredNfts = async (
+const getDiscoveredNfts = async <T = any>(
   chainId: string,
   address: string,
-): Promise<(EvmErc721Token | EvmErc1155Token)[]> => {
-  const results = (await BaseApi.get(
+): Promise<T> => {
+  return await BaseApi.get(
     buildUrl(
       `/discovery/nfts/${encodeURIComponent(chainId)}/${encodeURIComponent(
         address,
       )}`,
     ),
-  )) as LightNodeNftCollection[];
-  const collections = Array.isArray(results) ? results : [];
-
-  const toMetadata = (item: LightNodeNftItem): EvmNFTMetadata => ({
-    name: item.name ?? "",
-    description: "",
-    image: item.imageUrl ?? "",
-    attributes: [],
-  });
-
-  return collections
-    .filter(
-      (result) =>
-        result.contractType === EVMSmartContractType.ERC721 ||
-        result.contractType === EVMSmartContractType.ERC1155,
-    )
-    .map((result) => {
-      const mappedName = getSmartContractMappingValue(
-        result.contractAddress,
-        chainId,
-      );
-      const baseTokenInfo = {
-        contractAddress: result.contractAddress,
-        possibleSpam: result.possibleSpam === true,
-        verifiedContract: result.verifiedContract === true,
-        name:
-          mappedName ?? result.name ?? result.symbol ?? result.contractAddress,
-        symbol: result.symbol ?? "",
-        chainId,
-        logo: "",
-        backgroundColor: "",
-      };
-
-      if (result.contractType === EVMSmartContractType.ERC1155) {
-        return {
-          tokenInfo: {
-            ...baseTokenInfo,
-            type: EVMSmartContractType.ERC1155,
-          },
-          collection: (result.nfts ?? []).map((item) => ({
-            id: item.tokenId,
-            balance: Number(item.balance) || 0,
-            metadata: toMetadata(item),
-          })),
-        } as EvmErc1155Token;
-      }
-
-      return {
-        tokenInfo: {
-          ...baseTokenInfo,
-          type: EVMSmartContractType.ERC721,
-        },
-        collection: (result.nfts ?? []).map((item) => ({
-          id: item.tokenId,
-          metadata: toMetadata(item),
-        })),
-      } as EvmErc721Token;
-    });
+  );
 };
 
 const getNftDetail = async <T = any>(
@@ -219,6 +144,19 @@ const getPrice = async <T = any>(
   }
 };
 
+export const registerAddress = async (
+  chainId: string,
+  address: string,
+  newAddress?: boolean,
+) => {
+  return BaseApi.post(
+    buildUrl(
+      `/register/${encodeURIComponent(Number(chainId))}/${encodeURIComponent(address)}${newAddress ? "/true" : "/false"}`,
+    ),
+    {},
+  );
+};
+
 export const EvmLightNodeLogic = {
   getDiscoveredTokens,
   getDiscoveredNfts,
@@ -228,4 +166,5 @@ export const EvmLightNodeLogic = {
   getContract,
   getGasFee,
   getPrice,
+  registerAddress,
 };
