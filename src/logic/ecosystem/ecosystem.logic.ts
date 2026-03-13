@@ -5,6 +5,7 @@ import { ArrayUtils } from "../../utils/array.utils";
 
 interface dApp {
   id: number;
+  chainId: string;
   name: string;
   description: string;
   icon: string;
@@ -13,21 +14,31 @@ interface dApp {
   categories: string[];
   active: boolean;
   order: number;
-  hideOniOS: boolean;
+  hideOniOS?: boolean;
 }
 
-const getDappList = (chain: string) => {
+const ECOSYSTEM_DAPPS_PATH = path.join(
+  __dirname,
+  "../../../ecosystem/dapps.json",
+);
+
+const readAllDapps = () => {
+  const jsonString = fs.readFileSync(ECOSYSTEM_DAPPS_PATH, "utf-8");
+  return JSON.parse(jsonString) as dApp[];
+};
+
+const writeAllDapps = (dapps: dApp[]) => {
+  fs.writeFileSync(ECOSYSTEM_DAPPS_PATH, JSON.stringify(dapps, null, 2));
+};
+
+const getDappList = () => {
   try {
-    const jsonString = fs.readFileSync(
-      path.join(__dirname, `../../../json/${chain}-dapps.json`),
-      "utf-8"
-    );
-    const dapps: dApp[] = JSON.parse(jsonString);
+    const dapps = readAllDapps();
     let categories = [];
     for (const item of dapps) {
       categories = ArrayUtils.mergeWithoutDuplicate(
         item.categories,
-        categories
+        categories,
       );
     }
 
@@ -37,7 +48,7 @@ const getDappList = (chain: string) => {
       ecosystem.push({
         category: cat,
         dapps: getOrderedDapps(
-          dapps.filter((dapp) => dapp.categories.includes(cat))
+          dapps.filter((dapp) => dapp.categories.includes(cat)),
         ),
       });
     }
@@ -57,48 +68,27 @@ const getOrderedDapps = (dApps: dApp[]) => {
   ];
 };
 
-const saveNewDapp = (newDapp: any, chain: string) => {
-  const jsonString = fs.readFileSync(
-    path.join(__dirname, `../../../json/${chain}-dapps.json`),
-    "utf-8"
-  );
-  const dapps = JSON.parse(jsonString);
-  const id = Math.max(...dapps.map((d) => d.id));
+const saveNewDapp = (newDapp: any) => {
+  const dapps = readAllDapps();
+  const id = dapps.length ? Math.max(...dapps.map((d) => d.id)) : -1;
   dapps.push({ ...newDapp, id: id + 1 });
-  fs.writeFileSync(
-    path.join(__dirname, `../../../json/${chain}-dapps.json`),
-    JSON.stringify(dapps)
-  );
+  writeAllDapps(dapps);
 };
 
-const editDapp = (dapp: any, chain: string) => {
-  const jsonString = fs.readFileSync(
-    path.join(__dirname, `../../../json/${chain}-dapps.json`),
-    "utf-8"
-  );
-  const dapps = JSON.parse(jsonString).filter((d) => d.id !== dapp.id);
+const editDapp = (dapp: any) => {
+  const dapps = readAllDapps().filter((d) => !(d.id === dapp.id));
   dapps.push(dapp);
   try {
-    fs.writeFileSync(
-      path.join(__dirname, `../../../json/${chain}-dapps.json`),
-      JSON.stringify(dapps)
-    );
+    writeAllDapps(dapps);
   } catch (err) {
     console.log({ err });
   }
 };
 
-const deleteDapp = (dapp: any, chain: string) => {
-  const jsonString = fs.readFileSync(
-    path.join(__dirname, `../../../json/${chain}-dapps.json`),
-    "utf-8"
-  );
-  const dapps = JSON.parse(jsonString).filter((d) => d.id !== dapp.id);
+const deleteDapp = (dapp: any) => {
+  const dapps = readAllDapps().filter((d) => !(d.id === dapp.id));
   try {
-    fs.writeFileSync(
-      path.join(__dirname, `../../../json/${chain}-dapps.json`),
-      JSON.stringify(dapps)
-    );
+    writeAllDapps(dapps);
   } catch (err) {
     console.log(err);
   }

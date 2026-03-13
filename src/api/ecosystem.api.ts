@@ -1,18 +1,14 @@
 import { Express } from "express";
-import { query } from "express-validator";
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import { EcosystemLogic } from "../logic/ecosystem/ecosystem.logic";
 import { Role, accessCheck } from "../middleware/access.middleware";
 
 const setupGetEcosystem = (app: Express) => {
   app.get(
-    "/:chain/ecosystem/dapps",
-    query("chain").isString().not().isEmpty().escape(),
+    "/ecosystem/dapps",
     async (req, res) => {
-      const ecosystemDapps = await EcosystemLogic.getDappList(
-        req.params?.chain
-      );
-      Logger.info(`Get ${req.params?.chain} ecosystem`);
+      const ecosystemDapps = await EcosystemLogic.getDappList();
+      Logger.info("Get ecosystem");
       res.status(200).send(ecosystemDapps);
     }
   );
@@ -20,12 +16,12 @@ const setupGetEcosystem = (app: Express) => {
 
 const setupSaveNewDapp = (app: Express) => {
   app.post(
-    "/:chain/ecosystem/new",
+    "/ecosystem/new",
     accessCheck(Role.TEAM),
     async (req, res) => {
       const newDapp = req.body;
-      await EcosystemLogic.saveNewDapp(newDapp, req.params.chain);
-      Logger.info(`Saving new ${req.params.chain} dapp`);
+      await EcosystemLogic.saveNewDapp(newDapp);
+      Logger.info(`Saving new ${req.body?.chainId} dapp`);
       res.status(200).send({ status: 200 });
     }
   );
@@ -33,12 +29,12 @@ const setupSaveNewDapp = (app: Express) => {
 
 const setupEditDapp = (app: Express) => {
   app.post(
-    "/:chain/ecosystem/edit",
+    "/ecosystem/edit",
     accessCheck(Role.TEAM),
     async (req, res) => {
       const dapp = req.body;
-      await EcosystemLogic.editDapp(dapp, req.params.chain);
-      Logger.info(`Editing ${req.params.chain} dapp`);
+      await EcosystemLogic.editDapp(dapp);
+      Logger.info(`Editing ${req.body?.chainId} dapp`);
       res.status(200).send({ status: 200 });
     }
   );
@@ -46,12 +42,12 @@ const setupEditDapp = (app: Express) => {
 
 const setupDeleteDapp = (app: Express) => {
   app.post(
-    "/:chain/ecosystem/delete",
+    "/ecosystem/delete",
     accessCheck(Role.TEAM),
     async (req, res) => {
       const dapp = req.body;
-      await EcosystemLogic.deleteDapp(dapp, req.params.chain);
-      Logger.info(`Deleting ${req.params.chain} dapp`);
+      await EcosystemLogic.deleteDapp(dapp);
+      Logger.info(`Deleting ${req.body?.chainId} dapp`);
       res.status(200).send({ status: 200 });
     }
   );
