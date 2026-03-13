@@ -31,10 +31,7 @@ const setupApis = (app: Express) => {
   });
 
   app.get("/evm/lifi/history", async (req, res) => {
-    const wallet =
-      (req.query.wallet as string) ||
-      (req.query.address as string) ||
-      (req.query.walletAddress as string);
+    const wallet = req.query.wallet as string;
     if (!wallet) {
       res.status(400).send({
         error: "Missing wallet query parameter",
