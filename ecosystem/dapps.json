@@ -412,5 +412,18 @@
     ],
     "active": true,
     "order": 0
+  },
+  {
+    "chainId": "0xa86a",
+    "id": 29,
+    "categories": [
+      "social"
+    ],
+    "description": "test",
+    "icon": "https://fr-fr.about.canva.com/wp-content/uploads/sites/3/2016/08/logos-1.png",
+    "name": "Toto",
+    "mobileUrl": "https://www.canva.com/fr_fr/creer/logos/",
+    "url": "https://www.canva.com/fr_fr/creer/logos/",
+    "hideOniOS": false
   }
 ]
