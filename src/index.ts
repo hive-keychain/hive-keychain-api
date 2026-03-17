@@ -23,7 +23,6 @@ import { PriceApi } from "./api/price.api";
 import { SwapCryptosApi } from "./api/swap-cryptos.api";
 import { VersionLogApi } from "./api/version-log.api";
 import { Config } from "./config";
-import { ChainLogic } from "./logic/chain.logic";
 import { CoingeckoConfigLogic } from "./logic/evm/coingecko-config";
 import { LifiLogic } from "./logic/evm/lifi.logic";
 import { SmartContractsInfoLogic } from "./logic/evm/smart-contract-info.logic";
@@ -49,7 +48,7 @@ const initServerRoutine = () => {
   ScamSnifferLogic.initFetchScamSniffer();
   MetamaskPhishingLogic.initFetchMetamaskBlacklist();
   SmartContractsInfoLogic.initMoralisIfNeeded();
-  ChainLogic.initChainList();
+  // ChainLogic.initChainList();
   LifiLogic.initializeLifi();
   startServer(app);
 

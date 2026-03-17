@@ -1,4 +1,11 @@
 import { BaseApi } from "../../utils/base";
+import {
+  Chain,
+  ChainType,
+  EvmChain,
+  EvmTransactionType,
+  HiveChain,
+} from "./interfaces/evm-chain.interfaces";
 
 const getLightNodeBaseUrl = () => {
   const baseUrl = process.env.EVM_LIGHT_NODE_API_URL;
@@ -136,6 +143,53 @@ const getNative = async <T = any>(chainId: string): Promise<T> => {
   return BaseApi.get(buildUrl(`/native/${encodeURIComponent(chainId)}`));
 };
 
+const getActiveChains = async (): Promise<Chain[]> => {
+  const response = await BaseApi.get(buildUrl("/chains/active"));
+  const rawChains = Array.isArray(response) ? response : [];
+
+  const hiveChain = {
+    name: "HIVE",
+    type: ChainType.HIVE,
+    logo: "https://files.peakd.com/file/peakd-hive/cedricguillas/AJmv1BzrF6W3vKz8ah9GJVfnHzA9khi4QAn95cZHNsNpEnSWxoRK61yTPpQcRcX.svg",
+    chainId: "beeab0de00000000000000000000000000000000000000000000000000000000",
+    mainTokens: {
+      hbd: "HBD",
+      hive: "HIVE",
+      hp: "HP",
+    },
+    isPopular: true,
+    active: true,
+  } as HiveChain;
+
+  const filteredChains = rawChains.filter(
+    (chain) => String(chain?.chainId) !== hiveChain.chainId,
+  );
+
+  return [
+    hiveChain,
+    ...filteredChains.map((chain) => {
+      return {
+        name: chain.name,
+        chainId: `0x${chain.chainId.toString(16)}`,
+        type: ChainType.EVM,
+        logo: chain.logoUrl,
+        mainToken: chain.nativeSymbol,
+        defaultTransactionType: chain.eip1559
+          ? EvmTransactionType.EIP_1559
+          : EvmTransactionType.LEGACY,
+        blockExplorer: chain.blockExplorer,
+        blockExplorerApi: chain.blockExplorerApi,
+        testnet: chain.testnet,
+        isEth: chain.chainId === 1 || chain.chainId === 11155111,
+        rpcs: chain.rpcs,
+        isPopular: chain.isPopular,
+        openSeaChainId: chain.openSeaChainId,
+        active: chain.active,
+      } as EvmChain;
+    }),
+  ];
+};
+
 export const registerAddress = async (
   chainId: string,
   address: string,
@@ -159,5 +213,6 @@ export const EvmLightNodeLogic = {
   getGasFee,
   getPrice,
   getNative,
+  getActiveChains,
   registerAddress,
 };

@@ -1,9 +1,10 @@
 import { Express } from "express";
-import { ChainLogic } from "../logic/chain.logic";
+import { EvmLightNodeLogic } from "../logic/evm/light-node.logic";
 
 const setupGetChainsApi = (app: Express) => {
   app.get("/chains", async (req, res) => {
-    const chains = await ChainLogic.getChains();
+    // const chains = await ChainLogic.getChains();
+    const chains = await EvmLightNodeLogic.getActiveChains();
     res.status(200).send(chains);
   });
 };
