@@ -16,6 +16,7 @@ const keychain_phishing_api_1 = require("./api/evm/keychain-phishing.api");
 const lifi_api_1 = require("./api/evm/lifi.api");
 const light_node_api_1 = require("./api/evm/light-node.api");
 const verify_transaction_api_1 = require("./api/evm/verify-transaction.api");
+const health_api_1 = require("./api/health.api");
 const background_color_api_1 = require("./api/hive/background-color.api");
 const bad_actors_api_1 = require("./api/hive/bad-actors.api");
 const delegation_api_1 = require("./api/hive/delegation.api");
@@ -64,6 +65,7 @@ const setupRoutes = (app) => {
     app.use(express_1.default.static("public", { dotfiles: "allow" }));
     //CORS
     app.use(cors());
+    health_api_1.HealthApi.setupApis(app);
     bad_actors_api_1.BadActorsApi.setupApis(app);
     delegation_api_1.DelegationApi.setupApis(app);
     price_api_1.PriceApi.setupApis(app);

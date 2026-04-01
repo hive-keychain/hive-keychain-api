@@ -1,1 +1,1 @@
-{ "ignore": ["src/logic/ecosystem/*-dapps.json"] }
+{ "ignore": ["src/logic/ecosystem/*-dapps.json", "json/*"] }
