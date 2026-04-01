@@ -60,7 +60,7 @@ class SimpleSwapProvider extends hive_keychain_commons_1.SwapCryptosBaseProvider
         };
     };
     getMinMaxAmountAccepted = async (from, fromNetwork, to, toNetwork) => {
-        if (from === "HIVE")
+        if (from.toLowerCase() === "hive")
             return;
         const minMaxAcceptedRoute = this.urls.routes.minMaxAccepted;
         if (minMaxAcceptedRoute.trim().length === 0)
@@ -85,7 +85,7 @@ class SimpleSwapProvider extends hive_keychain_commons_1.SwapCryptosBaseProvider
      * Note: For simpleswap fee is set in the website, specifically: https://partners.simpleswap.io/webtools/api
      */
     getExchangeEstimation = async (amount, from, fromNetwork, to, toNetwork) => {
-        if (from === "HIVE")
+        if (from.toLowerCase() === "hive")
             return;
         const tickersAndNetworks = this.getTickersAndNetworks(from, fromNetwork, to, toNetwork);
         if (!tickersAndNetworks)
@@ -98,7 +98,7 @@ class SimpleSwapProvider extends hive_keychain_commons_1.SwapCryptosBaseProvider
             amount,
             reverse: false,
         }).toString()}`)).json();
-        if (!estimation.result || +amount > +estimation.result.max)
+        if (!estimation.result || +amount > +(estimation.result.max || Infinity))
             return;
         return {
             swapCrypto: hive_keychain_commons_1.SwapCryptos.SIMPLESWAP,

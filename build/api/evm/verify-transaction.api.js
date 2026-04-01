@@ -1,0 +1,38 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.VerifyTransactionApi = void 0;
+const verify_transaction_logic_1 = require("../../logic/evm/verify-transaction/verify-transaction.logic");
+const setupVerifyTransactionApi = (app) => {
+    app.get("/evm/verify-transaction", async (req, res) => {
+        const { domain, to, contract, chainId } = req.query;
+        const result = await verify_transaction_logic_1.VerifyTransactionLogic.verify(domain, to, contract, chainId);
+        const mock = {
+            domain: {
+                isBlacklisted: true,
+                isWhitelisted: false,
+                isTrusted: "implement on frontend.",
+                // verifiedBy: [
+                //   { name: "Coingecko", icon: "https://www.coingecko.com/favicon.ico" },
+                // ],
+            },
+            contract: {
+                isBlacklisted: true,
+                proxy: {
+                    target: "0x4bd844F72A8edD323056130A86FC624D0dbcF5b0",
+                },
+                hasBeenUsedBefore: "check on frontend",
+            },
+            to: {
+                isBlacklisted: true,
+                isSpoofing: "check on frontend if similar to one of own addresses or whitelisted address",
+                isWhitelisted: "check on frontend if it was whitelisted",
+            },
+        };
+        res.status(200).send(result);
+    });
+};
+const setupApis = (app) => {
+    setupVerifyTransactionApi(app);
+};
+exports.VerifyTransactionApi = { setupApis };
+//# sourceMappingURL=verify-transaction.api.js.map

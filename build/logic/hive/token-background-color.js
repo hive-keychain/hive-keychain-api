@@ -66,6 +66,8 @@ const createColorMap = async () => {
     }
 };
 const getBackgroundColorFromImage = async (imgLink) => {
+    if (!imgLink)
+        return DEFAULT_COLOR;
     try {
         const canvas = (0, canvas_1.createCanvas)(200, 200);
         var context = canvas.getContext("2d");
@@ -130,5 +132,6 @@ exports.TokensBackgroundColorsLogic = {
     getColorMap,
     createColorMap,
     initFetchColorMap,
+    getBackgroundColorFromImage,
 };
 //# sourceMappingURL=token-background-color.js.map

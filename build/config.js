@@ -96,5 +96,11 @@ exports.Config = {
             refId: "87338fbedd5a",
         },
     },
+    coingecko: {
+        prices: {
+            cooldownBetweenRefresh: 60000,
+            maxTokensToFetch: 500,
+        }
+    }
 };
 //# sourceMappingURL=config.js.map

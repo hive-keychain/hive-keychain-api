@@ -1,0 +1,1 @@
+{"version":3,"file":"gas-price-estimate.logic.js","sourceRoot":"","sources":["../../../src/logic/evm/gas-price-estimate.logic.ts"],"names":[],"mappings":";;;AAAA,yDAAuD;AAEvD,MAAM,uBAAuB,GAAG,KAAK,EAAE,OAAe,EAAE,EAAE;IACxD,OAAO,MAAM,oCAAiB,CAAC,SAAS,CAAC,OAAO,CAAC,CAAC;AACpD,CAAC,CAAC;AAEW,QAAA,qBAAqB,GAAG;IACnC,uBAAuB;CACxB,CAAC"}

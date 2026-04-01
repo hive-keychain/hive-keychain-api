@@ -144,6 +144,8 @@ class StealthexProvider extends hive_keychain_commons_1.SwapCryptosBaseProvider 
             method: "POST",
             headers: requestHeaders,
         })).json();
+        if (!estimation.estimated_amount)
+            return;
         return {
             swapCrypto: hive_keychain_commons_1.SwapCryptos.STEALTHEX,
             link: link,

@@ -18,7 +18,7 @@ const refreshHistoricalData = async () => {
     }
 };
 const initFetchHistoricalData = () => {
-    logger_1.default.technical("Intializing fetch prices...");
+    logger_1.default.technical("Intializing fetch historical prices...");
     refreshHistoricalData();
     setInterval(() => {
         refreshHistoricalData();

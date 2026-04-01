@@ -5,11 +5,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EcosystemLogic = void 0;
 const fs_1 = __importDefault(require("fs"));
+const logger_1 = __importDefault(require("hive-keychain-commons/lib/logger/logger"));
 const path_1 = __importDefault(require("path"));
 const array_utils_1 = require("../../utils/array.utils");
-const getDappList = (chain) => {
-    const jsonString = fs_1.default.readFileSync(path_1.default.join(__dirname, `../../../json/${chain}-dapps.json`), "utf-8");
-    const dapps = JSON.parse(jsonString);
+const ECOSYSTEM_DAPPS_PATH = path_1.default.join(__dirname, "../../../ecosystem/dapps.json");
+const readAllDapps = () => {
+    const jsonString = fs_1.default.readFileSync(ECOSYSTEM_DAPPS_PATH, "utf-8");
+    return JSON.parse(jsonString);
+};
+const writeAllDapps = (dapps) => {
+    fs_1.default.writeFileSync(ECOSYSTEM_DAPPS_PATH, JSON.stringify(dapps, null, 2));
+};
+const buildEcosystem = (dapps) => {
     let categories = [];
     for (const item of dapps) {
         categories = array_utils_1.ArrayUtils.mergeWithoutDuplicate(item.categories, categories);
@@ -23,6 +30,26 @@ const getDappList = (chain) => {
     }
     return ecosystem;
 };
+const getDappList = () => {
+    try {
+        const dapps = readAllDapps();
+        return buildEcosystem(dapps);
+    }
+    catch (err) {
+        logger_1.default.error(`Error while getting dapps list: ${err}`);
+        return [];
+    }
+};
+const getDappListByChainId = (chainId) => {
+    try {
+        const dapps = readAllDapps().filter((dapp) => dapp.chainId === chainId);
+        return buildEcosystem(dapps);
+    }
+    catch (err) {
+        logger_1.default.error(`Error while getting dapps list: ${err}`);
+        return [];
+    }
+};
 const getOrderedDapps = (dApps) => {
     const withReferral = dApps.filter((e) => e.url.includes("?ref=")), withoutReferral = dApps.filter((e) => !e.url.includes("?ref="));
     return [
@@ -30,29 +57,44 @@ const getOrderedDapps = (dApps) => {
         ...array_utils_1.ArrayUtils.shuffle(withoutReferral),
     ];
 };
-const saveNewDapp = (newDapp, chain) => {
-    const jsonString = fs_1.default.readFileSync(path_1.default.join(__dirname, `../../../json/${chain}-dapps.json`), "utf-8");
-    const dapps = JSON.parse(jsonString);
-    const id = Math.max(...dapps.map((d) => d.id));
-    dapps.push({ ...newDapp, id: id + 1 });
-    fs_1.default.writeFileSync(path_1.default.join(__dirname, `../../../json/${chain}-dapps.json`), JSON.stringify(dapps));
+const saveNewDapp = (newDapp) => {
+    const chainId = newDapp?.chainId;
+    if (!chainId) {
+        logger_1.default.error("Missing chainId while saving new dapp");
+        return;
+    }
+    const dapps = readAllDapps();
+    const chainDapps = dapps.filter((dapp) => dapp.chainId === chainId);
+    const id = chainDapps.length
+        ? Math.max(...chainDapps.map((d) => d.id))
+        : -1;
+    dapps.push({ ...newDapp, chainId, id: id + 1 });
+    writeAllDapps(dapps);
 };
-const editDapp = (dapp, chain) => {
-    const jsonString = fs_1.default.readFileSync(path_1.default.join(__dirname, `../../../json/${chain}-dapps.json`), "utf-8");
-    const dapps = JSON.parse(jsonString).filter((d) => d.id !== dapp.id);
-    dapps.push(dapp);
+const editDapp = (dapp) => {
+    const chainId = dapp?.chainId;
+    if (!chainId) {
+        logger_1.default.error("Missing chainId while editing dapp");
+        return;
+    }
+    const dapps = readAllDapps().filter((d) => !(d.id === dapp.id && d.chainId === chainId));
+    dapps.push({ ...dapp, chainId });
     try {
-        fs_1.default.writeFileSync(path_1.default.join(__dirname, `../../../json/${chain}-dapps.json`), JSON.stringify(dapps));
+        writeAllDapps(dapps);
     }
     catch (err) {
-        console.log(err);
+        console.log({ err });
     }
 };
-const deleteDapp = (dapp, chain) => {
-    const jsonString = fs_1.default.readFileSync(path_1.default.join(__dirname, `../../../json/${chain}-dapps.json`), "utf-8");
-    const dapps = JSON.parse(jsonString).filter((d) => d.id !== dapp.id);
+const deleteDapp = (dapp) => {
+    const chainId = dapp?.chainId;
+    if (!chainId) {
+        logger_1.default.error("Missing chainId while deleting dapp");
+        return;
+    }
+    const dapps = readAllDapps().filter((d) => !(d.id === dapp.id && d.chainId === chainId));
     try {
-        fs_1.default.writeFileSync(path_1.default.join(__dirname, `../../../json/${chain}-dapps.json`), JSON.stringify(dapps));
+        writeAllDapps(dapps);
     }
     catch (err) {
         console.log(err);
@@ -60,6 +102,7 @@ const deleteDapp = (dapp, chain) => {
 };
 exports.EcosystemLogic = {
     getDappList,
+    getDappListByChainId,
     saveNewDapp,
     editDapp,
     deleteDapp,

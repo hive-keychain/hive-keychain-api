@@ -27,8 +27,16 @@ const shuffle = (array) => {
     }
     return array;
 };
+const splitArray = (array, size) => {
+    const result = [];
+    for (let i = 0; i < array.length; i += size) {
+        result.push(array.slice(i, i + size));
+    }
+    return result;
+};
 exports.ArrayUtils = {
     mergeWithoutDuplicate,
     shuffle,
+    splitArray,
 };
 //# sourceMappingURL=array.utils.js.map
