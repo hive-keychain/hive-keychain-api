@@ -10,6 +10,7 @@ const fs_1 = __importDefault(require("fs"));
 const logger_1 = __importDefault(require("hive-keychain-commons/lib/logger/logger"));
 const https_1 = __importDefault(require("https"));
 const ecosystem_api_1 = require("./api/ecosystem.api");
+const health_api_1 = require("./api/health.api");
 const background_color_api_1 = require("./api/hive/background-color.api");
 const bad_actors_api_1 = require("./api/hive/bad-actors.api");
 const delegation_api_1 = require("./api/hive/delegation.api");
@@ -42,6 +43,7 @@ const setupRoutes = (app) => {
     app.use(express_1.default.static("public", { dotfiles: "allow" }));
     //CORS
     app.use(cors());
+    health_api_1.HealthApi.setupApis(app);
     bad_actors_api_1.BadActorsApi.setupApis(app);
     delegation_api_1.DelegationApi.setupApis(app);
     price_api_1.PriceApi.setupApis(app);

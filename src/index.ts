@@ -5,6 +5,7 @@ import fs from "fs";
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import https from "https";
 import { EcosystemApi } from "./api/ecosystem.api";
+import { HealthApi } from "./api/health.api";
 import { TokensBackgroundColorsApi } from "./api/hive/background-color.api";
 import { BadActorsApi } from "./api/hive/bad-actors.api";
 import { DelegationApi } from "./api/hive/delegation.api";
@@ -43,6 +44,7 @@ const setupRoutes = (app: express.Express) => {
   //CORS
   app.use(cors());
 
+  HealthApi.setupApis(app);
   BadActorsApi.setupApis(app);
   DelegationApi.setupApis(app);
   PriceApi.setupApis(app);
