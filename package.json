@@ -24,7 +24,7 @@
     "@hiveio/hivescript": "^1.2.5",
     "@types/express": "^4.17.13",
     "body-parser": "^1.20.0",
-    "canvas": "^2.11.2",
+    "canvas": "^3.2.1",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
