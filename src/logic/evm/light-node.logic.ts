@@ -177,8 +177,7 @@ const getActiveChains = async (): Promise<Chain[]> => {
         defaultTransactionType: chain.eip1559
           ? EvmTransactionType.EIP_1559
           : EvmTransactionType.LEGACY,
-        blockExplorer: chain.blockExplorer,
-        blockExplorerApi: chain.blockExplorerApi,
+        blockExplorer: { url: chain.explorerBaseUrl },
         testnet: chain.testnet,
         isEth: chain.chainId === 1 || chain.chainId === 11155111,
         rpcs: chain.rpcs,
