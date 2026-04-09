@@ -4,12 +4,9 @@ import express from "express";
 import fs from "fs";
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import https from "https";
-import { ChainsApi } from "./api/chains.api";
 import { EcosystemApi } from "./api/ecosystem.api";
-import { GasPriceEstimateApi } from "./api/evm/gas-price-estimate.api";
 import { KeychainPhishingApi } from "./api/evm/keychain-phishing.api";
 import { LifiApi } from "./api/evm/lifi.api";
-import { LightNodeApi } from "./api/evm/light-node.api";
 import { VerifyTransactionApi } from "./api/evm/verify-transaction.api";
 import { HealthApi } from "./api/health.api";
 import { TokensBackgroundColorsApi } from "./api/hive/background-color.api";
@@ -77,15 +74,12 @@ const setupRoutes = (app: express.Express) => {
   WitnessApi.setupApis(app);
   TokensBackgroundColorsApi.setupApis(app);
   EcosystemApi.setupApis(app);
-  GasPriceEstimateApi.setupApis(app);
   VerifyTransactionApi.setupApis(app);
   SettingsApi.setupApis(app);
   InvoiceRedirectApi.setupApis(app);
   KeychainPhishingApi.setupApis(app);
   SwapCryptosApi.setupApis(app);
-  ChainsApi.setupApis(app);
   LifiApi.setupApis(app);
-  LightNodeApi.setupApis(app);
 };
 
 const startServer = (app: express.Express) => {
