@@ -8,4 +8,5 @@ logs
 ecosystem/beeab0de00000000000000000000000000000000000000000000000000000000-dapps.json
 json/*
 src/logic/ecosystem/hive-dapps.json
+ecosystem/dapps.json
 
