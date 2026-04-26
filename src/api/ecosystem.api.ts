@@ -9,7 +9,7 @@ const setupGetEcosystem = (app: Express) => {
     async (req, res) => {
       const ecosystemDapps = await EcosystemLogic.getDappList();
       Logger.info("Get ecosystem");
-      res.status(200).send(ecosystemDapps);
+      res.status(200).json(ecosystemDapps);
     }
   );
 };
@@ -22,7 +22,7 @@ const setupLegacyGetEcosystem = (app: Express) => {
         req.params.chain,
       );
       Logger.info(`Get ${req.params.chain} ecosystem (legacy)`);
-      res.status(200).send(ecosystemDapps);
+      res.status(200).json(ecosystemDapps);
     },
   );
 };

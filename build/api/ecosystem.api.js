@@ -11,14 +11,14 @@ const setupGetEcosystem = (app) => {
     app.get("/ecosystem/dapps", async (req, res) => {
         const ecosystemDapps = await ecosystem_logic_1.EcosystemLogic.getDappList();
         logger_1.default.info("Get ecosystem");
-        res.status(200).send(ecosystemDapps);
+        res.status(200).json(ecosystemDapps);
     });
 };
 const setupLegacyGetEcosystem = (app) => {
     app.get("/:chain/ecosystem/dapps", async (req, res) => {
         const ecosystemDapps = await ecosystem_logic_1.EcosystemLogic.getDappListByChainId(req.params.chain);
         logger_1.default.info(`Get ${req.params.chain} ecosystem (legacy)`);
-        res.status(200).send(ecosystemDapps);
+        res.status(200).json(ecosystemDapps);
     });
 };
 const setupSaveNewDapp = (app) => {

@@ -9,12 +9,9 @@ const express_1 = __importDefault(require("express"));
 const fs_1 = __importDefault(require("fs"));
 const logger_1 = __importDefault(require("hive-keychain-commons/lib/logger/logger"));
 const https_1 = __importDefault(require("https"));
-const chains_api_1 = require("./api/chains.api");
 const ecosystem_api_1 = require("./api/ecosystem.api");
-const gas_price_estimate_api_1 = require("./api/evm/gas-price-estimate.api");
 const keychain_phishing_api_1 = require("./api/evm/keychain-phishing.api");
 const lifi_api_1 = require("./api/evm/lifi.api");
-const light_node_api_1 = require("./api/evm/light-node.api");
 const verify_transaction_api_1 = require("./api/evm/verify-transaction.api");
 const health_api_1 = require("./api/health.api");
 const background_color_api_1 = require("./api/hive/background-color.api");
@@ -75,15 +72,12 @@ const setupRoutes = (app) => {
     witness_api_1.WitnessApi.setupApis(app);
     background_color_api_1.TokensBackgroundColorsApi.setupApis(app);
     ecosystem_api_1.EcosystemApi.setupApis(app);
-    gas_price_estimate_api_1.GasPriceEstimateApi.setupApis(app);
     verify_transaction_api_1.VerifyTransactionApi.setupApis(app);
     mobile_settings_api_1.SettingsApi.setupApis(app);
     invoice_redirect_api_1.InvoiceRedirectApi.setupApis(app);
     keychain_phishing_api_1.KeychainPhishingApi.setupApis(app);
     swap_cryptos_api_1.SwapCryptosApi.setupApis(app);
-    chains_api_1.ChainsApi.setupApis(app);
     lifi_api_1.LifiApi.setupApis(app);
-    light_node_api_1.LightNodeApi.setupApis(app);
 };
 const startServer = (app) => {
     if (!process.env.DEV) {

@@ -383,9 +383,11 @@ type EcosystemCategory = {
 ```
 
 Notes:
+- The canonical flat list is stored in `json/ecosystem/dapps.json` (JSON). On first read, if that file is missing but `json/hive-dapps.json` or `src/logic/ecosystem/hive-dapps.json` exists, the server creates `json/ecosystem/dapps.json` by copying those entries and setting `chainId` to `beeab0de00000000000000000000000000000000000000000000000000000000` (Hive).
 - Dapps with referral links (`?ref=` in `url`) are shuffled to the front of each category.
 - Non-referral dapps are also shuffled. Order is therefore intentionally unstable.
 - The modern route returns all dapps across chains; the legacy route injects `:chain` as `chainId` filter.
+- GET responses are sent as `application/json`.
 
 ---
 
@@ -394,7 +396,7 @@ Notes:
 #### `POST /:chain/ecosystem/new`
 **Auth**: `TEAM`
 
-**Goal**: Append a new dapp entry to `ecosystem/dapps.json`.
+**Goal**: Append a new dapp entry to `json/ecosystem/dapps.json`.
 
 **Request body**
 ```ts

@@ -12,7 +12,7 @@ This repository is a mixed API layer for Hive Keychain clients. It serves:
 - `src/index.ts` is the public mount list. A route is part of the API only if its `setupApis(app)` call is wired there.
 - `src/api/**` owns HTTP method, path, alias, and parameter parsing.
 - `src/logic/**` owns behavior and external integrations.
-- `build/**` is generated output. Treat `src/**` as the source of truth unless the user explicitly asks for build artifacts.
+- `build/**` is generated output from `npm run build` / `tsc`. Treat `src/**` as the source of truth. **Do not edit or commit changes under `build/**`**—compilation refreshes those files; only change `src/**` (or the user explicitly requests build artifacts).
 
 ## Canonical Sources
 
@@ -24,7 +24,7 @@ Read these first before changing behavior:
 - Hive SQL logic: `src/logic/hive/**`
 - EVM light-node adapter behavior: `src/logic/evm/light-node.logic.ts`
 - file-backed data stores:
-  - `ecosystem/dapps.json`
+  - `json/ecosystem/dapps.json` (see `json/ecosystem/dapps.example.json`)
   - `json/settings/mobile.json`
   - `json/version/extension.json`
   - `json/version/mobile.json`
@@ -68,7 +68,7 @@ Rules:
   - phishing lists
   - token background colors
 - Preserve current formatting conventions where practical:
-  - `ecosystem/dapps.json` is pretty-printed
+  - `json/ecosystem/dapps.json` is pretty-printed
   - most other JSON files are compact
 - Do not casually move or rename JSON file paths. Several handlers depend on exact locations and silent fallbacks.
 

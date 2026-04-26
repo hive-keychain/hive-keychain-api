@@ -8,8 +8,32 @@ const fs_1 = __importDefault(require("fs"));
 const logger_1 = __importDefault(require("hive-keychain-commons/lib/logger/logger"));
 const path_1 = __importDefault(require("path"));
 const array_utils_1 = require("../../utils/array.utils");
-const ECOSYSTEM_DAPPS_PATH = path_1.default.join(__dirname, "../../../ecosystem/dapps.json");
+/** Hive Keychain synthetic chain id for native Hive dapps. */
+const HIVE_CHAIN_ID = "beeab0de00000000000000000000000000000000000000000000000000000000";
+const ECOSYSTEM_DAPPS_PATH = path_1.default.join(__dirname, "../../../json/ecosystem/dapps.json");
+const HIVE_DAPPS_JSON_PATHS = [
+    path_1.default.join(__dirname, "../../../json/hive-dapps.json"),
+    path_1.default.join(__dirname, "hive-dapps.json"),
+];
+const ensureDappsJsonFromHiveFallback = () => {
+    if (fs_1.default.existsSync(ECOSYSTEM_DAPPS_PATH)) {
+        return;
+    }
+    const hivePath = HIVE_DAPPS_JSON_PATHS.find((p) => fs_1.default.existsSync(p));
+    if (!hivePath) {
+        return;
+    }
+    const raw = fs_1.default.readFileSync(hivePath, "utf-8");
+    const items = JSON.parse(raw);
+    const withChain = items.map((item) => ({
+        ...item,
+        chainId: HIVE_CHAIN_ID,
+    }));
+    fs_1.default.mkdirSync(path_1.default.dirname(ECOSYSTEM_DAPPS_PATH), { recursive: true });
+    fs_1.default.writeFileSync(ECOSYSTEM_DAPPS_PATH, JSON.stringify(withChain, null, 2));
+};
 const readAllDapps = () => {
+    ensureDappsJsonFromHiveFallback();
     const jsonString = fs_1.default.readFileSync(ECOSYSTEM_DAPPS_PATH, "utf-8");
     return JSON.parse(jsonString);
 };

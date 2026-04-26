@@ -17,12 +17,40 @@ interface dApp {
   hideOniOS?: boolean;
 }
 
+/** Hive Keychain synthetic chain id for native Hive dapps. */
+const HIVE_CHAIN_ID =
+  "beeab0de00000000000000000000000000000000000000000000000000000000";
+
 const ECOSYSTEM_DAPPS_PATH = path.join(
   __dirname,
-  "../../../ecosystem/dapps.json",
+  "../../../json/ecosystem/dapps.json",
 );
 
+const HIVE_DAPPS_JSON_PATHS = [
+  path.join(__dirname, "../../../json/hive-dapps.json"),
+  path.join(__dirname, "hive-dapps.json"),
+];
+
+const ensureDappsJsonFromHiveFallback = () => {
+  if (fs.existsSync(ECOSYSTEM_DAPPS_PATH)) {
+    return;
+  }
+  const hivePath = HIVE_DAPPS_JSON_PATHS.find((p) => fs.existsSync(p));
+  if (!hivePath) {
+    return;
+  }
+  const raw = fs.readFileSync(hivePath, "utf-8");
+  const items = JSON.parse(raw) as Omit<dApp, "chainId">[];
+  const withChain: dApp[] = items.map((item) => ({
+    ...item,
+    chainId: HIVE_CHAIN_ID,
+  }));
+  fs.mkdirSync(path.dirname(ECOSYSTEM_DAPPS_PATH), { recursive: true });
+  fs.writeFileSync(ECOSYSTEM_DAPPS_PATH, JSON.stringify(withChain, null, 2));
+};
+
 const readAllDapps = () => {
+  ensureDappsJsonFromHiveFallback();
   const jsonString = fs.readFileSync(ECOSYSTEM_DAPPS_PATH, "utf-8");
   return JSON.parse(jsonString) as dApp[];
 };
