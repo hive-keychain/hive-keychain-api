@@ -9,6 +9,8 @@ import {
   NewHiveAccountCreationRequest,
 } from "./account-creation-request.model";
 
+let expiryInterval: NodeJS.Timeout | undefined;
+
 interface AccountCreationQuoteRequestBody {
   username?: string;
   ownerPublicKey?: string;
@@ -173,7 +175,22 @@ const getStatus = async (requestId: string) => {
   return request ? buildStatusResponse(request) : null;
 };
 
+const expirePendingQuotes = async (now = new Date()) => {
+  return HiveAccountCreationRequestLogic.expirePendingRequests(now);
+};
+
+const initExpiryJob = () => {
+  if (expiryInterval) return;
+  expirePendingQuotes();
+  expiryInterval = setInterval(
+    () => expirePendingQuotes(),
+    Config.accountCreation.expiryCheckIntervalMs,
+  );
+};
+
 export const HiveAccountCreationLogic = {
   createQuote,
   getStatus,
+  expirePendingQuotes,
+  initExpiryJob,
 };

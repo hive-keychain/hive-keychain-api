@@ -27,6 +27,7 @@ import { LifiLogic } from "./logic/evm/lifi.logic";
 import { SmartContractsInfoLogic } from "./logic/evm/smart-contract-info.logic";
 import { MetamaskPhishingLogic } from "./logic/evm/verify-transaction/phishing-list/metamask-phishing.logic";
 import { ScamSnifferLogic } from "./logic/evm/verify-transaction/scamsniffer.logic";
+import { HiveAccountCreationLogic } from "./logic/hive/account-creation.logic";
 import { HistoricalDataLogic } from "./logic/hive/historical-data.logic";
 import { TokensBackgroundColorsLogic } from "./logic/hive/token-background-color";
 import { PriceLogic } from "./logic/price.logic";
@@ -47,6 +48,7 @@ const initServerRoutine = () => {
   ScamSnifferLogic.initFetchScamSniffer();
   MetamaskPhishingLogic.initFetchMetamaskBlacklist();
   SmartContractsInfoLogic.initMoralisIfNeeded();
+  HiveAccountCreationLogic.initExpiryJob();
   // ChainLogic.initChainList();
   LifiLogic.initializeLifi();
   startServer(app);

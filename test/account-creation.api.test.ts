@@ -15,6 +15,8 @@ process.env.HIVE_ACCOUNT_CREATION_REQUESTS_FILE = requestStorePath;
 process.env.ACCOUNT_CREATION_PAYMENT_ACCOUNT = "keychain-test";
 
 const { AccountCreationApi } = require("../src/api/hive/account-creation.api");
+const { HiveAccountCreationLogic } = require("../src/logic/hive/account-creation.logic");
+const { HiveAccountCreationRequestLogic } = require("../src/logic/hive/account-creation-request.logic");
 const { HiveAccountCreationStatus } = require("../src/logic/hive/account-creation-request.model");
 const { HiveUtils } = require("../src/utils/hive.utils");
 
@@ -75,6 +77,27 @@ const quoteBody = {
   memoPublicKey: validPublicKey,
   paymentCurrency: "HIVE",
 };
+
+const buildStoredRequest = (overrides: Record<string, unknown> = {}) => ({
+  requestId: cryptoRandomId(),
+  username: "new-account",
+  ownerPublicKey: validPublicKey,
+  activePublicKey: validPublicKey,
+  postingPublicKey: validPublicKey,
+  memoPublicKey: validPublicKey,
+  paymentCurrency: "HIVE",
+  paymentAddress: "keychain-test",
+  paymentMemo: `account-creation:${cryptoRandomId()}`,
+  expectedAmount: "3.000",
+  paidAmount: null,
+  paymentTxId: null,
+  accountCreationTxId: null,
+  status: HiveAccountCreationStatus.PAYMENT_PENDING,
+  expiresAt: new Date(Date.now() + 60000),
+  ...overrides,
+});
+
+const cryptoRandomId = () => Math.random().toString(36).slice(2);
 
 beforeEach(() => {
   fs.writeFileSync(requestStorePath, "[]");
@@ -163,4 +186,65 @@ test("GET /hive/account-creation/:requestId returns safe request status", async 
   assert.equal(status.body.activePublicKey, undefined);
   assert.equal(status.body.postingPublicKey, undefined);
   assert.equal(status.body.memoPublicKey, undefined);
+});
+
+test("expiry job expires unpaid payment pending quotes", async () => {
+  const expiredRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest({
+      expiresAt: new Date(Date.now() - 60000),
+    }),
+  );
+
+  const expiredCount = await HiveAccountCreationLogic.expirePendingQuotes(
+    new Date(),
+  );
+  const storedRequest = await HiveAccountCreationRequestLogic.getByRequestId(
+    expiredRequest.requestId,
+  );
+
+  assert.equal(expiredCount, 1);
+  assert.equal(storedRequest.status, HiveAccountCreationStatus.EXPIRED);
+});
+
+test("expiry job does not expire detected paid quotes", async () => {
+  const detectedRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest({
+      status: HiveAccountCreationStatus.PAYMENT_DETECTED,
+      paidAmount: "3.000",
+      paymentTxId: "payment-tx",
+      expiresAt: new Date(Date.now() - 60000),
+    }),
+  );
+
+  const expiredCount = await HiveAccountCreationLogic.expirePendingQuotes(
+    new Date(),
+  );
+  const storedRequest = await HiveAccountCreationRequestLogic.getByRequestId(
+    detectedRequest.requestId,
+  );
+
+  assert.equal(expiredCount, 0);
+  assert.equal(storedRequest.status, HiveAccountCreationStatus.PAYMENT_DETECTED);
+});
+
+test("expiry job is safe when run repeatedly", async () => {
+  const expiredRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest({
+      expiresAt: new Date(Date.now() - 60000),
+    }),
+  );
+
+  const firstExpiredCount = await HiveAccountCreationLogic.expirePendingQuotes(
+    new Date(),
+  );
+  const secondExpiredCount = await HiveAccountCreationLogic.expirePendingQuotes(
+    new Date(),
+  );
+  const storedRequest = await HiveAccountCreationRequestLogic.getByRequestId(
+    expiredRequest.requestId,
+  );
+
+  assert.equal(firstExpiredCount, 1);
+  assert.equal(secondExpiredCount, 0);
+  assert.equal(storedRequest.status, HiveAccountCreationStatus.EXPIRED);
 });

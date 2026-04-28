@@ -101,6 +101,9 @@ export const Config = {
   },
   accountCreation: {
     quoteTtlMs: Number(process.env.ACCOUNT_CREATION_QUOTE_TTL_MS ?? 3600000),
+    expiryCheckIntervalMs: Number(
+      process.env.ACCOUNT_CREATION_EXPIRY_CHECK_INTERVAL_MS ?? 60000,
+    ),
     paymentAccount:
       process.env.ACCOUNT_CREATION_PAYMENT_ACCOUNT ?? "hive-keychain",
     supportedPaymentCurrencies: {

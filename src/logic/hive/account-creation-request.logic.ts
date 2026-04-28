@@ -145,8 +145,34 @@ const updateStatus = async (
   return updatedRequest;
 };
 
+const expirePendingRequests = async (now = new Date()): Promise<number> => {
+  const requests = readRequests();
+  let expiredCount = 0;
+
+  const updatedRequests = requests.map((request) => {
+    const isUnpaidPending =
+      request.status === HiveAccountCreationStatus.PAYMENT_PENDING &&
+      !request.paidAmount &&
+      !request.paymentTxId;
+    if (!isUnpaidPending || request.expiresAt.getTime() > now.getTime()) {
+      return request;
+    }
+
+    expiredCount++;
+    return {
+      ...request,
+      status: HiveAccountCreationStatus.EXPIRED,
+      updatedAt: now,
+    };
+  });
+
+  if (expiredCount > 0) writeRequests(updatedRequests);
+  return expiredCount;
+};
+
 export const HiveAccountCreationRequestLogic = {
   create,
   getByRequestId,
   updateStatus,
+  expirePendingRequests,
 };
