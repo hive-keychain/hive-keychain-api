@@ -16,6 +16,13 @@ process.env.ACCOUNT_CREATION_PAYMENT_ACCOUNT = "keychain-test";
 
 const { AccountCreationApi } = require("../src/api/hive/account-creation.api");
 const { HiveAccountCreationLogic } = require("../src/logic/hive/account-creation.logic");
+const {
+  HiveAccountCreationReconciliationLogic,
+  AccountCreationPaymentClassification,
+} = require("../src/logic/hive/account-creation-reconciliation.logic");
+const {
+  AccountCreationPaymentDetectionType,
+} = require("../src/logic/hive/account-creation-payment-detector");
 const { HiveAccountCreationRequestLogic } = require("../src/logic/hive/account-creation-request.logic");
 const { HiveAccountCreationStatus } = require("../src/logic/hive/account-creation-request.model");
 const { HiveUtils } = require("../src/utils/hive.utils");
@@ -98,6 +105,22 @@ const buildStoredRequest = (overrides: Record<string, unknown> = {}) => ({
 });
 
 const cryptoRandomId = () => Math.random().toString(36).slice(2);
+
+const mockPaymentDetector = (result: unknown) => ({
+  detectPayment: async () => result,
+});
+
+const paymentFound = (overrides: Record<string, unknown> = {}) => ({
+  type: AccountCreationPaymentDetectionType.PAYMENT_FOUND,
+  payment: {
+    amount: "3.000",
+    currency: "HIVE",
+    txId: `payment-${cryptoRandomId()}`,
+    confirmed: true,
+    detectedAt: new Date(),
+    ...overrides,
+  },
+});
 
 beforeEach(() => {
   fs.writeFileSync(requestStorePath, "[]");
@@ -247,4 +270,155 @@ test("expiry job is safe when run repeatedly", async () => {
   assert.equal(firstExpiredCount, 1);
   assert.equal(secondExpiredCount, 0);
   assert.equal(storedRequest.status, HiveAccountCreationStatus.EXPIRED);
+});
+
+test("reconciliation leaves requests unchanged when no payment is found", async () => {
+  const storedRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest(),
+  );
+
+  const [result] =
+    await HiveAccountCreationReconciliationLogic.reconcilePendingPayments(
+      mockPaymentDetector({
+        type: AccountCreationPaymentDetectionType.NO_PAYMENT,
+      }),
+    );
+  const reconciledRequest = await HiveAccountCreationRequestLogic.getByRequestId(
+    storedRequest.requestId,
+  );
+
+  assert.equal(result.classification, AccountCreationPaymentClassification.NO_PAYMENT);
+  assert.equal(result.updated, false);
+  assert.equal(
+    reconciledRequest.status,
+    HiveAccountCreationStatus.PAYMENT_PENDING,
+  );
+});
+
+test("reconciliation marks exact confirmed payments as detected", async () => {
+  const storedRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest(),
+  );
+
+  const [result] =
+    await HiveAccountCreationReconciliationLogic.reconcilePendingPayments(
+      mockPaymentDetector(paymentFound({ amount: "3.000", confirmed: true })),
+    );
+  const reconciledRequest = await HiveAccountCreationRequestLogic.getByRequestId(
+    storedRequest.requestId,
+  );
+
+  assert.equal(result.classification, AccountCreationPaymentClassification.FULL_PAYMENT);
+  assert.equal(result.updated, true);
+  assert.equal(
+    reconciledRequest.status,
+    HiveAccountCreationStatus.PAYMENT_DETECTED,
+  );
+  assert.equal(reconciledRequest.paidAmount, "3.000");
+});
+
+test("reconciliation marks exact unconfirmed payments as confirming", async () => {
+  const storedRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest(),
+  );
+
+  const [result] =
+    await HiveAccountCreationReconciliationLogic.reconcilePendingPayments(
+      mockPaymentDetector(paymentFound({ amount: "3.000", confirmed: false })),
+    );
+  const reconciledRequest = await HiveAccountCreationRequestLogic.getByRequestId(
+    storedRequest.requestId,
+  );
+
+  assert.equal(
+    result.classification,
+    AccountCreationPaymentClassification.PAYMENT_CONFIRMING,
+  );
+  assert.equal(result.updated, true);
+  assert.equal(
+    reconciledRequest.status,
+    HiveAccountCreationStatus.PAYMENT_CONFIRMING,
+  );
+});
+
+test("reconciliation marks underpayments", async () => {
+  const storedRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest(),
+  );
+
+  const [result] =
+    await HiveAccountCreationReconciliationLogic.reconcilePendingPayments(
+      mockPaymentDetector(paymentFound({ amount: "2.000" })),
+    );
+  const reconciledRequest = await HiveAccountCreationRequestLogic.getByRequestId(
+    storedRequest.requestId,
+  );
+
+  assert.equal(result.classification, AccountCreationPaymentClassification.UNDERPAYMENT);
+  assert.equal(reconciledRequest.status, HiveAccountCreationStatus.UNDERPAID);
+  assert.equal(reconciledRequest.paidAmount, "2.000");
+});
+
+test("reconciliation marks overpayments", async () => {
+  const storedRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest(),
+  );
+
+  const [result] =
+    await HiveAccountCreationReconciliationLogic.reconcilePendingPayments(
+      mockPaymentDetector(paymentFound({ amount: "4.000" })),
+    );
+  const reconciledRequest = await HiveAccountCreationRequestLogic.getByRequestId(
+    storedRequest.requestId,
+  );
+
+  assert.equal(result.classification, AccountCreationPaymentClassification.OVERPAYMENT);
+  assert.equal(reconciledRequest.status, HiveAccountCreationStatus.OVERPAID);
+  assert.equal(reconciledRequest.paidAmount, "4.000");
+});
+
+test("reconciliation marks payments detected after expiry", async () => {
+  const storedRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest({
+      expiresAt: new Date(Date.now() - 60000),
+    }),
+  );
+
+  const [result] =
+    await HiveAccountCreationReconciliationLogic.reconcilePendingPayments(
+      mockPaymentDetector(paymentFound({ detectedAt: new Date() })),
+    );
+  const reconciledRequest = await HiveAccountCreationRequestLogic.getByRequestId(
+    storedRequest.requestId,
+  );
+
+  assert.equal(
+    result.classification,
+    AccountCreationPaymentClassification.PAYMENT_AFTER_EXPIRY,
+  );
+  assert.equal(
+    reconciledRequest.status,
+    HiveAccountCreationStatus.PAID_AFTER_EXPIRY,
+  );
+});
+
+test("reconciliation ignores unsupported payment assets", async () => {
+  const storedRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest(),
+  );
+
+  const [result] =
+    await HiveAccountCreationReconciliationLogic.reconcilePendingPayments(
+      mockPaymentDetector(paymentFound({ currency: "HBD" })),
+    );
+  const reconciledRequest = await HiveAccountCreationRequestLogic.getByRequestId(
+    storedRequest.requestId,
+  );
+
+  assert.equal(result.classification, AccountCreationPaymentClassification.WRONG_ASSET);
+  assert.equal(result.updated, false);
+  assert.equal(
+    reconciledRequest.status,
+    HiveAccountCreationStatus.PAYMENT_PENDING,
+  );
 });

@@ -113,6 +113,18 @@ const getByRequestId = async (
   return readRequests().find((item) => item.requestId === requestId) ?? null;
 };
 
+const getPaymentReconciliationCandidates = async (): Promise<
+  HiveAccountCreationRequest[]
+> => {
+  return readRequests().filter((request) =>
+    [
+      HiveAccountCreationStatus.PAYMENT_PENDING,
+      HiveAccountCreationStatus.PAYMENT_CONFIRMING,
+      HiveAccountCreationStatus.EXPIRED,
+    ].includes(request.status),
+  );
+};
+
 const updateStatus = async (
   requestId: string,
   status: HiveAccountCreationStatus,
@@ -173,6 +185,7 @@ const expirePendingRequests = async (now = new Date()): Promise<number> => {
 export const HiveAccountCreationRequestLogic = {
   create,
   getByRequestId,
+  getPaymentReconciliationCandidates,
   updateStatus,
   expirePendingRequests,
 };
