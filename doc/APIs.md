@@ -80,6 +80,77 @@ Notes:
 
 ---
 
+### Hive account creation quote
+#### `POST /hive/account-creation/quote`
+**Goal**: Create a low-volume, file-backed payment quote for paid Hive account creation.
+
+**Request body**
+```ts
+{
+  username: string;
+  ownerPublicKey: string;
+  activePublicKey: string;
+  postingPublicKey: string;
+  memoPublicKey: string;
+  paymentCurrency: string;
+}
+```
+
+**Response**
+```ts
+{
+  requestId: string;
+  status: "payment_pending";
+  username: string;
+  amount: string;
+  currency: string;
+  address: string;
+  memo: string | null;
+  expiresAt: string;
+}
+```
+
+Notes:
+- The handler validates Hive username format, public keys, selected currency, and username availability before creating a request.
+- `HIVE` is supported by default using the chain account creation fee; other currencies require backend amount configuration.
+- Requests are stored in `json/hive-account-creation-requests.json`, which is runtime data and ignored by git.
+- No payment reconciliation or account creation transaction is performed by this endpoint.
+
+---
+
+### Hive account creation status
+#### `GET /hive/account-creation/:requestId`
+**Goal**: Return safe frontend-facing status and payment/account creation metadata for an account creation request.
+
+**Response**
+```ts
+{
+  requestId: string;
+  status: string;
+  username: string;
+  payment: {
+    amount: string;
+    currency: string;
+    address: string | null;
+    memo: string | null;
+    paidAmount: string | null;
+    txId: string | null;
+  };
+  accountCreation: {
+    txId: string | null;
+  };
+  expiresAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+Notes:
+- Public/private key material is not included in the status response.
+- Until reconciliation and account creation workers exist, payment and account creation transaction fields remain `null`.
+
+---
+
 ### Hive Engine token background colors
 #### `GET /hive/tokensBackgroundColors`
 **Goal**: Return the cached symbol-to-dominant-color map used by clients.

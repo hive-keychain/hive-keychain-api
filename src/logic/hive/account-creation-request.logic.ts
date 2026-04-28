@@ -8,12 +8,12 @@ import {
   NewHiveAccountCreationRequest,
 } from "./account-creation-request.model";
 
-const requestStorePath = path.join(
-  __dirname,
-  "../../../json/hive-account-creation-requests.json",
-);
+const getRequestStorePath = () =>
+  process.env.HIVE_ACCOUNT_CREATION_REQUESTS_FILE ??
+  path.join(__dirname, "../../../json/hive-account-creation-requests.json");
 
 const ensureStoreFile = () => {
+  const requestStorePath = getRequestStorePath();
   const folder = path.dirname(requestStorePath);
   if (!fs.existsSync(folder)) fs.mkdirSync(folder, { recursive: true });
   if (!fs.existsSync(requestStorePath)) fs.writeFileSync(requestStorePath, "[]");
@@ -42,7 +42,7 @@ const mapRequest = (row: any): HiveAccountCreationRequest => ({
 const readRequests = (): HiveAccountCreationRequest[] => {
   try {
     ensureStoreFile();
-    return JSON.parse(fs.readFileSync(requestStorePath).toString()).map(
+    return JSON.parse(fs.readFileSync(getRequestStorePath()).toString()).map(
       mapRequest,
     );
   } catch (error) {
@@ -54,7 +54,7 @@ const readRequests = (): HiveAccountCreationRequest[] => {
 const writeRequests = (requests: HiveAccountCreationRequest[]) => {
   try {
     ensureStoreFile();
-    fs.writeFileSync(requestStorePath, JSON.stringify(requests, null, 2));
+    fs.writeFileSync(getRequestStorePath(), JSON.stringify(requests, null, 2));
   } catch (error) {
     Logger.error(error);
     throw error;

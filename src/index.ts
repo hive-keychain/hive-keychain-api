@@ -9,6 +9,7 @@ import { KeychainPhishingApi } from "./api/evm/keychain-phishing.api";
 import { LifiApi } from "./api/evm/lifi.api";
 import { VerifyTransactionApi } from "./api/evm/verify-transaction.api";
 import { HealthApi } from "./api/health.api";
+import { AccountCreationApi } from "./api/hive/account-creation.api";
 import { TokensBackgroundColorsApi } from "./api/hive/background-color.api";
 import { BadActorsApi } from "./api/hive/bad-actors.api";
 import { DelegationApi } from "./api/hive/delegation.api";
@@ -65,6 +66,7 @@ const setupRoutes = (app: express.Express) => {
   app.use(cors());
 
   HealthApi.setupApis(app);
+  AccountCreationApi.setupApis(app);
   BadActorsApi.setupApis(app);
   DelegationApi.setupApis(app);
   PriceApi.setupApis(app);

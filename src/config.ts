@@ -98,5 +98,20 @@ export const Config = {
       cooldownBetweenRefresh: 60000,
       maxTokensToFetch: 500,
     }
-  }
+  },
+  accountCreation: {
+    quoteTtlMs: Number(process.env.ACCOUNT_CREATION_QUOTE_TTL_MS ?? 3600000),
+    paymentAccount:
+      process.env.ACCOUNT_CREATION_PAYMENT_ACCOUNT ?? "hive-keychain",
+    supportedPaymentCurrencies: {
+      HIVE: {
+        currency: "HIVE",
+        amount: process.env.ACCOUNT_CREATION_HIVE_AMOUNT,
+      },
+      HBD: {
+        currency: "HBD",
+        amount: process.env.ACCOUNT_CREATION_HBD_AMOUNT,
+      },
+    },
+  },
 };
