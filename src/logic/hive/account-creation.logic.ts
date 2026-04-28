@@ -2,6 +2,7 @@ import { PublicKey } from "@hiveio/dhive";
 import crypto from "crypto";
 import { Config } from "../../config";
 import { HiveUtils } from "../../utils/hive.utils";
+import { AccountCreationEvmPriceLogic } from "./account-creation-evm-price.logic";
 import { HiveAccountCreationRequestLogic } from "./account-creation-request.logic";
 import {
   HiveAccountCreationRequest,
@@ -18,11 +19,18 @@ interface AccountCreationQuoteRequestBody {
   postingPublicKey?: string;
   memoPublicKey?: string;
   paymentCurrency?: string;
+  paymentChainId?: string | number;
+  paymentTokenAddress?: string | null;
 }
 
-interface PaymentCurrencyConfig {
+interface PaymentQuoteConfig {
   currency: string;
-  amount?: string;
+  amount: string;
+  address: string;
+  memo?: string | null;
+  chainId?: string | null;
+  tokenAddress?: string | null;
+  priceUsd?: string | null;
 }
 
 const usernameRegex =
@@ -54,36 +62,83 @@ const assertUsernameAvailable = async (username: string) => {
   }
 };
 
-const getPaymentCurrencyConfig = (
-  currency?: string,
-): PaymentCurrencyConfig | undefined => {
-  const selectedCurrency = currency?.toUpperCase();
-  if (!selectedCurrency) return undefined;
-  const currencyConfig = Config.accountCreation.supportedPaymentCurrencies[
-    selectedCurrency as keyof typeof Config.accountCreation.supportedPaymentCurrencies
-  ];
-  if (!currencyConfig) return undefined;
-  if (currencyConfig.currency !== "HIVE" && !currencyConfig.amount) {
-    return undefined;
-  }
-  return currencyConfig;
-};
-
 const getDynamicHiveAccountCreationFee = async () => {
   const chainProperties = await HiveUtils.getClient().database.getChainProperties();
   const [amount] = chainProperties.account_creation_fee.toString().split(" ");
   return amount;
 };
 
-const getExpectedAmount = async (currencyConfig: PaymentCurrencyConfig) => {
-  if (currencyConfig.amount) return currencyConfig.amount.split(" ")[0];
-  if (currencyConfig.currency === "HIVE") {
-    return getDynamicHiveAccountCreationFee();
+const formatTokenAmount = (amount: number) => {
+  return amount
+    .toFixed(18)
+    .replace(/\.?0+$/, "");
+};
+
+const getHivePaymentQuote = async (): Promise<PaymentQuoteConfig> => {
+  return {
+    currency: Config.accountCreation.hivePayment.currency,
+    amount:
+      Config.accountCreation.hivePayment.amount?.split(" ")[0] ??
+      (await getDynamicHiveAccountCreationFee()),
+    address: Config.accountCreation.paymentAccount,
+  };
+};
+
+const getEvmPaymentQuote = async (
+  chainId: string,
+  tokenAddress?: string | null,
+): Promise<PaymentQuoteConfig> => {
+  if (!Config.accountCreation.evmPaymentAddress) {
+    throw Object.assign(new Error("EVM payment address is not configured."), {
+      statusCode: 500,
+    });
   }
-  throw Object.assign(
-    new Error(`No account creation amount configured for ${currencyConfig.currency}.`),
-    { statusCode: 400 },
+
+  const price = await AccountCreationEvmPriceLogic.getLatestEvmPrice(
+    chainId,
+    tokenAddress,
   );
+  if (!price) {
+    throw Object.assign(new Error("Unsupported EVM payment token."), {
+      statusCode: 400,
+    });
+  }
+
+  const priceUsd = Number(price.priceUsd);
+  const amount = Config.accountCreation.evmQuoteAmountUsd / priceUsd;
+  if (!Number.isFinite(amount) || amount <= 0) {
+    throw Object.assign(new Error("Invalid EVM payment token price."), {
+      statusCode: 502,
+    });
+  }
+
+  return {
+    currency: `EVM:${price.chainId}:${price.tokenAddress ?? "native"}`,
+    amount: formatTokenAmount(amount),
+    address: Config.accountCreation.evmPaymentAddress,
+    chainId: price.chainId,
+    tokenAddress: price.tokenAddress,
+    priceUsd: price.priceUsd,
+  };
+};
+
+const getPaymentQuote = async (
+  body: AccountCreationQuoteRequestBody,
+): Promise<PaymentQuoteConfig> => {
+  if (body.paymentChainId !== undefined && body.paymentChainId !== null) {
+    return getEvmPaymentQuote(
+      body.paymentChainId.toString(),
+      body.paymentTokenAddress,
+    );
+  }
+
+  if (body.paymentCurrency?.toUpperCase() === "HIVE") {
+    return getHivePaymentQuote();
+  }
+
+  throw Object.assign(new Error("Unsupported payment currency."), {
+    statusCode: 400,
+  });
 };
 
 const buildPaymentMemo = (requestId: string) => `account-creation:${requestId}`;
@@ -94,6 +149,9 @@ const buildQuoteResponse = (request: HiveAccountCreationRequest) => ({
   username: request.username,
   amount: request.expectedAmount,
   currency: request.paymentCurrency,
+  chainId: request.paymentChainId,
+  tokenAddress: request.paymentTokenAddress,
+  priceUsd: request.paymentPriceUsd,
   address: request.paymentAddress,
   memo: request.paymentMemo,
   expiresAt: request.expiresAt.toISOString(),
@@ -106,6 +164,9 @@ const buildStatusResponse = (request: HiveAccountCreationRequest) => ({
   payment: {
     amount: request.expectedAmount,
     currency: request.paymentCurrency,
+    chainId: request.paymentChainId,
+    tokenAddress: request.paymentTokenAddress,
+    priceUsd: request.paymentPriceUsd,
     address: request.paymentAddress,
     memo: request.paymentMemo,
     paidAmount: request.paidAmount,
@@ -137,17 +198,11 @@ const createQuote = async (body: AccountCreationQuoteRequestBody) => {
     throw Object.assign(new Error("Invalid public key."), { statusCode: 400 });
   }
 
-  const currencyConfig = getPaymentCurrencyConfig(body.paymentCurrency);
-  if (!currencyConfig) {
-    throw Object.assign(new Error("Unsupported payment currency."), {
-      statusCode: 400,
-    });
-  }
+  const paymentQuote = await getPaymentQuote(body);
 
   await assertUsernameAvailable(username!);
 
   const requestId = crypto.randomUUID();
-  const expectedAmount = await getExpectedAmount(currencyConfig);
   const expiresAt = new Date(Date.now() + Config.accountCreation.quoteTtlMs);
   const request: NewHiveAccountCreationRequest = {
     requestId,
@@ -156,10 +211,13 @@ const createQuote = async (body: AccountCreationQuoteRequestBody) => {
     activePublicKey: body.activePublicKey!,
     postingPublicKey: body.postingPublicKey!,
     memoPublicKey: body.memoPublicKey!,
-    paymentCurrency: currencyConfig.currency,
-    paymentAddress: Config.accountCreation.paymentAccount,
-    paymentMemo: buildPaymentMemo(requestId),
-    expectedAmount,
+    paymentCurrency: paymentQuote.currency,
+    paymentChainId: paymentQuote.chainId,
+    paymentTokenAddress: paymentQuote.tokenAddress,
+    paymentPriceUsd: paymentQuote.priceUsd,
+    paymentAddress: paymentQuote.address,
+    paymentMemo: paymentQuote.memo ?? buildPaymentMemo(requestId),
+    expectedAmount: paymentQuote.amount,
     paidAmount: null,
     paymentTxId: null,
     accountCreationTxId: null,

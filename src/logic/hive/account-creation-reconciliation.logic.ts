@@ -3,7 +3,7 @@ import {
   AccountCreationPaymentDetectionResult,
   AccountCreationPaymentDetectionType,
   AccountCreationPaymentDetector,
-  NoopAccountCreationPaymentDetector,
+  HiveAccountCreationPaymentDetector,
 } from "./account-creation-payment-detector";
 import { HiveAccountCreationRequestLogic } from "./account-creation-request.logic";
 import {
@@ -116,7 +116,7 @@ const classifyPayment = (
 
 const reconcileRequestPayment = async (
   request: HiveAccountCreationRequest,
-  detector: AccountCreationPaymentDetector = NoopAccountCreationPaymentDetector,
+  detector: AccountCreationPaymentDetector = HiveAccountCreationPaymentDetector,
 ): Promise<AccountCreationPaymentReconciliationResult> => {
   const detectionResult = await detector.detectPayment(request);
   const classification = classifyPayment(request, detectionResult);
@@ -152,7 +152,7 @@ const reconcileRequestPayment = async (
 };
 
 const reconcilePendingPayments = async (
-  detector: AccountCreationPaymentDetector = NoopAccountCreationPaymentDetector,
+  detector: AccountCreationPaymentDetector = HiveAccountCreationPaymentDetector,
 ) => {
   const requests =
     await HiveAccountCreationRequestLogic.getPaymentReconciliationCandidates();

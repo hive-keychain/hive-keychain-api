@@ -21,6 +21,9 @@ export interface HiveAccountCreationRequest {
   postingPublicKey: string;
   memoPublicKey: string;
   paymentCurrency: string;
+  paymentChainId?: string | null;
+  paymentTokenAddress?: string | null;
+  paymentPriceUsd?: string | null;
   paymentAddress?: string | null;
   paymentMemo?: string | null;
   expectedAmount: string;

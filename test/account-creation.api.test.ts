@@ -13,6 +13,9 @@ const requestStorePath = path.join(
 );
 process.env.HIVE_ACCOUNT_CREATION_REQUESTS_FILE = requestStorePath;
 process.env.ACCOUNT_CREATION_PAYMENT_ACCOUNT = "keychain-test";
+process.env.ACCOUNT_CREATION_EVM_PAYMENT_ADDRESS =
+  "0x1111111111111111111111111111111111111111";
+process.env.ACCOUNT_CREATION_EVM_QUOTE_AMOUNT_USD = "3";
 
 const { AccountCreationApi } = require("../src/api/hive/account-creation.api");
 const { HiveAccountCreationLogic } = require("../src/logic/hive/account-creation.logic");
@@ -22,6 +25,7 @@ const {
 } = require("../src/logic/hive/account-creation-reconciliation.logic");
 const {
   AccountCreationPaymentDetectionType,
+  HiveAccountCreationPaymentDetector,
 } = require("../src/logic/hive/account-creation-payment-detector");
 const { HiveAccountCreationRequestLogic } = require("../src/logic/hive/account-creation-request.logic");
 const { HiveAccountCreationStatus } = require("../src/logic/hive/account-creation-request.model");
@@ -65,12 +69,41 @@ const request = async (
   }
 };
 
-const mockHiveClient = (accounts: unknown[] = []) => {
+const startMockEvmPriceServer = async (
+  handler: (req: http.IncomingMessage, res: http.ServerResponse) => void,
+) => {
+  const server = http.createServer(handler);
+  await new Promise<void>((resolve) => server.listen(0, resolve));
+  const address = server.address();
+  if (!address || typeof address === "string") {
+    throw new Error("Mock EVM price server did not start.");
+  }
+  process.env.ACCOUNT_CREATION_EVM_LIGHT_NODE_URL = `http://127.0.0.1:${address.port}`;
+  return server;
+};
+
+const closeServer = async (server: http.Server) => {
+  await new Promise<void>((resolve, reject) =>
+    server.close((error) => (error ? reject(error) : resolve())),
+  );
+};
+
+const mockHiveClient = (
+  accounts: unknown[] = [],
+  options: {
+    accountHistory?: unknown[];
+    lastIrreversibleBlockNum?: number;
+  } = {},
+) => {
   (HiveUtils as any).getClient = () => ({
     database: {
       getAccounts: async () => accounts,
       getChainProperties: async () => ({
         account_creation_fee: "3.000 HIVE",
+      }),
+      getAccountHistory: async () => options.accountHistory ?? [],
+      getDynamicGlobalProperties: async () => ({
+        last_irreversible_block_num: options.lastIrreversibleBlockNum ?? 0,
       }),
     },
   });
@@ -121,6 +154,25 @@ const paymentFound = (overrides: Record<string, unknown> = {}) => ({
     ...overrides,
   },
 });
+
+const hiveTransferHistoryItem = (overrides: Record<string, unknown> = {}) => [
+  1,
+  {
+    trx_id: "hive-payment-tx",
+    block: 100,
+    timestamp: "2026-04-28T04:00:00",
+    op: [
+      "transfer",
+      {
+        from: "payer",
+        to: "keychain-test",
+        amount: "3.000 HIVE",
+        memo: "account-creation:memo",
+        ...overrides,
+      },
+    ],
+  },
+];
 
 beforeEach(() => {
   fs.writeFileSync(requestStorePath, "[]");
@@ -209,6 +261,74 @@ test("GET /hive/account-creation/:requestId returns safe request status", async 
   assert.equal(status.body.activePublicKey, undefined);
   assert.equal(status.body.postingPublicKey, undefined);
   assert.equal(status.body.memoPublicKey, undefined);
+});
+
+test("POST /hive/account-creation/quote accepts EVM token-chain pair with price", async () => {
+  const server = await startMockEvmPriceServer((_req, res) => {
+    res.setHeader("content-type", "application/json");
+    res.end(
+      JSON.stringify({
+        chainId: "1",
+        tokenAddress: "0xabc",
+        priceUsd: 1.5,
+        fetchedAt: "2026-04-28T04:00:00.000Z",
+      }),
+    );
+  });
+
+  try {
+    const response = await request(
+      buildApp(),
+      "POST",
+      "/hive/account-creation/quote",
+      {
+        ...quoteBody,
+        paymentCurrency: undefined,
+        paymentChainId: "1",
+        paymentTokenAddress: "0xabc",
+      },
+    );
+
+    assert.equal(response.status, 201);
+    assert.equal(response.body.amount, "2");
+    assert.equal(response.body.currency, "EVM:1:0xabc");
+    assert.equal(response.body.chainId, "1");
+    assert.equal(response.body.tokenAddress, "0xabc");
+    assert.equal(response.body.priceUsd, "1.5");
+    assert.equal(
+      response.body.address,
+      "0x1111111111111111111111111111111111111111",
+    );
+  } finally {
+    await closeServer(server);
+  }
+});
+
+test("POST /hive/account-creation/quote rejects EVM token-chain pair without price", async () => {
+  const server = await startMockEvmPriceServer((_req, res) => {
+    res.statusCode = 404;
+    res.setHeader("content-type", "application/json");
+    res.end(JSON.stringify({ error: "Price not found" }));
+  });
+
+  try {
+    const response = await request(
+      buildApp(),
+      "POST",
+      "/hive/account-creation/quote",
+      {
+        ...quoteBody,
+        paymentCurrency: undefined,
+        paymentChainId: "1",
+        paymentTokenAddress: "0xabc",
+      },
+    );
+
+    assert.equal(response.status, 400);
+    assert.equal(response.body.error, "Unsupported EVM payment token.");
+  } finally {
+    await closeServer(server);
+  }
 });
 
 test("expiry job expires unpaid payment pending quotes", async () => {
@@ -421,4 +541,109 @@ test("reconciliation ignores unsupported payment assets", async () => {
     reconciledRequest.status,
     HiveAccountCreationStatus.PAYMENT_PENDING,
   );
+});
+
+test("HIVE detector finds a confirmed transfer by payment account and memo", async () => {
+  const storedRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest({
+      paymentMemo: "account-creation:memo",
+    }),
+  );
+  mockHiveClient([], {
+    accountHistory: [hiveTransferHistoryItem()],
+    lastIrreversibleBlockNum: 100,
+  });
+
+  const result =
+    await HiveAccountCreationPaymentDetector.detectPayment(storedRequest);
+
+  assert.equal(result.type, AccountCreationPaymentDetectionType.PAYMENT_FOUND);
+  assert.equal(result.payment.amount, "3.000");
+  assert.equal(result.payment.currency, "HIVE");
+  assert.equal(result.payment.txId, "hive-payment-tx");
+  assert.equal(result.payment.confirmed, true);
+  assert.equal(result.payment.blockNumber, 100);
+});
+
+test("HIVE detector marks matching transfer unconfirmed until confirmation policy is met", async () => {
+  const storedRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest({
+      paymentMemo: "account-creation:memo",
+    }),
+  );
+  mockHiveClient([], {
+    accountHistory: [hiveTransferHistoryItem()],
+    lastIrreversibleBlockNum: 99,
+  });
+
+  const result =
+    await HiveAccountCreationPaymentDetector.detectPayment(storedRequest);
+
+  assert.equal(result.type, AccountCreationPaymentDetectionType.PAYMENT_FOUND);
+  assert.equal(result.payment.confirmed, false);
+});
+
+test("HIVE detector ignores transfers without the request memo", async () => {
+  const storedRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest({
+      paymentMemo: "account-creation:memo",
+    }),
+  );
+  mockHiveClient([], {
+    accountHistory: [
+      hiveTransferHistoryItem({
+        memo: "account-creation:another-request",
+      }),
+    ],
+    lastIrreversibleBlockNum: 100,
+  });
+
+  const result =
+    await HiveAccountCreationPaymentDetector.detectPayment(storedRequest);
+
+  assert.equal(result.type, AccountCreationPaymentDetectionType.NO_PAYMENT);
+});
+
+test("HIVE detector reports wrong asset for matching memo with unsupported asset", async () => {
+  const storedRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest({
+      paymentMemo: "account-creation:memo",
+    }),
+  );
+  mockHiveClient([], {
+    accountHistory: [
+      hiveTransferHistoryItem({
+        amount: "3.000 HBD",
+      }),
+    ],
+    lastIrreversibleBlockNum: 100,
+  });
+
+  const result =
+    await HiveAccountCreationPaymentDetector.detectPayment(storedRequest);
+
+  assert.equal(result.type, AccountCreationPaymentDetectionType.WRONG_ASSET);
+  assert.equal(result.payment.currency, "HBD");
+});
+
+test("reconciliation uses the HIVE detector by default", async () => {
+  const storedRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest({
+      paymentMemo: "account-creation:memo",
+    }),
+  );
+  mockHiveClient([], {
+    accountHistory: [hiveTransferHistoryItem()],
+    lastIrreversibleBlockNum: 100,
+  });
+
+  const [result] =
+    await HiveAccountCreationReconciliationLogic.reconcilePendingPayments();
+  const reconciledRequest = await HiveAccountCreationRequestLogic.getByRequestId(
+    storedRequest.requestId,
+  );
+
+  assert.equal(result.classification, AccountCreationPaymentClassification.FULL_PAYMENT);
+  assert.equal(reconciledRequest.status, HiveAccountCreationStatus.PAYMENT_DETECTED);
+  assert.equal(reconciledRequest.paymentTxId, "hive-payment-tx");
 });

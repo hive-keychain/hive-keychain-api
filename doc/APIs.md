@@ -92,7 +92,9 @@ Notes:
   activePublicKey: string;
   postingPublicKey: string;
   memoPublicKey: string;
-  paymentCurrency: string;
+  paymentCurrency?: "HIVE";
+  paymentChainId?: string | number;
+  paymentTokenAddress?: string | null;
 }
 ```
 
@@ -104,6 +106,9 @@ Notes:
   username: string;
   amount: string;
   currency: string;
+  chainId?: string | null;
+  tokenAddress?: string | null;
+  priceUsd?: string | null;
   address: string;
   memo: string | null;
   expiresAt: string;
@@ -112,7 +117,8 @@ Notes:
 
 Notes:
 - The handler validates Hive username format, public keys, selected currency, and username availability before creating a request.
-- `HIVE` is supported by default using the chain account creation fee; other currencies require backend amount configuration.
+- `HIVE` is supported using the chain account creation fee.
+- EVM payments are selected with `paymentChainId` plus optional `paymentTokenAddress`; the token is accepted only when the configured EVM light-node price endpoint has a latest USD price for that chain/token pair.
 - Requests are stored in `json/hive-account-creation-requests.json`, which is runtime data and ignored by git.
 - No payment reconciliation or account creation transaction is performed by this endpoint.
 
@@ -131,6 +137,9 @@ Notes:
   payment: {
     amount: string;
     currency: string;
+    chainId?: string | null;
+    tokenAddress?: string | null;
+    priceUsd?: string | null;
     address: string | null;
     memo: string | null;
     paidAmount: string | null;

@@ -27,6 +27,9 @@ const mapRequest = (row: any): HiveAccountCreationRequest => ({
   postingPublicKey: row.postingPublicKey,
   memoPublicKey: row.memoPublicKey,
   paymentCurrency: row.paymentCurrency,
+  paymentChainId: row.paymentChainId ?? null,
+  paymentTokenAddress: row.paymentTokenAddress ?? null,
+  paymentPriceUsd: row.paymentPriceUsd?.toString() ?? null,
   paymentAddress: row.paymentAddress,
   paymentMemo: row.paymentMemo,
   expectedAmount: row.expectedAmount,
@@ -92,6 +95,9 @@ const create = async (
   const now = new Date();
   const newRequest: HiveAccountCreationRequest = {
     ...request,
+    paymentChainId: request.paymentChainId ?? null,
+    paymentTokenAddress: request.paymentTokenAddress ?? null,
+    paymentPriceUsd: request.paymentPriceUsd ?? null,
     paymentAddress: request.paymentAddress ?? null,
     paymentMemo: request.paymentMemo ?? null,
     paidAmount: request.paidAmount ?? null,

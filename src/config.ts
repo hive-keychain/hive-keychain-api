@@ -104,17 +104,29 @@ export const Config = {
     expiryCheckIntervalMs: Number(
       process.env.ACCOUNT_CREATION_EXPIRY_CHECK_INTERVAL_MS ?? 60000,
     ),
+    paymentDetection: {
+      mvpCurrency: process.env.ACCOUNT_CREATION_MVP_PAYMENT_CURRENCY ?? "HIVE",
+      historyLimit: Number(
+        process.env.ACCOUNT_CREATION_PAYMENT_HISTORY_LIMIT ?? 1000,
+      ),
+      requiredConfirmations: Number(
+        process.env.ACCOUNT_CREATION_PAYMENT_REQUIRED_CONFIRMATIONS ?? 1,
+      ),
+    },
+    evmLightNode: {
+      baseUrl:
+        process.env.ACCOUNT_CREATION_EVM_LIGHT_NODE_URL ??
+        "https://evm.hive-keychain.com",
+    },
+    evmQuoteAmountUsd: Number(
+      process.env.ACCOUNT_CREATION_EVM_QUOTE_AMOUNT_USD ?? 3,
+    ),
+    evmPaymentAddress: process.env.ACCOUNT_CREATION_EVM_PAYMENT_ADDRESS,
     paymentAccount:
       process.env.ACCOUNT_CREATION_PAYMENT_ACCOUNT ?? "hive-keychain",
-    supportedPaymentCurrencies: {
-      HIVE: {
-        currency: "HIVE",
-        amount: process.env.ACCOUNT_CREATION_HIVE_AMOUNT,
-      },
-      HBD: {
-        currency: "HBD",
-        amount: process.env.ACCOUNT_CREATION_HBD_AMOUNT,
-      },
+    hivePayment: {
+      currency: "HIVE",
+      amount: process.env.ACCOUNT_CREATION_HIVE_AMOUNT,
     },
   },
 };
