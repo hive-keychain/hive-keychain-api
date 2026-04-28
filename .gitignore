@@ -10,4 +10,5 @@ json/*
 json/ecosystem/*
 !json/ecosystem/dapps.example.json
 src/logic/ecosystem/hive-dapps.json
+keychain-api-*.zip
 

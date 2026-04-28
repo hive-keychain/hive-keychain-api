@@ -8,7 +8,8 @@
     "dev": "nodemon src/index.ts --ignore json",
     "pm2-start": "pm2 start --name keychain-api npm -- start",
     "pm2-stop": "pm2 kill",
-    "build": "tsc -p ."
+    "build": "tsc -p .",
+    "git:archive": "rm -rf keychain-api-*.zip && git archive --format=zip --output=keychain-api-$(date +%Y-%m-%d).zip HEAD"
   },
   "keywords": [
     "hive",
