@@ -148,6 +148,18 @@ const getByRequestId = async (
   return readRequests().find((item) => item.requestId === requestId) ?? null;
 };
 
+const getByUsername = async (
+  username: string,
+): Promise<HiveAccountCreationRequest[]> => {
+  return readRequests().filter((item) => item.username === username);
+};
+
+const getByPaymentTxId = async (
+  paymentTxId: string,
+): Promise<HiveAccountCreationRequest | null> => {
+  return readRequests().find((item) => item.paymentTxId === paymentTxId) ?? null;
+};
+
 const getPaymentReconciliationCandidates = async (): Promise<
   HiveAccountCreationRequest[]
 > => {
@@ -236,6 +248,8 @@ const expirePendingRequests = async (now = new Date()): Promise<number> => {
 export const HiveAccountCreationRequestLogic = {
   create,
   getByRequestId,
+  getByUsername,
+  getByPaymentTxId,
   getPaymentReconciliationCandidates,
   getAccountCreationCandidates,
   updateStatus,

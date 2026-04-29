@@ -1,5 +1,7 @@
 import { Express } from "express";
+import { HiveAccountCreationAdminLogic } from "../../logic/hive/account-creation-admin.logic";
 import { HiveAccountCreationLogic } from "../../logic/hive/account-creation.logic";
+import { Role, accessCheck } from "../../middleware/access.middleware";
 
 const getStatusCode = (error: any) => error?.statusCode ?? 500;
 
@@ -32,8 +34,99 @@ const setupGetStatusApi = (app: Express) => {
   });
 };
 
+const setupAdminApis = (app: Express) => {
+  app.get(
+    "/hive/account-creation/admin/request/:requestId",
+    accessCheck(Role.ADMIN),
+    async (req, res) => {
+      try {
+        const request = await HiveAccountCreationAdminLogic.getByRequestId(
+          req.params.requestId,
+        );
+        if (!request) return res.status(404).send({ error: "Request not found." });
+        return res.status(200).send(request);
+      } catch (error) {
+        return res
+          .status(getStatusCode(error))
+          .send({ error: getErrorMessage(error) });
+      }
+    },
+  );
+
+  app.get(
+    "/hive/account-creation/admin/username/:username",
+    accessCheck(Role.ADMIN),
+    async (req, res) => {
+      try {
+        return res
+          .status(200)
+          .send(await HiveAccountCreationAdminLogic.getByUsername(req.params.username));
+      } catch (error) {
+        return res
+          .status(getStatusCode(error))
+          .send({ error: getErrorMessage(error) });
+      }
+    },
+  );
+
+  app.get(
+    "/hive/account-creation/admin/payment/:paymentTxId",
+    accessCheck(Role.ADMIN),
+    async (req, res) => {
+      try {
+        const request = await HiveAccountCreationAdminLogic.getByPaymentTxId(
+          req.params.paymentTxId,
+        );
+        if (!request) return res.status(404).send({ error: "Request not found." });
+        return res.status(200).send(request);
+      } catch (error) {
+        return res
+          .status(getStatusCode(error))
+          .send({ error: getErrorMessage(error) });
+      }
+    },
+  );
+
+  app.post(
+    "/hive/account-creation/admin/request/:requestId/retry",
+    accessCheck(Role.ADMIN),
+    async (req, res) => {
+      try {
+        const result = await HiveAccountCreationAdminLogic.retryFailedAccountCreation(
+          req.params.requestId,
+        );
+        if (!result) return res.status(404).send({ error: "Request not found." });
+        return res.status(200).send(result);
+      } catch (error) {
+        return res
+          .status(getStatusCode(error))
+          .send({ error: getErrorMessage(error) });
+      }
+    },
+  );
+
+  app.post(
+    "/hive/account-creation/admin/request/:requestId/cancel",
+    accessCheck(Role.ADMIN),
+    async (req, res) => {
+      try {
+        const request = await HiveAccountCreationAdminLogic.cancelRequest(
+          req.params.requestId,
+        );
+        if (!request) return res.status(404).send({ error: "Request not found." });
+        return res.status(200).send(request);
+      } catch (error) {
+        return res
+          .status(getStatusCode(error))
+          .send({ error: getErrorMessage(error) });
+      }
+    },
+  );
+};
+
 const setupApis = (app: Express) => {
   setupPostQuoteApi(app);
+  setupAdminApis(app);
   setupGetStatusApi(app);
 };
 

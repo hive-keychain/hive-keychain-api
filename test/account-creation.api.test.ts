@@ -22,6 +22,7 @@ process.env.ACCOUNT_CREATION_CREATOR_ACTIVE_PRIVATE_KEY =
   PrivateKey.fromSeed("account-creation-test").toString();
 
 const { AccountCreationApi } = require("../src/api/hive/account-creation.api");
+const { HiveAccountCreationAdminLogic } = require("../src/logic/hive/account-creation-admin.logic");
 const { HiveAccountCreationLogic } = require("../src/logic/hive/account-creation.logic");
 const {
   HiveAccountCreationReconciliationLogic,
@@ -980,4 +981,103 @@ test("account creation worker skips overlapping runs", async () => {
 
   assert.equal(secondRun.skipped, true);
   assert.equal(firstResult.skipped, false);
+});
+
+test("account creation admin lookup returns sanitized request data", async () => {
+  const storedRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest({
+      status: HiveAccountCreationStatus.PAYMENT_DETECTED,
+      paidAmount: "3.000",
+      paymentTxId: "payment-tx",
+    }),
+  );
+
+  const byRequestId = await HiveAccountCreationAdminLogic.getByRequestId(
+    storedRequest.requestId,
+  );
+  const byUsername = await HiveAccountCreationAdminLogic.getByUsername(
+    storedRequest.username,
+  );
+  const byPaymentTxId =
+    await HiveAccountCreationAdminLogic.getByPaymentTxId("payment-tx");
+
+  assert.equal(byRequestId.requestId, storedRequest.requestId);
+  assert.equal(byRequestId.payment.txId, "payment-tx");
+  assert.equal(byRequestId.ownerPublicKey, undefined);
+  assert.equal(byRequestId.activePublicKey, undefined);
+  assert.equal(byRequestId.postingPublicKey, undefined);
+  assert.equal(byRequestId.memoPublicKey, undefined);
+  assert.equal(byUsername.length, 1);
+  assert.equal(byUsername[0].requestId, storedRequest.requestId);
+  assert.equal(byPaymentTxId.requestId, storedRequest.requestId);
+});
+
+test("account creation admin retries only eligible failed requests", async () => {
+  const failedRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest({
+      status: HiveAccountCreationStatus.ACCOUNT_CREATION_FAILED,
+      paidAmount: "3.000",
+      paymentTxId: "payment-tx",
+    }),
+  );
+  let broadcastCount = 0;
+  mockHiveClient(
+    {
+      "creator-test": matchingHiveAccount("creator-test", {
+        pending_claimed_accounts: 1,
+      }),
+    },
+    {
+      broadcastResult: { id: "retry-tx" },
+      onBroadcast: () => {
+        broadcastCount++;
+      },
+    },
+  );
+
+  const result = await HiveAccountCreationAdminLogic.retryFailedAccountCreation(
+    failedRequest.requestId,
+  );
+
+  assert.equal(result.result, HiveAccountCreationServiceResult.ACCOUNT_CREATED);
+  assert.equal(result.request.status, HiveAccountCreationStatus.ACCOUNT_CREATED);
+  assert.equal(result.request.accountCreation.txId, "retry-tx");
+  assert.equal(broadcastCount, 1);
+});
+
+test("account creation admin rejects retry for ineligible requests", async () => {
+  const pendingRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest(),
+  );
+
+  await assert.rejects(
+    () =>
+      HiveAccountCreationAdminLogic.retryFailedAccountCreation(
+        pendingRequest.requestId,
+      ),
+    /Request is not an eligible failed request\./,
+  );
+});
+
+test("account creation admin can cancel non-created requests", async () => {
+  const pendingRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest(),
+  );
+
+  const cancelledRequest = await HiveAccountCreationAdminLogic.cancelRequest(
+    pendingRequest.requestId,
+  );
+
+  assert.equal(cancelledRequest.status, HiveAccountCreationStatus.CANCELLED);
+});
+
+test("account creation admin does not cancel created requests", async () => {
+  const createdRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest({ status: HiveAccountCreationStatus.ACCOUNT_CREATED }),
+  );
+
+  await assert.rejects(
+    () => HiveAccountCreationAdminLogic.cancelRequest(createdRequest.requestId),
+    /Created requests cannot be cancelled\./,
+  );
 });

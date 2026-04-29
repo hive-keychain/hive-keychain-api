@@ -160,6 +160,24 @@ Notes:
 
 ---
 
+### Hive account creation admin support
+#### `GET /hive/account-creation/admin/request/:requestId`
+#### `GET /hive/account-creation/admin/username/:username`
+#### `GET /hive/account-creation/admin/payment/:paymentTxId`
+#### `POST /hive/account-creation/admin/request/:requestId/retry`
+#### `POST /hive/account-creation/admin/request/:requestId/cancel`
+**Goal**: Internal admin-only support tooling for paid Hive account creation requests.
+
+Auth:
+- Requires the same `message` header admin signature used by other `Role.ADMIN` write endpoints.
+
+Notes:
+- Responses intentionally omit stored public key material and never include private keys or environment values.
+- Retry is limited to existing `account_creation_failed` requests with recorded sufficient payment.
+- Cancel marks a non-created request as `cancelled`; created requests cannot be cancelled.
+
+---
+
 ### Hive Engine token background colors
 #### `GET /hive/tokensBackgroundColors`
 **Goal**: Return the cached symbol-to-dominant-color map used by clients.
