@@ -156,7 +156,7 @@ Notes:
 
 Notes:
 - Public/private key material is not included in the status response.
-- Until reconciliation and account creation workers exist, payment and account creation transaction fields remain `null`.
+- Payment and account creation transaction fields are populated by backend reconciliation/account creation services after confirmed sufficient payment is detected.
 
 ---
 

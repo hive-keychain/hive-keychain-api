@@ -6,6 +6,7 @@ import path from "node:path";
 import test, { beforeEach } from "node:test";
 import bodyParser from "body-parser";
 import express from "express";
+import { PrivateKey } from "@hiveio/dhive";
 
 const requestStorePath = path.join(
   os.tmpdir(),
@@ -16,6 +17,9 @@ process.env.ACCOUNT_CREATION_PAYMENT_ACCOUNT = "keychain-test";
 process.env.ACCOUNT_CREATION_EVM_PAYMENT_ADDRESS =
   "0x1111111111111111111111111111111111111111";
 process.env.ACCOUNT_CREATION_EVM_QUOTE_AMOUNT_USD = "3";
+process.env.ACCOUNT_CREATION_CREATOR_ACCOUNT = "creator-test";
+process.env.ACCOUNT_CREATION_CREATOR_ACTIVE_PRIVATE_KEY =
+  PrivateKey.fromSeed("account-creation-test").toString();
 
 const { AccountCreationApi } = require("../src/api/hive/account-creation.api");
 const { HiveAccountCreationLogic } = require("../src/logic/hive/account-creation.logic");
@@ -23,6 +27,10 @@ const {
   HiveAccountCreationReconciliationLogic,
   AccountCreationPaymentClassification,
 } = require("../src/logic/hive/account-creation-reconciliation.logic");
+const {
+  HiveAccountCreationServiceLogic,
+  HiveAccountCreationServiceResult,
+} = require("../src/logic/hive/account-creation-service.logic");
 const {
   AccountCreationPaymentDetectionType,
   HiveAccountCreationPaymentDetector,
@@ -89,15 +97,23 @@ const closeServer = async (server: http.Server) => {
 };
 
 const mockHiveClient = (
-  accounts: unknown[] = [],
+  accounts: unknown[] | Record<string, unknown> = [],
   options: {
     accountHistory?: unknown[];
     lastIrreversibleBlockNum?: number;
+    broadcastResult?: unknown;
+    broadcastError?: Error;
+    onBroadcast?: (operations: unknown[]) => void;
   } = {},
 ) => {
   (HiveUtils as any).getClient = () => ({
     database: {
-      getAccounts: async () => accounts,
+      getAccounts: async (usernames: string[]) => {
+        if (Array.isArray(accounts)) return accounts;
+        return usernames
+          .map((username) => accounts[username])
+          .filter((account) => account !== undefined);
+      },
       getChainProperties: async () => ({
         account_creation_fee: "3.000 HIVE",
       }),
@@ -105,6 +121,13 @@ const mockHiveClient = (
       getDynamicGlobalProperties: async () => ({
         last_irreversible_block_num: options.lastIrreversibleBlockNum ?? 0,
       }),
+    },
+    broadcast: {
+      sendOperations: async (operations: unknown[]) => {
+        options.onBroadcast?.(operations);
+        if (options.broadcastError) throw options.broadcastError;
+        return options.broadcastResult ?? { id: "account-creation-tx" };
+      },
     },
   });
 };
@@ -141,6 +164,15 @@ const cryptoRandomId = () => Math.random().toString(36).slice(2);
 
 const mockPaymentDetector = (result: unknown) => ({
   detectPayment: async () => result,
+});
+
+const matchingHiveAccount = (name: string, overrides: Record<string, unknown> = {}) => ({
+  name,
+  owner: { key_auths: [[validPublicKey, 1]] },
+  active: { key_auths: [[validPublicKey, 1]] },
+  posting: { key_auths: [[validPublicKey, 1]] },
+  memo_key: validPublicKey,
+  ...overrides,
 });
 
 const paymentFound = (overrides: Record<string, unknown> = {}) => ({
@@ -461,6 +493,29 @@ test("reconciliation marks exact unconfirmed payments as confirming", async () =
   );
 });
 
+test("reconciliation leaves unconfirmed overpayments confirming", async () => {
+  const storedRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest(),
+  );
+
+  const [result] =
+    await HiveAccountCreationReconciliationLogic.reconcilePendingPayments(
+      mockPaymentDetector(paymentFound({ amount: "4.000", confirmed: false })),
+    );
+  const reconciledRequest = await HiveAccountCreationRequestLogic.getByRequestId(
+    storedRequest.requestId,
+  );
+
+  assert.equal(
+    result.classification,
+    AccountCreationPaymentClassification.PAYMENT_CONFIRMING,
+  );
+  assert.equal(
+    reconciledRequest.status,
+    HiveAccountCreationStatus.PAYMENT_CONFIRMING,
+  );
+});
+
 test("reconciliation marks underpayments", async () => {
   const storedRequest = await HiveAccountCreationRequestLogic.create(
     buildStoredRequest(),
@@ -646,4 +701,215 @@ test("reconciliation uses the HIVE detector by default", async () => {
   assert.equal(result.classification, AccountCreationPaymentClassification.FULL_PAYMENT);
   assert.equal(reconciledRequest.status, HiveAccountCreationStatus.PAYMENT_DETECTED);
   assert.equal(reconciledRequest.paymentTxId, "hive-payment-tx");
+});
+
+test("account creation service uses a claimed account token when available", async () => {
+  const storedRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest({
+      status: HiveAccountCreationStatus.PAYMENT_DETECTED,
+      paidAmount: "3.000",
+      paymentTxId: "payment-tx",
+    }),
+  );
+  let broadcastOperations: any[] = [];
+  mockHiveClient(
+    {
+      "creator-test": matchingHiveAccount("creator-test", {
+        pending_claimed_accounts: 1,
+      }),
+    },
+    {
+      broadcastResult: { id: "claimed-account-tx" },
+      onBroadcast: (operations) => {
+        broadcastOperations = operations as any[];
+      },
+    },
+  );
+
+  const result = await HiveAccountCreationServiceLogic.createAccountForRequestId(
+    storedRequest.requestId,
+  );
+  const createdRequest = await HiveAccountCreationRequestLogic.getByRequestId(
+    storedRequest.requestId,
+  );
+
+  assert.equal(result, HiveAccountCreationServiceResult.ACCOUNT_CREATED);
+  assert.equal(createdRequest.status, HiveAccountCreationStatus.ACCOUNT_CREATED);
+  assert.equal(createdRequest.accountCreationTxId, "claimed-account-tx");
+  assert.equal(broadcastOperations[0][0], "create_claimed_account");
+  assert.equal(broadcastOperations[0][1].creator, "creator-test");
+  assert.equal(broadcastOperations[0][1].new_account_name, storedRequest.username);
+  assert.equal(
+    broadcastOperations[0][1].owner.key_auths[0][0],
+    storedRequest.ownerPublicKey,
+  );
+});
+
+test("account creation service falls back to paying the creation fee", async () => {
+  const storedRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest({
+      status: HiveAccountCreationStatus.PAYMENT_DETECTED,
+      paidAmount: "3.000",
+      paymentTxId: "payment-tx",
+    }),
+  );
+  let broadcastOperations: any[] = [];
+  mockHiveClient(
+    {
+      "creator-test": matchingHiveAccount("creator-test", {
+        pending_claimed_accounts: 0,
+      }),
+    },
+    {
+      onBroadcast: (operations) => {
+        broadcastOperations = operations as any[];
+      },
+    },
+  );
+
+  const result = await HiveAccountCreationServiceLogic.createAccountForRequestId(
+    storedRequest.requestId,
+  );
+
+  assert.equal(result, HiveAccountCreationServiceResult.ACCOUNT_CREATED);
+  assert.equal(broadcastOperations[0][0], "account_create");
+  assert.equal(broadcastOperations[0][1].fee, "3.000 HIVE");
+});
+
+test("account creation service marks taken mismatched usernames unavailable", async () => {
+  const otherPublicKey = PrivateKey.fromSeed("other-account").createPublic().toString();
+  const storedRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest({
+      status: HiveAccountCreationStatus.PAYMENT_DETECTED,
+      paidAmount: "3.000",
+      paymentTxId: "payment-tx",
+    }),
+  );
+  let broadcastCount = 0;
+  mockHiveClient(
+    {
+      [storedRequest.username]: matchingHiveAccount(storedRequest.username, {
+        owner: { key_auths: [[otherPublicKey, 1]] },
+      }),
+      "creator-test": matchingHiveAccount("creator-test", {
+        pending_claimed_accounts: 1,
+      }),
+    },
+    {
+      onBroadcast: () => {
+        broadcastCount++;
+      },
+    },
+  );
+
+  const result = await HiveAccountCreationServiceLogic.createAccountForRequestId(
+    storedRequest.requestId,
+  );
+  const updatedRequest = await HiveAccountCreationRequestLogic.getByRequestId(
+    storedRequest.requestId,
+  );
+
+  assert.equal(result, HiveAccountCreationServiceResult.USERNAME_UNAVAILABLE);
+  assert.equal(updatedRequest.status, HiveAccountCreationStatus.USERNAME_UNAVAILABLE);
+  assert.equal(broadcastCount, 0);
+});
+
+test("account creation service is idempotent when the account already matches", async () => {
+  const storedRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest({
+      status: HiveAccountCreationStatus.CREATING_ACCOUNT,
+      paidAmount: "3.000",
+      paymentTxId: "payment-tx",
+    }),
+  );
+  let broadcastCount = 0;
+  mockHiveClient(
+    {
+      [storedRequest.username]: matchingHiveAccount(storedRequest.username),
+      "creator-test": matchingHiveAccount("creator-test", {
+        pending_claimed_accounts: 1,
+      }),
+    },
+    {
+      onBroadcast: () => {
+        broadcastCount++;
+      },
+    },
+  );
+
+  const result = await HiveAccountCreationServiceLogic.createAccountForRequestId(
+    storedRequest.requestId,
+  );
+  const updatedRequest = await HiveAccountCreationRequestLogic.getByRequestId(
+    storedRequest.requestId,
+  );
+
+  assert.equal(result, HiveAccountCreationServiceResult.ALREADY_CREATED);
+  assert.equal(updatedRequest.status, HiveAccountCreationStatus.ACCOUNT_CREATED);
+  assert.equal(broadcastCount, 0);
+});
+
+test("account creation service does not process unpaid requests", async () => {
+  const storedRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest(),
+  );
+  let broadcastCount = 0;
+  mockHiveClient(
+    {
+      [storedRequest.username]: matchingHiveAccount(storedRequest.username),
+      "creator-test": matchingHiveAccount("creator-test", {
+        pending_claimed_accounts: 1,
+      }),
+    },
+    {
+      onBroadcast: () => {
+        broadcastCount++;
+      },
+    },
+  );
+
+  const result = await HiveAccountCreationServiceLogic.createAccountForRequestId(
+    storedRequest.requestId,
+  );
+  const updatedRequest = await HiveAccountCreationRequestLogic.getByRequestId(
+    storedRequest.requestId,
+  );
+
+  assert.equal(result, HiveAccountCreationServiceResult.INELIGIBLE);
+  assert.equal(updatedRequest.status, HiveAccountCreationStatus.PAYMENT_PENDING);
+  assert.equal(broadcastCount, 0);
+});
+
+test("account creation service marks safe broadcast failures", async () => {
+  const storedRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest({
+      status: HiveAccountCreationStatus.PAYMENT_DETECTED,
+      paidAmount: "3.000",
+      paymentTxId: "payment-tx",
+    }),
+  );
+  mockHiveClient(
+    {
+      "creator-test": matchingHiveAccount("creator-test", {
+        pending_claimed_accounts: 1,
+      }),
+    },
+    {
+      broadcastError: new Error("broadcast failed"),
+    },
+  );
+
+  const result = await HiveAccountCreationServiceLogic.createAccountForRequestId(
+    storedRequest.requestId,
+  );
+  const updatedRequest = await HiveAccountCreationRequestLogic.getByRequestId(
+    storedRequest.requestId,
+  );
+
+  assert.equal(result, HiveAccountCreationServiceResult.ACCOUNT_CREATION_FAILED);
+  assert.equal(
+    updatedRequest.status,
+    HiveAccountCreationStatus.ACCOUNT_CREATION_FAILED,
+  );
+  assert.equal(updatedRequest.accountCreationTxId, null);
 });

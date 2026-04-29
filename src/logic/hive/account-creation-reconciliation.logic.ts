@@ -83,6 +83,14 @@ const classifyPayment = (
     };
   }
 
+  if (!payment.confirmed) {
+    return {
+      classification: AccountCreationPaymentClassification.PAYMENT_CONFIRMING,
+      status: HiveAccountCreationStatus.PAYMENT_CONFIRMING,
+      payment,
+    };
+  }
+
   const amountComparison = compareAmounts(payment.amount, request.expectedAmount);
   if (amountComparison < 0) {
     return {
@@ -95,14 +103,6 @@ const classifyPayment = (
     return {
       classification: AccountCreationPaymentClassification.OVERPAYMENT,
       status: HiveAccountCreationStatus.OVERPAID,
-      payment,
-    };
-  }
-
-  if (!payment.confirmed) {
-    return {
-      classification: AccountCreationPaymentClassification.PAYMENT_CONFIRMING,
-      status: HiveAccountCreationStatus.PAYMENT_CONFIRMING,
       payment,
     };
   }

@@ -124,6 +124,10 @@ export const Config = {
     evmPaymentAddress: process.env.ACCOUNT_CREATION_EVM_PAYMENT_ADDRESS,
     paymentAccount:
       process.env.ACCOUNT_CREATION_PAYMENT_ACCOUNT ?? "hive-keychain",
+    creator: {
+      account: process.env.ACCOUNT_CREATION_CREATOR_ACCOUNT,
+      activePrivateKey: process.env.ACCOUNT_CREATION_CREATOR_ACTIVE_PRIVATE_KEY,
+    },
     hivePayment: {
       currency: "HIVE",
       amount: process.env.ACCOUNT_CREATION_HIVE_AMOUNT,

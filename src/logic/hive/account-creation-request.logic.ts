@@ -131,6 +131,18 @@ const getPaymentReconciliationCandidates = async (): Promise<
   );
 };
 
+const getAccountCreationCandidates = async (): Promise<
+  HiveAccountCreationRequest[]
+> => {
+  return readRequests().filter((request) =>
+    [
+      HiveAccountCreationStatus.PAYMENT_DETECTED,
+      HiveAccountCreationStatus.OVERPAID,
+      HiveAccountCreationStatus.CREATING_ACCOUNT,
+    ].includes(request.status),
+  );
+};
+
 const updateStatus = async (
   requestId: string,
   status: HiveAccountCreationStatus,
@@ -192,6 +204,7 @@ export const HiveAccountCreationRequestLogic = {
   create,
   getByRequestId,
   getPaymentReconciliationCandidates,
+  getAccountCreationCandidates,
   updateStatus,
   expirePendingRequests,
 };
