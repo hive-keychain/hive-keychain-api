@@ -64,6 +64,35 @@ const writeRequests = (requests: HiveAccountCreationRequest[]) => {
   }
 };
 
+const getSafePaymentMetadata = (request: HiveAccountCreationRequest) => ({
+  paymentCurrency: request.paymentCurrency,
+  paymentChainId: request.paymentChainId,
+  paymentTokenAddress: request.paymentTokenAddress,
+  expectedAmount: request.expectedAmount,
+  paidAmount: request.paidAmount,
+  paymentTxId: request.paymentTxId,
+});
+
+const logStatusTransition = (
+  oldRequest: HiveAccountCreationRequest,
+  newRequest: HiveAccountCreationRequest,
+) => {
+  if (oldRequest.status === newRequest.status) return;
+
+  try {
+    Logger.info(
+      `Hive account creation request status transition ${JSON.stringify({
+        requestId: newRequest.requestId,
+        oldStatus: oldRequest.status,
+        newStatus: newRequest.status,
+        payment: getSafePaymentMetadata(newRequest),
+      })}`,
+    );
+  } catch {
+    // Tests exercise this logic without initializing the application logger.
+  }
+};
+
 const hasSamePaymentTarget = (
   existing: HiveAccountCreationRequest,
   request: NewHiveAccountCreationRequest,
@@ -171,6 +200,7 @@ const updateStatus = async (
 
   requests[requestIndex] = updatedRequest;
   writeRequests(requests);
+  logStatusTransition(request, updatedRequest);
 
   return updatedRequest;
 };
@@ -197,6 +227,9 @@ const expirePendingRequests = async (now = new Date()): Promise<number> => {
   });
 
   if (expiredCount > 0) writeRequests(updatedRequests);
+  updatedRequests.forEach((request, index) =>
+    logStatusTransition(requests[index], request),
+  );
   return expiredCount;
 };
 

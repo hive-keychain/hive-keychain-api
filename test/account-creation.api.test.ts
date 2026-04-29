@@ -913,3 +913,71 @@ test("account creation service marks safe broadcast failures", async () => {
   );
   assert.equal(updatedRequest.accountCreationTxId, null);
 });
+
+test("account creation worker reconciles payments and creates paid accounts", async () => {
+  const storedRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest(),
+  );
+  let broadcastCount = 0;
+  mockHiveClient(
+    {
+      "creator-test": matchingHiveAccount("creator-test", {
+        pending_claimed_accounts: 1,
+      }),
+    },
+    {
+      broadcastResult: { id: "worker-created-tx" },
+      onBroadcast: () => {
+        broadcastCount++;
+      },
+    },
+  );
+
+  const result = await HiveAccountCreationLogic.processPaidAccountCreationRequests(
+    mockPaymentDetector(paymentFound({ amount: "3.000", confirmed: true })),
+  );
+  const updatedRequest = await HiveAccountCreationRequestLogic.getByRequestId(
+    storedRequest.requestId,
+  );
+
+  assert.equal(result.skipped, false);
+  assert.equal(result.reconciliationResults.length, 1);
+  assert.equal(result.accountCreationResults.length, 1);
+  assert.equal(result.accountCreationResults[0], HiveAccountCreationServiceResult.ACCOUNT_CREATED);
+  assert.equal(updatedRequest.status, HiveAccountCreationStatus.ACCOUNT_CREATED);
+  assert.equal(updatedRequest.paidAmount, "3.000");
+  assert.equal(updatedRequest.accountCreationTxId, "worker-created-tx");
+  assert.equal(broadcastCount, 1);
+});
+
+test("account creation worker skips overlapping runs", async () => {
+  await HiveAccountCreationRequestLogic.create(buildStoredRequest());
+
+  let releaseDetection: () => void = () => undefined;
+  const slowDetector = {
+    detectPayment: async () => {
+      await new Promise<void>((resolve) => {
+        releaseDetection = resolve;
+      });
+      return paymentFound({ amount: "3.000", confirmed: true });
+    },
+  };
+  mockHiveClient({
+    "creator-test": matchingHiveAccount("creator-test", {
+      pending_claimed_accounts: 1,
+    }),
+  });
+
+  const firstRun =
+    HiveAccountCreationLogic.processPaidAccountCreationRequests(slowDetector);
+  const secondRun =
+    await HiveAccountCreationLogic.processPaidAccountCreationRequests(
+      mockPaymentDetector(paymentFound()),
+    );
+
+  releaseDetection();
+  const firstResult = await firstRun;
+
+  assert.equal(secondRun.skipped, true);
+  assert.equal(firstResult.skipped, false);
+});

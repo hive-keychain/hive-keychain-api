@@ -49,6 +49,7 @@ const initServerRoutine = () => {
   MetamaskPhishingLogic.initFetchMetamaskBlacklist();
   SmartContractsInfoLogic.initMoralisIfNeeded();
   HiveAccountCreationLogic.initExpiryJob();
+  HiveAccountCreationLogic.initPaymentProcessingJob();
   // ChainLogic.initChainList();
   LifiLogic.initializeLifi();
   startServer(app);

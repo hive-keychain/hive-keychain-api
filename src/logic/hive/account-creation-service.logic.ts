@@ -10,6 +10,7 @@ import {
 export enum HiveAccountCreationServiceResult {
   ACCOUNT_CREATED = "account_created",
   ALREADY_CREATED = "already_created",
+  ALREADY_PROCESSING = "already_processing",
   INELIGIBLE = "ineligible",
   REQUEST_NOT_FOUND = "request_not_found",
   USERNAME_UNAVAILABLE = "username_unavailable",
@@ -31,6 +32,8 @@ const paidCreationStatuses = [
   HiveAccountCreationStatus.CREATING_ACCOUNT,
   HiveAccountCreationStatus.ACCOUNT_CREATION_FAILED,
 ];
+
+const processingRequestIds = new Set<string>();
 
 const buildAuthority = (publicKey: string) => ({
   weight_threshold: 1,
@@ -154,7 +157,7 @@ const markExistingAccount = async (
 const extractTransactionId = (confirmation: any): string | null =>
   confirmation?.id ?? confirmation?.trx_id ?? confirmation?.trxId ?? null;
 
-const createAccountFromPaidRequest = async (
+const createAccountFromPaidRequestUnlocked = async (
   request: HiveAccountCreationRequest,
 ): Promise<HiveAccountCreationServiceResult> => {
   if (request.status === HiveAccountCreationStatus.ACCOUNT_CREATED) {
@@ -208,6 +211,21 @@ const createAccountFromPaidRequest = async (
       HiveAccountCreationStatus.ACCOUNT_CREATION_FAILED,
     );
     return HiveAccountCreationServiceResult.ACCOUNT_CREATION_FAILED;
+  }
+};
+
+const createAccountFromPaidRequest = async (
+  request: HiveAccountCreationRequest,
+): Promise<HiveAccountCreationServiceResult> => {
+  if (processingRequestIds.has(request.requestId)) {
+    return HiveAccountCreationServiceResult.ALREADY_PROCESSING;
+  }
+
+  processingRequestIds.add(request.requestId);
+  try {
+    return await createAccountFromPaidRequestUnlocked(request);
+  } finally {
+    processingRequestIds.delete(request.requestId);
   }
 };
 

@@ -12,6 +12,7 @@ import {
 } from "./account-creation-request.model";
 
 export enum AccountCreationPaymentClassification {
+  ALREADY_PROCESSING = "already_processing",
   NO_PAYMENT = "no_payment",
   FULL_PAYMENT = "full_payment",
   PAYMENT_CONFIRMING = "payment_confirming",
@@ -27,6 +28,8 @@ export interface AccountCreationPaymentReconciliationResult {
   status: HiveAccountCreationStatus;
   updated: boolean;
 }
+
+const processingRequestIds = new Set<string>();
 
 const compareAmounts = (actual: string, expected: string) => {
   const actualAmount = Number(actual);
@@ -115,6 +118,27 @@ const classifyPayment = (
 };
 
 const reconcileRequestPayment = async (
+  request: HiveAccountCreationRequest,
+  detector: AccountCreationPaymentDetector = HiveAccountCreationPaymentDetector,
+): Promise<AccountCreationPaymentReconciliationResult> => {
+  if (processingRequestIds.has(request.requestId)) {
+    return {
+      requestId: request.requestId,
+      classification: AccountCreationPaymentClassification.ALREADY_PROCESSING,
+      status: request.status,
+      updated: false,
+    };
+  }
+
+  processingRequestIds.add(request.requestId);
+  try {
+    return await reconcileRequestPaymentUnlocked(request, detector);
+  } finally {
+    processingRequestIds.delete(request.requestId);
+  }
+};
+
+const reconcileRequestPaymentUnlocked = async (
   request: HiveAccountCreationRequest,
   detector: AccountCreationPaymentDetector = HiveAccountCreationPaymentDetector,
 ): Promise<AccountCreationPaymentReconciliationResult> => {

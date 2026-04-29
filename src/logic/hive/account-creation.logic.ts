@@ -1,16 +1,38 @@
 import { PublicKey } from "@hiveio/dhive";
 import crypto from "crypto";
+import Logger from "hive-keychain-commons/lib/logger/logger";
 import { Config } from "../../config";
 import { HiveUtils } from "../../utils/hive.utils";
 import { AccountCreationEvmPriceLogic } from "./account-creation-evm-price.logic";
+import { AccountCreationPaymentDetector } from "./account-creation-payment-detector";
+import { HiveAccountCreationReconciliationLogic } from "./account-creation-reconciliation.logic";
 import { HiveAccountCreationRequestLogic } from "./account-creation-request.logic";
 import {
   HiveAccountCreationRequest,
   HiveAccountCreationStatus,
   NewHiveAccountCreationRequest,
 } from "./account-creation-request.model";
+import { HiveAccountCreationServiceLogic } from "./account-creation-service.logic";
 
 let expiryInterval: NodeJS.Timeout | undefined;
+let paymentProcessingInterval: NodeJS.Timeout | undefined;
+let paymentProcessingInProgress = false;
+
+const safeLogInfo = (message: string) => {
+  try {
+    Logger.info(message);
+  } catch {
+    // Unit tests call background logic without initializing the application logger.
+  }
+};
+
+const safeLogError = (message: string) => {
+  try {
+    Logger.error(message);
+  } catch {
+    // Unit tests call background logic without initializing the application logger.
+  }
+};
 
 interface AccountCreationQuoteRequestBody {
   username?: string;
@@ -237,6 +259,44 @@ const expirePendingQuotes = async (now = new Date()) => {
   return HiveAccountCreationRequestLogic.expirePendingRequests(now);
 };
 
+const processPaidAccountCreationRequests = async (
+  detector?: AccountCreationPaymentDetector,
+) => {
+  if (paymentProcessingInProgress) {
+    safeLogInfo("Hive account creation payment processing skipped: already running");
+    return {
+      skipped: true,
+      reconciliationResults: [],
+      accountCreationResults: [],
+    };
+  }
+
+  paymentProcessingInProgress = true;
+  try {
+    const reconciliationResults =
+      await HiveAccountCreationReconciliationLogic.reconcilePendingPayments(
+        detector,
+      );
+    const accountCreationResults =
+      await HiveAccountCreationServiceLogic.createAccountsForPaidRequests();
+
+    return {
+      skipped: false,
+      reconciliationResults,
+      accountCreationResults,
+    };
+  } catch (error) {
+    safeLogError(
+      `Hive account creation payment processing failed: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`,
+    );
+    throw error;
+  } finally {
+    paymentProcessingInProgress = false;
+  }
+};
+
 const initExpiryJob = () => {
   if (expiryInterval) return;
   expirePendingQuotes();
@@ -246,9 +306,20 @@ const initExpiryJob = () => {
   );
 };
 
+const initPaymentProcessingJob = () => {
+  if (paymentProcessingInterval) return;
+  processPaidAccountCreationRequests().catch(() => undefined);
+  paymentProcessingInterval = setInterval(
+    () => processPaidAccountCreationRequests().catch(() => undefined),
+    Config.accountCreation.paymentProcessingIntervalMs,
+  );
+};
+
 export const HiveAccountCreationLogic = {
   createQuote,
   getStatus,
   expirePendingQuotes,
+  processPaidAccountCreationRequests,
   initExpiryJob,
+  initPaymentProcessingJob,
 };

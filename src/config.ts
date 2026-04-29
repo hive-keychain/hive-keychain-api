@@ -104,6 +104,9 @@ export const Config = {
     expiryCheckIntervalMs: Number(
       process.env.ACCOUNT_CREATION_EXPIRY_CHECK_INTERVAL_MS ?? 60000,
     ),
+    paymentProcessingIntervalMs: Number(
+      process.env.ACCOUNT_CREATION_PAYMENT_PROCESSING_INTERVAL_MS ?? 60000,
+    ),
     paymentDetection: {
       mvpCurrency: process.env.ACCOUNT_CREATION_MVP_PAYMENT_CURRENCY ?? "HIVE",
       historyLimit: Number(
