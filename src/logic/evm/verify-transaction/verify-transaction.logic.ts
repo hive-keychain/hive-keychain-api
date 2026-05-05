@@ -1,10 +1,5 @@
-import { InfuraProvider } from "@ethersproject/providers";
-import detectProxyTarget from "evm-proxy-detection";
 import { EvmPhishingLogic } from "./phishing-list/evm-phishing.logic";
 import { ScamSnifferLogic } from "./scamsniffer.logic";
-
-const infuraProvider = new InfuraProvider(1, process.env.INFURA_API_KEY);
-const requestFunc = ({ method, params }) => infuraProvider.send(method, params);
 
 export interface DomainResult {
   isBlacklisted: boolean;
@@ -15,9 +10,6 @@ export interface DomainResult {
 
 export interface ContractResult {
   isBlacklisted: boolean;
-  proxy: {
-    target: string;
-  } | null;
 }
 
 export interface ToResult {
@@ -71,11 +63,7 @@ const verifyContract = async (contract?: string) => {
 
   if (!contract) return;
 
-  const [scamSniffer] = await Promise.all([
-    ScamSnifferLogic.getScamSnifferBlacklistFile(),
-  ]);
-  const proxy = await detectProxyTarget(contract as `0x${string}`, requestFunc);
-  result.proxy = proxy;
+  const scamSniffer = await ScamSnifferLogic.getScamSnifferBlacklistFile();
   result.isBlacklisted = scamSniffer.address.includes(contract);
   return result;
 };

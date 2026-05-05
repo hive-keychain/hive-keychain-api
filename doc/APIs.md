@@ -551,7 +551,7 @@ Notes:
 - `contract?`
 - `chainId?` (currently not used by the verification logic)
 
-**Goal**: Check the supplied domain, target address, and contract address against the loaded phishing datasets and proxy detection.
+**Goal**: Check the supplied domain, target address, and contract address against the loaded phishing datasets.
 
 **Response**
 ```ts
@@ -566,7 +566,6 @@ type VerifyTransactionResponse = {
   };
   contract?: {
     isBlacklisted: boolean;
-    proxy: { target: string } | null;
   };
 };
 ```
