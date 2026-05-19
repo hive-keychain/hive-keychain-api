@@ -4,40 +4,30 @@ import { EcosystemLogic } from "../logic/ecosystem/ecosystem.logic";
 import { Role, accessCheck } from "../middleware/access.middleware";
 
 const setupGetEcosystem = (app: Express) => {
-  app.get(
-    "/ecosystem/dapps",
-    async (req, res) => {
-      const ecosystemDapps = await EcosystemLogic.getDappList();
-      Logger.info("Get ecosystem");
-      res.status(200).json(ecosystemDapps);
-    }
-  );
+  app.get("/ecosystem/dapps", async (req, res) => {
+    const ecosystemDapps = await EcosystemLogic.getDappList();
+    Logger.info("Get ecosystem");
+    res.status(200).json(ecosystemDapps);
+  });
 };
 
 const setupLegacyGetEcosystem = (app: Express) => {
-  app.get(
-    "/:chain/ecosystem/dapps",
-    async (req, res) => {
-      const ecosystemDapps = await EcosystemLogic.getDappListByChainId(
-        req.params.chain,
-      );
-      Logger.info(`Get ${req.params.chain} ecosystem (legacy)`);
-      res.status(200).json(ecosystemDapps);
-    },
-  );
+  app.get("/:chain/ecosystem/dapps", async (req, res) => {
+    const ecosystemDapps = await EcosystemLogic.getDappListByChainId(
+      req.params.chain,
+    );
+    Logger.info(`Get ${req.params.chain} ecosystem (legacy)`);
+    res.status(200).json(ecosystemDapps);
+  });
 };
 
 const setupSaveNewDapp = (app: Express) => {
-  app.post(
-    "/ecosystem/new",
-    accessCheck(Role.TEAM),
-    async (req, res) => {
-      const newDapp = req.body;
-      await EcosystemLogic.saveNewDapp(newDapp);
-      Logger.info(`Saving new ${req.body?.chainId} dapp`);
-      res.status(200).send({ status: 200 });
-    }
-  );
+  app.post("/ecosystem/new", accessCheck(Role.TEAM), async (req, res) => {
+    const newDapp = req.body;
+    await EcosystemLogic.saveNewDapp(newDapp);
+    Logger.info(`Saving new ${req.body?.chainId} dapp`);
+    res.status(200).send({ status: 200 });
+  });
 };
 
 const setupLegacySaveNewDapp = (app: Express) => {
@@ -54,16 +44,12 @@ const setupLegacySaveNewDapp = (app: Express) => {
 };
 
 const setupEditDapp = (app: Express) => {
-  app.post(
-    "/ecosystem/edit",
-    accessCheck(Role.TEAM),
-    async (req, res) => {
-      const dapp = req.body;
-      await EcosystemLogic.editDapp(dapp);
-      Logger.info(`Editing ${req.body?.chainId} dapp`);
-      res.status(200).send({ status: 200 });
-    }
-  );
+  app.post("/ecosystem/edit", accessCheck(Role.TEAM), async (req, res) => {
+    const dapp = req.body;
+    await EcosystemLogic.editDapp(dapp);
+    Logger.info(`Editing ${req.body?.chainId} dapp`);
+    res.status(200).send({ status: 200 });
+  });
 };
 
 const setupLegacyEditDapp = (app: Express) => {
@@ -80,16 +66,12 @@ const setupLegacyEditDapp = (app: Express) => {
 };
 
 const setupDeleteDapp = (app: Express) => {
-  app.post(
-    "/ecosystem/delete",
-    accessCheck(Role.TEAM),
-    async (req, res) => {
-      const dapp = req.body;
-      await EcosystemLogic.deleteDapp(dapp);
-      Logger.info(`Deleting ${req.body?.chainId} dapp`);
-      res.status(200).send({ status: 200 });
-    }
-  );
+  app.post("/ecosystem/delete", accessCheck(Role.TEAM), async (req, res) => {
+    const dapp = req.body;
+    await EcosystemLogic.deleteDapp(dapp);
+    Logger.info(`Deleting ${req.body?.chainId} dapp`);
+    res.status(200).send({ status: 200 });
+  });
 };
 
 const setupLegacyDeleteDapp = (app: Express) => {
