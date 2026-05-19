@@ -46,6 +46,7 @@ type HivePriceResponse = {
 Notes:
 - The seed file currently contains only `usd` and `usd_24h_change`.
 - Timestamp fields appear only after the background refresh loop has written a refreshed payload.
+- Returns `503` with `{ error: "Prices not available" }` when the in-memory cache is empty or incomplete (for example before the first successful refresh or when `json/coingecko-prices.json` is missing).
 
 ---
 

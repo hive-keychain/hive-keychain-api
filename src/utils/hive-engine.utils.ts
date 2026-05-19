@@ -12,7 +12,8 @@ export const getAllTokens = async (): Promise<Token[] | undefined> => {
     } while (tokens.length % 1000 === 0);
     return tokens;
   } catch (e) {
-    Logger.error("failed fetching colors");
+    Logger.error("failed fetching hive-engine tokens", e);
+    return undefined;
   }
 };
 
@@ -56,15 +57,21 @@ const get = async <T>(
           resolved = true;
           return res.json();
         }
+        throw new Error(`Hive Engine request failed with status ${res?.status}`);
       })
       .then((res: any) => {
         if (res) resolve(res.result as unknown as T);
-        else reject("failed");
+        else reject(new Error("Hive Engine request returned no result"));
+      })
+      .catch((err) => {
+        if (!resolved) {
+          reject(err);
+        }
       });
 
     setTimeout(() => {
       if (!resolved) {
-        reject("html_popup_tokens_timeout");
+        reject(new Error("html_popup_tokens_timeout"));
       }
     }, timeout * 1000);
   });

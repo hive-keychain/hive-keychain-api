@@ -18,7 +18,8 @@ const getAllTokens = async () => {
         return tokens;
     }
     catch (e) {
-        logger_1.default.error("failed fetching colors");
+        logger_1.default.error("failed fetching hive-engine tokens", e);
+        return undefined;
     }
 };
 exports.getAllTokens = getAllTokens;
@@ -56,16 +57,22 @@ const get = async (params, timeout = 10) => {
                 resolved = true;
                 return res.json();
             }
+            throw new Error(`Hive Engine request failed with status ${res?.status}`);
         })
             .then((res) => {
             if (res)
                 resolve(res.result);
             else
-                reject("failed");
+                reject(new Error("Hive Engine request returned no result"));
+        })
+            .catch((err) => {
+            if (!resolved) {
+                reject(err);
+            }
         });
         setTimeout(() => {
             if (!resolved) {
-                reject("html_popup_tokens_timeout");
+                reject(new Error("html_popup_tokens_timeout"));
             }
         }, timeout * 1000);
     });

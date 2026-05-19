@@ -4,7 +4,12 @@ exports.PriceApi = void 0;
 const price_logic_1 = require("../logic/price.logic");
 const setupGetHivePriceApi = (app) => {
     app.get("/hive/v2/price", async (req, res) => {
-        res.status(200).send(price_logic_1.PriceLogic.getHivePrices());
+        const prices = price_logic_1.PriceLogic.getHivePrices();
+        if (!prices) {
+            res.status(503).send({ error: "Prices not available" });
+            return;
+        }
+        res.status(200).send(prices);
     });
 };
 const setupApis = (app) => {
