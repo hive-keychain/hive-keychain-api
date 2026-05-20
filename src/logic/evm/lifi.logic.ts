@@ -175,7 +175,7 @@ const pickSide = (side: any): LifiHistoryTransferSide | undefined => {
     chainId: side.chainId,
     amountUSD: side.amountUSD,
     amount: side.amount,
-    timestamp: side.timestamp,
+    timestamp: Number(side.timestamp) * 1000,
   };
 };
 
@@ -185,6 +185,7 @@ const mapHistoryItem = (
   verifiedSubstatus?: Substatus,
 ): LifiHistoryItem => {
   const fullTransfer = transfer as any;
+  console.log("fullTransfer", fullTransfer);
   return {
     transactionId: fullTransfer.transactionId,
     lifiExplorerLink: fullTransfer.lifiExplorerLink,
