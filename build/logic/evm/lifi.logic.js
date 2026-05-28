@@ -134,11 +134,12 @@ const pickSide = (side) => {
         chainId: side.chainId,
         amountUSD: side.amountUSD,
         amount: side.amount,
-        timestamp: side.timestamp,
+        timestamp: Number(side.timestamp) * 1000,
     };
 };
 const mapHistoryItem = (transfer, verifiedStatus, verifiedSubstatus) => {
     const fullTransfer = transfer;
+    console.log("fullTransfer", fullTransfer);
     return {
         transactionId: fullTransfer.transactionId,
         lifiExplorerLink: fullTransfer.lifiExplorerLink,

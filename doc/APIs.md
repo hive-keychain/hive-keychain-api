@@ -544,38 +544,6 @@ Notes:
 
 ## VI) EVM Security And LiFi Endpoints
 
-### Verify EVM transaction targets
-#### `GET /evm/verify-transaction`
-**Query params**
-- `domain?`
-- `to?`
-- `contract?`
-- `chainId?` (currently not used by the verification logic)
-
-**Goal**: Check the supplied domain, target address, and contract address against the loaded phishing datasets.
-
-**Response**
-```ts
-type VerifyTransactionResponse = {
-  domain?: {
-    isBlacklisted: boolean;
-    isWhitelisted: boolean;
-    fuzzy?: string;
-  };
-  to?: {
-    isBlacklisted: boolean;
-  };
-  contract?: {
-    isBlacklisted: boolean;
-  };
-};
-```
-
-Notes:
-- Omitted query params produce omitted or `undefined` sub-objects.
-
----
-
 ### Keychain phishing list
 #### `GET /evm/keychain-phishing-list`
 #### `POST /evm/keychain-phishing-list`
