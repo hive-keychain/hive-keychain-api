@@ -46,6 +46,7 @@ type HivePriceResponse = {
 Notes:
 - The seed file currently contains only `usd` and `usd_24h_change`.
 - Timestamp fields appear only after the background refresh loop has written a refreshed payload.
+- Returns `503` with `{ error: "Prices not available" }` when the in-memory cache is empty or incomplete (for example before the first successful refresh or when `json/coingecko-prices.json` is missing).
 
 ---
 
@@ -640,39 +641,6 @@ Notes:
 ---
 
 ## VI) EVM Security And LiFi Endpoints
-
-### Verify EVM transaction targets
-#### `GET /evm/verify-transaction`
-**Query params**
-- `domain?`
-- `to?`
-- `contract?`
-- `chainId?` (currently not used by the verification logic)
-
-**Goal**: Check the supplied domain, target address, and contract address against the loaded phishing datasets and proxy detection.
-
-**Response**
-```ts
-type VerifyTransactionResponse = {
-  domain?: {
-    isBlacklisted: boolean;
-    isWhitelisted: boolean;
-    fuzzy?: string;
-  };
-  to?: {
-    isBlacklisted: boolean;
-  };
-  contract?: {
-    isBlacklisted: boolean;
-    proxy: { target: string } | null;
-  };
-};
-```
-
-Notes:
-- Omitted query params produce omitted or `undefined` sub-objects.
-
----
 
 ### Keychain phishing list
 #### `GET /evm/keychain-phishing-list`

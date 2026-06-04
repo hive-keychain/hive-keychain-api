@@ -32,20 +32,32 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TokensBackgroundColorsLogic = void 0;
 const canvas_1 = require("canvas");
 const fs = __importStar(require("fs"));
+const logger_1 = __importDefault(require("hive-keychain-commons/lib/logger/logger"));
 const hive_engine_utils_1 = require("../../utils/hive-engine.utils");
 const DEFAULT_COLOR = "#000000";
 const getColorMap = async () => await fs
     .readFileSync(__dirname + `/../../../json/tokensBackgroundColors.json`)
     .toString();
 const initFetchColorMap = () => {
-    createColorMap();
+    void runCreateColorMap();
     setInterval(() => {
-        createColorMap();
+        void runCreateColorMap();
     }, 3600 * 1000 * 12);
+};
+const runCreateColorMap = async () => {
+    try {
+        await createColorMap();
+    }
+    catch (e) {
+        logger_1.default.error("failed to refresh token background colors", e);
+    }
 };
 const createColorMap = async () => {
     const tokens = await (0, hive_engine_utils_1.getAllTokens)();
@@ -62,7 +74,7 @@ const createColorMap = async () => {
         await fs.writeFile(__dirname + `/../../../json/tokensBackgroundColors.json`, JSON.stringify(map), "utf8", () => console.log(`Updated color map`));
     }
     catch (e) {
-        console.log("Failed to update color map");
+        logger_1.default.error("failed to write token background colors file", e);
     }
 };
 const getBackgroundColorFromImage = async (imgLink) => {

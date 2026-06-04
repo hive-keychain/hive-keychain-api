@@ -1,8 +1,13 @@
 import { EvmPhishingList } from "../../interfaces/evm-phishing-list.interface";
-import { DomainResult } from "../verify-transaction.logic";
 import { KeychainPhishingLogic } from "./keychain-phishing.logic";
 import { MetamaskPhishingLogic } from "./metamask-phishing.logic";
 const PhishingDetector = require("eth-phishing-detect/src/detector");
+
+interface DomainResult {
+  isBlacklisted: boolean;
+  isWhitelisted: boolean;
+  fuzzy?: string;
+}
 
 enum PhishingResultType {
   WHITELIST = "whitelist",

@@ -66,6 +66,9 @@ const getDappList = () => {
 };
 const getDappListByChainId = (chainId) => {
     try {
+        if (chainId === "hive") {
+            chainId = HIVE_CHAIN_ID;
+        }
         const dapps = readAllDapps().filter((dapp) => dapp.chainId === chainId);
         return buildEcosystem(dapps);
     }
@@ -89,9 +92,7 @@ const saveNewDapp = (newDapp) => {
     }
     const dapps = readAllDapps();
     const chainDapps = dapps.filter((dapp) => dapp.chainId === chainId);
-    const id = chainDapps.length
-        ? Math.max(...chainDapps.map((d) => d.id))
-        : -1;
+    const id = chainDapps.length ? Math.max(...chainDapps.map((d) => d.id)) : -1;
     dapps.push({ ...newDapp, chainId, id: id + 1 });
     writeAllDapps(dapps);
 };

@@ -4,9 +4,14 @@ import Logger from "hive-keychain-commons/lib/logger/logger";
 import path from "path";
 import { Config } from "../config";
 
-let prices;
+const PRICES_FILE = path.join(__dirname, `../../json/coingecko-prices.json`);
+
+let prices: Record<string, unknown> | undefined;
 
 const getHivePrices = () => {
+  if (!prices?.hive || !prices?.hive_dollar || !prices?.bitcoin) {
+    return null;
+  }
   return {
     hive: prices.hive,
     hive_dollar: prices.hive_dollar,
@@ -22,19 +27,19 @@ const getHivePrices = () => {
 //   return result;
 // }
 
+const loadCachedPrices = () => {
+  try {
+    prices = JSON.parse(fs.readFileSync(PRICES_FILE, "utf-8"));
+  } catch (err) {
+    Logger.error("failed to load cached coingecko prices", err);
+    prices = undefined;
+  }
+};
+
 const initFetchPrices = () => {
   Logger.technical("Intializing fetch prices...");
-  try {
-    prices = JSON.parse(
-      fs.readFileSync(
-        path.join(__dirname, `../../json/coingecko-prices.json`),
-        "utf-8",
-      ),
-    );
-  } catch (err) {
-    console.log(err);
-  }
-  refreshPrices();
+  loadCachedPrices();
+  void runRefreshPrices();
 };
 
 const fetchPrices = async (ids: string) => {
@@ -72,19 +77,26 @@ const fetchPrices = async (ids: string) => {
   }
 };
 
+const runRefreshPrices = async () => {
+  try {
+    await refreshPrices();
+  } catch (e) {
+    Logger.error("failed to refresh prices", e);
+    await sleep(Config.coingecko.prices.cooldownBetweenRefresh);
+    void runRefreshPrices();
+  }
+};
+
 const refreshPrices = async () => {
   const start = Date.now();
   console.log("refreshing prices");
 
-  let ids = "hive,hive_dollar,bitcoin";
+  const ids = "hive,hive_dollar,bitcoin";
 
   const newPrices = await fetchPrices(ids);
   if (newPrices) {
     prices = { ...prices, ...(newPrices as any) };
-    fs.writeFileSync(
-      path.join(__dirname, `../../json/coingecko-prices.json`),
-      JSON.stringify(prices),
-    );
+    fs.writeFileSync(PRICES_FILE, JSON.stringify(prices));
   }
 
   const end = Date.now();
@@ -98,7 +110,7 @@ const refreshPrices = async () => {
   console.log(`Waiting for ${waitingTime / 1000}s before starting again`);
   await sleep(waitingTime);
 
-  refreshPrices();
+  void runRefreshPrices();
 };
 
 export const PriceLogic = {

@@ -1,5 +1,6 @@
 import { createCanvas, loadImage } from "canvas";
 import * as fs from "fs";
+import Logger from "hive-keychain-commons/lib/logger/logger";
 import { getAllTokens } from "../../utils/hive-engine.utils";
 
 const DEFAULT_COLOR = "#000000";
@@ -10,10 +11,18 @@ const getColorMap = async () =>
     .toString();
 
 const initFetchColorMap = () => {
-  createColorMap();
+  void runCreateColorMap();
   setInterval(() => {
-    createColorMap();
+    void runCreateColorMap();
   }, 3600 * 1000 * 12);
+};
+
+const runCreateColorMap = async () => {
+  try {
+    await createColorMap();
+  } catch (e) {
+    Logger.error("failed to refresh token background colors", e);
+  }
 };
 
 const createColorMap = async () => {
@@ -34,7 +43,7 @@ const createColorMap = async () => {
       () => console.log(`Updated color map`)
     );
   } catch (e) {
-    console.log("Failed to update color map");
+    Logger.error("failed to write token background colors file", e);
   }
 };
 
