@@ -151,6 +151,7 @@ Notes:
 - `txHash` must be a valid EVM transaction hash and cannot be reused by another account creation request.
 - When `from` is provided, it must match the quote's `payerEvmAddress`.
 - Backend reconciliation verifies the submitted transaction on-chain before account creation: chain, treasury recipient, payer, asset, amount, transaction status, and confirmations.
+- Automatic payment reconciliation only runs for EVM payment quotes. HIVE transfer quotes are not polled by the background worker.
 
 ---
 

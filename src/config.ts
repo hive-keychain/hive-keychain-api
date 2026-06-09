@@ -107,15 +107,6 @@ export const Config = {
     paymentProcessingIntervalMs: Number(
       process.env.ACCOUNT_CREATION_PAYMENT_PROCESSING_INTERVAL_MS ?? 60000,
     ),
-    paymentDetection: {
-      mvpCurrency: process.env.ACCOUNT_CREATION_MVP_PAYMENT_CURRENCY ?? "HIVE",
-      historyLimit: Number(
-        process.env.ACCOUNT_CREATION_PAYMENT_HISTORY_LIMIT ?? 1000,
-      ),
-      requiredConfirmations: Number(
-        process.env.ACCOUNT_CREATION_PAYMENT_REQUIRED_CONFIRMATIONS ?? 1,
-      ),
-    },
     evmLightNode: {
       baseUrl:
         process.env.ACCOUNT_CREATION_EVM_LIGHT_NODE_URL ??

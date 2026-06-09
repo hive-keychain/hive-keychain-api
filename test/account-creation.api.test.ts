@@ -33,7 +33,6 @@ const {
 } = require("../src/logic/hive/account-creation-service.logic");
 const {
   AccountCreationPaymentDetectionType,
-  HiveAccountCreationPaymentDetector,
 } = require("../src/logic/hive/account-creation-payment-detector");
 const { HiveAccountCreationRequestLogic } = require("../src/logic/hive/account-creation-request.logic");
 const { HiveAccountCreationStatus } = require("../src/logic/hive/account-creation-request.model");
@@ -201,25 +200,6 @@ const paymentFound = (overrides: Record<string, unknown> = {}) => ({
     ...overrides,
   },
 });
-
-const hiveTransferHistoryItem = (overrides: Record<string, unknown> = {}) => [
-  1,
-  {
-    trx_id: "hive-payment-tx",
-    block: 100,
-    timestamp: "2026-04-28T04:00:00",
-    op: [
-      "transfer",
-      {
-        from: "payer",
-        to: "keychain-test",
-        amount: "3.000 HIVE",
-        memo: "account-creation:memo",
-        ...overrides,
-      },
-    ],
-  },
-];
 
 const evmTreasuryHistoryItem = (
   overrides: Record<string, unknown> = {},
@@ -945,99 +925,12 @@ test("reconciliation ignores unsupported payment assets", async () => {
   );
 });
 
-test("HIVE detector finds a confirmed transfer by payment account and memo", async () => {
+test("reconciliation ignores non-EVM requests by default", async () => {
   const storedRequest = await HiveAccountCreationRequestLogic.create(
     buildStoredRequest({
       paymentMemo: "account-creation:memo",
     }),
   );
-  mockHiveClient([], {
-    accountHistory: [hiveTransferHistoryItem()],
-    lastIrreversibleBlockNum: 100,
-  });
-
-  const result =
-    await HiveAccountCreationPaymentDetector.detectPayment(storedRequest);
-
-  assert.equal(result.type, AccountCreationPaymentDetectionType.PAYMENT_FOUND);
-  assert.equal(result.payment.amount, "3.000");
-  assert.equal(result.payment.currency, "HIVE");
-  assert.equal(result.payment.txId, "hive-payment-tx");
-  assert.equal(result.payment.confirmed, true);
-  assert.equal(result.payment.blockNumber, 100);
-});
-
-test("HIVE detector marks matching transfer unconfirmed until confirmation policy is met", async () => {
-  const storedRequest = await HiveAccountCreationRequestLogic.create(
-    buildStoredRequest({
-      paymentMemo: "account-creation:memo",
-    }),
-  );
-  mockHiveClient([], {
-    accountHistory: [hiveTransferHistoryItem()],
-    lastIrreversibleBlockNum: 99,
-  });
-
-  const result =
-    await HiveAccountCreationPaymentDetector.detectPayment(storedRequest);
-
-  assert.equal(result.type, AccountCreationPaymentDetectionType.PAYMENT_FOUND);
-  assert.equal(result.payment.confirmed, false);
-});
-
-test("HIVE detector ignores transfers without the request memo", async () => {
-  const storedRequest = await HiveAccountCreationRequestLogic.create(
-    buildStoredRequest({
-      paymentMemo: "account-creation:memo",
-    }),
-  );
-  mockHiveClient([], {
-    accountHistory: [
-      hiveTransferHistoryItem({
-        memo: "account-creation:another-request",
-      }),
-    ],
-    lastIrreversibleBlockNum: 100,
-  });
-
-  const result =
-    await HiveAccountCreationPaymentDetector.detectPayment(storedRequest);
-
-  assert.equal(result.type, AccountCreationPaymentDetectionType.NO_PAYMENT);
-});
-
-test("HIVE detector reports wrong asset for matching memo with unsupported asset", async () => {
-  const storedRequest = await HiveAccountCreationRequestLogic.create(
-    buildStoredRequest({
-      paymentMemo: "account-creation:memo",
-    }),
-  );
-  mockHiveClient([], {
-    accountHistory: [
-      hiveTransferHistoryItem({
-        amount: "3.000 HBD",
-      }),
-    ],
-    lastIrreversibleBlockNum: 100,
-  });
-
-  const result =
-    await HiveAccountCreationPaymentDetector.detectPayment(storedRequest);
-
-  assert.equal(result.type, AccountCreationPaymentDetectionType.WRONG_ASSET);
-  assert.equal(result.payment.currency, "HBD");
-});
-
-test("reconciliation uses the HIVE detector by default", async () => {
-  const storedRequest = await HiveAccountCreationRequestLogic.create(
-    buildStoredRequest({
-      paymentMemo: "account-creation:memo",
-    }),
-  );
-  mockHiveClient([], {
-    accountHistory: [hiveTransferHistoryItem()],
-    lastIrreversibleBlockNum: 100,
-  });
 
   const [result] =
     await HiveAccountCreationReconciliationLogic.reconcilePendingPayments();
@@ -1045,9 +938,12 @@ test("reconciliation uses the HIVE detector by default", async () => {
     storedRequest.requestId,
   );
 
-  assert.equal(result.classification, AccountCreationPaymentClassification.FULL_PAYMENT);
-  assert.equal(reconciledRequest.status, HiveAccountCreationStatus.PAYMENT_DETECTED);
-  assert.equal(reconciledRequest.paymentTxId, "hive-payment-tx");
+  assert.equal(result.classification, AccountCreationPaymentClassification.NO_PAYMENT);
+  assert.equal(result.updated, false);
+  assert.equal(
+    reconciledRequest.status,
+    HiveAccountCreationStatus.PAYMENT_PENDING,
+  );
 });
 
 test("reconciliation detects submitted native EVM treasury payments", async () => {
