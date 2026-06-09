@@ -26,6 +26,7 @@ export interface HiveAccountCreationRequest {
   paymentPriceUsd?: string | null;
   paymentAddress?: string | null;
   paymentMemo?: string | null;
+  payerEvmAddress?: string | null;
   expectedAmount: string;
   paidAmount?: string | null;
   paymentTxId?: string | null;

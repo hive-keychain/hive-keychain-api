@@ -1,5 +1,9 @@
 import { Config } from "../../config";
 import { HiveUtils } from "../../utils/hive.utils";
+import {
+  AccountCreationEvmPaymentDetectionType,
+  AccountCreationEvmPaymentDetectorLogic,
+} from "./account-creation-evm-payment-detector.logic";
 import { HiveAccountCreationRequest } from "./account-creation-request.model";
 
 export enum AccountCreationPaymentDetectionType {
@@ -125,9 +129,39 @@ const findMatchingTransfer = async (request: HiveAccountCreationRequest) => {
     );
 };
 
+const isEvmPaymentRequest = (request: HiveAccountCreationRequest) =>
+  request.paymentCurrency.startsWith("EVM:");
+
+const detectEvmPayment = async (
+  request: HiveAccountCreationRequest,
+): Promise<AccountCreationPaymentDetectionResult> => {
+  const result = await AccountCreationEvmPaymentDetectorLogic.detectPayment(
+    request,
+  );
+
+  switch (result.type) {
+    case AccountCreationEvmPaymentDetectionType.NO_PAYMENT:
+      return { type: AccountCreationPaymentDetectionType.NO_PAYMENT };
+    case AccountCreationEvmPaymentDetectionType.WRONG_ASSET:
+      return {
+        type: AccountCreationPaymentDetectionType.WRONG_ASSET,
+        payment: result.payment,
+      };
+    case AccountCreationEvmPaymentDetectionType.PAYMENT_FOUND:
+      return {
+        type: AccountCreationPaymentDetectionType.PAYMENT_FOUND,
+        payment: result.payment,
+      };
+  }
+};
+
 export const HiveAccountCreationPaymentDetector: AccountCreationPaymentDetector =
   {
     detectPayment: async (request) => {
+      if (isEvmPaymentRequest(request)) {
+        return detectEvmPayment(request);
+      }
+
       if (
         request.paymentCurrency !==
         Config.accountCreation.paymentDetection.mvpCurrency

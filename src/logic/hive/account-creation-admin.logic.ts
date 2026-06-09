@@ -16,6 +16,7 @@ const buildAdminResponse = (request: HiveAccountCreationRequest) => ({
     priceUsd: request.paymentPriceUsd,
     address: request.paymentAddress,
     memo: request.paymentMemo,
+    payerEvmAddress: request.payerEvmAddress,
     expectedAmount: request.expectedAmount,
     paidAmount: request.paidAmount,
     txId: request.paymentTxId,

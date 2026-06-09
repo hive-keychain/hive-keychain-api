@@ -96,6 +96,8 @@ Notes:
   paymentCurrency?: "HIVE";
   paymentChainId?: string | number;
   paymentTokenAddress?: string | null;
+  paymentTokenDecimals?: number;
+  payerEvmAddress?: string;
 }
 ```
 
@@ -112,16 +114,43 @@ Notes:
   priceUsd?: string | null;
   address: string;
   memo: string | null;
+  payerEvmAddress?: string | null;
   expiresAt: string;
 }
 ```
 
 Notes:
 - The handler validates Hive username format, public keys, selected currency, and username availability before creating a request.
-- `HIVE` is supported using the chain account creation fee.
-- EVM payments are selected with `paymentChainId` plus optional `paymentTokenAddress`; the token is accepted only when the configured EVM light-node price endpoint has a latest USD price for that chain/token pair.
+- Account creation costs exactly `3.000 HIVE`.
+- EVM payments are selected with `paymentChainId`, `payerEvmAddress`, and optional `paymentTokenAddress`; the quoted amount is the current USD value of `3 HIVE` divided by the selected asset's USD price.
+- `paymentTokenDecimals` is required for ERC20 payments and must be an integer from `0` to `255`; EVM quote amounts are rounded upward to the selected asset's supported precision.
+- EVM quote creation returns `503` when the cached HIVE/USD price is unavailable or invalid.
+- EVM quotes return the shared treasury `address`; `memo` is `null` because the extension binds the invoice by submitting the payment transaction hash.
 - Requests are stored in `json/hive-account-creation-requests.json`, which is runtime data and ignored by git.
 - No payment reconciliation or account creation transaction is performed by this endpoint.
+
+---
+
+### Hive account creation EVM payment transaction
+#### `POST /hive/account-creation/:requestId/payment-tx`
+**Goal**: Bind an extension-submitted EVM payment transaction to an existing account creation quote.
+
+**Request body**
+```ts
+{
+  txHash: string;
+  from?: string;
+}
+```
+
+**Response**
+Returns the same shape as `GET /hive/account-creation/:requestId`.
+
+Notes:
+- This endpoint is only valid for EVM payment quotes.
+- `txHash` must be a valid EVM transaction hash and cannot be reused by another account creation request.
+- When `from` is provided, it must match the quote's `payerEvmAddress`.
+- Backend reconciliation verifies the submitted transaction on-chain before account creation: chain, treasury recipient, payer, asset, amount, transaction status, and confirmations.
 
 ---
 
@@ -143,6 +172,7 @@ Notes:
     priceUsd?: string | null;
     address: string | null;
     memo: string | null;
+    payerEvmAddress?: string | null;
     paidAmount: string | null;
     txId: string | null;
   };

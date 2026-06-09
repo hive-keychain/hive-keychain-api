@@ -32,6 +32,7 @@ const mapRequest = (row: any): HiveAccountCreationRequest => ({
   paymentPriceUsd: row.paymentPriceUsd?.toString() ?? null,
   paymentAddress: row.paymentAddress,
   paymentMemo: row.paymentMemo,
+  payerEvmAddress: row.payerEvmAddress ?? null,
   expectedAmount: row.expectedAmount,
   paidAmount: row.paidAmount?.toString() ?? null,
   paymentTxId: row.paymentTxId,
@@ -97,9 +98,14 @@ const hasSamePaymentTarget = (
   existing: HiveAccountCreationRequest,
   request: NewHiveAccountCreationRequest,
 ) =>
-  (request.paymentAddress &&
-    existing.paymentAddress === request.paymentAddress) ||
-  (request.paymentMemo && existing.paymentMemo === request.paymentMemo);
+  request.paymentMemo !== null &&
+  request.paymentMemo !== undefined &&
+  existing.paymentMemo === request.paymentMemo;
+
+const hasSamePaymentTxId = (
+  request: HiveAccountCreationRequest,
+  paymentTxId: string,
+) => request.paymentTxId?.toLowerCase() === paymentTxId.toLowerCase();
 
 const create = async (
   request: NewHiveAccountCreationRequest,
@@ -129,6 +135,7 @@ const create = async (
     paymentPriceUsd: request.paymentPriceUsd ?? null,
     paymentAddress: request.paymentAddress ?? null,
     paymentMemo: request.paymentMemo ?? null,
+    payerEvmAddress: request.payerEvmAddress ?? null,
     paidAmount: request.paidAmount ?? null,
     paymentTxId: request.paymentTxId ?? null,
     accountCreationTxId: request.accountCreationTxId ?? null,
@@ -157,7 +164,51 @@ const getByUsername = async (
 const getByPaymentTxId = async (
   paymentTxId: string,
 ): Promise<HiveAccountCreationRequest | null> => {
-  return readRequests().find((item) => item.paymentTxId === paymentTxId) ?? null;
+  const normalizedPaymentTxId = paymentTxId.toLowerCase();
+  return (
+    readRequests().find(
+      (item) => item.paymentTxId?.toLowerCase() === normalizedPaymentTxId,
+    ) ?? null
+  );
+};
+
+const assignPaymentTxId = async (
+  requestId: string,
+  paymentTxId: string,
+  status: HiveAccountCreationStatus,
+): Promise<HiveAccountCreationRequest | null> => {
+  const requests = readRequests();
+  const requestIndex = requests.findIndex((item) => item.requestId === requestId);
+  if (requestIndex === -1) return null;
+
+  const existingTxRequest = requests.find(
+    (item) => item.requestId !== requestId && hasSamePaymentTxId(item, paymentTxId),
+  );
+  if (existingTxRequest) {
+    throw Object.assign(new Error("Payment transaction is already assigned."), {
+      statusCode: 409,
+    });
+  }
+
+  const request = requests[requestIndex];
+  if (request.paymentTxId && !hasSamePaymentTxId(request, paymentTxId)) {
+    throw Object.assign(new Error("Request already has a payment transaction."), {
+      statusCode: 409,
+    });
+  }
+
+  const updatedRequest: HiveAccountCreationRequest = {
+    ...request,
+    status,
+    paymentTxId,
+    updatedAt: new Date(),
+  };
+
+  requests[requestIndex] = updatedRequest;
+  writeRequests(requests);
+  logStatusTransition(request, updatedRequest);
+
+  return updatedRequest;
 };
 
 const getPaymentReconciliationCandidates = async (): Promise<
@@ -250,6 +301,7 @@ export const HiveAccountCreationRequestLogic = {
   getByRequestId,
   getByUsername,
   getByPaymentTxId,
+  assignPaymentTxId,
   getPaymentReconciliationCandidates,
   getAccountCreationCandidates,
   updateStatus,

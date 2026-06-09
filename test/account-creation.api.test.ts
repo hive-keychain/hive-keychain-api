@@ -16,7 +16,6 @@ process.env.HIVE_ACCOUNT_CREATION_REQUESTS_FILE = requestStorePath;
 process.env.ACCOUNT_CREATION_PAYMENT_ACCOUNT = "keychain-test";
 process.env.ACCOUNT_CREATION_EVM_PAYMENT_ADDRESS =
   "0x1111111111111111111111111111111111111111";
-process.env.ACCOUNT_CREATION_EVM_QUOTE_AMOUNT_USD = "3";
 process.env.ACCOUNT_CREATION_CREATOR_ACCOUNT = "creator-test";
 process.env.ACCOUNT_CREATION_CREATOR_ACTIVE_PRIVATE_KEY =
   PrivateKey.fromSeed("account-creation-test").toString();
@@ -38,10 +37,13 @@ const {
 } = require("../src/logic/hive/account-creation-payment-detector");
 const { HiveAccountCreationRequestLogic } = require("../src/logic/hive/account-creation-request.logic");
 const { HiveAccountCreationStatus } = require("../src/logic/hive/account-creation-request.model");
+const { PriceLogic } = require("../src/logic/price.logic");
 const { HiveUtils } = require("../src/utils/hive.utils");
 
 const validPublicKey =
   "STM5cYvx6NBYNdcJUym9WydRRs6329UTzJgzKii8dESmw2ZaA4fEH";
+const evmPayerAddress = "0x2222222222222222222222222222222222222222";
+const evmPaymentTxHash = `0x${"a".repeat(64)}`;
 
 const buildApp = () => {
   const app = express();
@@ -105,6 +107,7 @@ const mockHiveClient = (
     broadcastResult?: unknown;
     broadcastError?: Error;
     onBroadcast?: (operations: unknown[]) => void;
+    accountCreationFee?: string;
   } = {},
 ) => {
   (HiveUtils as any).getClient = () => ({
@@ -116,7 +119,7 @@ const mockHiveClient = (
           .filter((account) => account !== undefined);
       },
       getChainProperties: async () => ({
-        account_creation_fee: "3.000 HIVE",
+        account_creation_fee: options.accountCreationFee ?? "3.000 HIVE",
       }),
       getAccountHistory: async () => options.accountHistory ?? [],
       getDynamicGlobalProperties: async () => ({
@@ -163,6 +166,17 @@ const buildStoredRequest = (overrides: Record<string, unknown> = {}) => ({
 
 const cryptoRandomId = () => Math.random().toString(36).slice(2);
 
+const mockHiveUsdPrice = (usd?: unknown) => {
+  (PriceLogic as any).getHivePrices = () =>
+    usd === undefined
+      ? null
+      : {
+          hive: { usd },
+          hive_dollar: { usd: 1 },
+          bitcoin: { usd: 50000 },
+        };
+};
+
 const mockPaymentDetector = (result: unknown) => ({
   detectPayment: async () => result,
 });
@@ -207,12 +221,37 @@ const hiveTransferHistoryItem = (overrides: Record<string, unknown> = {}) => [
   },
 ];
 
+const evmTreasuryHistoryItem = (
+  overrides: Record<string, unknown> = {},
+  inboundOverrides: Record<string, unknown> = {},
+) => ({
+  txId: evmPaymentTxHash,
+  blockNumber: 100,
+  blockTime: "2026-04-28T04:00:00.000Z",
+  fromAddress: evmPayerAddress,
+  toAddress: "0x1111111111111111111111111111111111111111",
+  status: "SUCCESS",
+  in: [
+    {
+      kind: "NATIVE",
+      amount: "2",
+      amountWei: "2000000000000000000",
+      ...inboundOverrides,
+    },
+  ],
+  out: [],
+  ...overrides,
+});
+
 beforeEach(() => {
   fs.writeFileSync(requestStorePath, "[]");
   mockHiveClient();
+  mockHiveUsdPrice(1);
 });
 
 test("POST /hive/account-creation/quote creates a payment pending quote", async () => {
+  mockHiveClient([], { accountCreationFee: "99.000 HIVE" });
+
   const response = await request(
     buildApp(),
     "POST",
@@ -296,7 +335,101 @@ test("GET /hive/account-creation/:requestId returns safe request status", async 
   assert.equal(status.body.memoPublicKey, undefined);
 });
 
+test("POST /hive/account-creation/:requestId/payment-tx stores submitted EVM tx hash", async () => {
+  const storedRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest({
+      paymentCurrency: "EVM:40:native",
+      paymentChainId: "40",
+      paymentTokenAddress: null,
+      paymentMemo: null,
+      payerEvmAddress: evmPayerAddress,
+    }),
+  );
+
+  const response = await request(
+    buildApp(),
+    "POST",
+    `/hive/account-creation/${storedRequest.requestId}/payment-tx`,
+    {
+      txHash: evmPaymentTxHash,
+      from: evmPayerAddress,
+    },
+  );
+  const updatedRequest = await HiveAccountCreationRequestLogic.getByRequestId(
+    storedRequest.requestId,
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.status, HiveAccountCreationStatus.PAYMENT_CONFIRMING);
+  assert.equal(response.body.payment.txId, evmPaymentTxHash);
+  assert.equal(updatedRequest.paymentTxId, evmPaymentTxHash);
+});
+
+test("POST /hive/account-creation/:requestId/payment-tx rejects reused tx hashes", async () => {
+  await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest({
+      requestId: "first-request",
+      paymentCurrency: "EVM:40:native",
+      paymentChainId: "40",
+      paymentTokenAddress: null,
+      paymentMemo: null,
+      payerEvmAddress: evmPayerAddress,
+      paymentTxId: evmPaymentTxHash,
+    }),
+  );
+  const secondRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest({
+      requestId: "second-request",
+      username: "second-account",
+      paymentCurrency: "EVM:40:native",
+      paymentChainId: "40",
+      paymentTokenAddress: null,
+      paymentMemo: null,
+      payerEvmAddress: "0x3333333333333333333333333333333333333333",
+    }),
+  );
+
+  const response = await request(
+    buildApp(),
+    "POST",
+    `/hive/account-creation/${secondRequest.requestId}/payment-tx`,
+    {
+      txHash: evmPaymentTxHash,
+      from: "0x3333333333333333333333333333333333333333",
+    },
+  );
+
+  assert.equal(response.status, 409);
+  assert.equal(response.body.error, "Payment transaction is already assigned.");
+});
+
+test("POST /hive/account-creation/:requestId/payment-tx rejects invalid payer addresses", async () => {
+  const storedRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest({
+      paymentCurrency: "EVM:40:native",
+      paymentChainId: "40",
+      paymentTokenAddress: null,
+      paymentMemo: null,
+      payerEvmAddress: evmPayerAddress,
+    }),
+  );
+
+  const response = await request(
+    buildApp(),
+    "POST",
+    `/hive/account-creation/${storedRequest.requestId}/payment-tx`,
+    {
+      txHash: evmPaymentTxHash,
+      from: "not-an-address",
+    },
+  );
+
+  assert.equal(response.status, 400);
+  assert.equal(response.body.error, "Invalid EVM payer address.");
+});
+
 test("POST /hive/account-creation/quote accepts EVM token-chain pair with price", async () => {
+  mockHiveUsdPrice(0.25);
   const server = await startMockEvmPriceServer((_req, res) => {
     res.setHeader("content-type", "application/json");
     res.end(
@@ -319,19 +452,230 @@ test("POST /hive/account-creation/quote accepts EVM token-chain pair with price"
         paymentCurrency: undefined,
         paymentChainId: "1",
         paymentTokenAddress: "0xabc",
+        paymentTokenDecimals: 6,
+        payerEvmAddress: evmPayerAddress,
       },
     );
 
     assert.equal(response.status, 201);
-    assert.equal(response.body.amount, "2");
+    assert.equal(response.body.amount, "0.5");
     assert.equal(response.body.currency, "EVM:1:0xabc");
     assert.equal(response.body.chainId, "1");
     assert.equal(response.body.tokenAddress, "0xabc");
     assert.equal(response.body.priceUsd, "1.5");
+    assert.equal(response.body.payerEvmAddress, evmPayerAddress);
     assert.equal(
       response.body.address,
       "0x1111111111111111111111111111111111111111",
     );
+    assert.equal(response.body.memo, null);
+  } finally {
+    await closeServer(server);
+  }
+});
+
+test("POST /hive/account-creation/quote rounds native EVM payment amounts upward", async () => {
+  const server = await startMockEvmPriceServer((_req, res) => {
+    res.setHeader("content-type", "application/json");
+    res.end(JSON.stringify({ chainId: "1", tokenAddress: null, priceUsd: 7 }));
+  });
+
+  try {
+    const response = await request(
+      buildApp(),
+      "POST",
+      "/hive/account-creation/quote",
+      {
+        ...quoteBody,
+        paymentCurrency: undefined,
+        paymentChainId: "1",
+        paymentTokenAddress: null,
+        payerEvmAddress: evmPayerAddress,
+      },
+    );
+
+    assert.equal(response.status, 201);
+    assert.equal(response.body.amount, "0.428571428571428572");
+  } finally {
+    await closeServer(server);
+  }
+});
+
+test("POST /hive/account-creation/quote rounds ERC20 payment amounts upward to token decimals", async () => {
+  const server = await startMockEvmPriceServer((_req, res) => {
+    res.setHeader("content-type", "application/json");
+    res.end(JSON.stringify({ chainId: "1", tokenAddress: "0xabc", priceUsd: 7 }));
+  });
+
+  try {
+    const sixDecimalQuote = await request(
+      buildApp(),
+      "POST",
+      "/hive/account-creation/quote",
+      {
+        ...quoteBody,
+        paymentCurrency: undefined,
+        paymentChainId: "1",
+        paymentTokenAddress: "0xabc",
+        paymentTokenDecimals: 6,
+        payerEvmAddress: evmPayerAddress,
+      },
+    );
+    const zeroDecimalQuote = await request(
+      buildApp(),
+      "POST",
+      "/hive/account-creation/quote",
+      {
+        ...quoteBody,
+        username: "zero-token",
+        paymentCurrency: undefined,
+        paymentChainId: "1",
+        paymentTokenAddress: "0xabc",
+        paymentTokenDecimals: 0,
+        payerEvmAddress: "0x3333333333333333333333333333333333333333",
+      },
+    );
+
+    assert.equal(sixDecimalQuote.status, 201);
+    assert.equal(sixDecimalQuote.body.amount, "0.428572");
+    assert.equal(zeroDecimalQuote.status, 201);
+    assert.equal(zeroDecimalQuote.body.amount, "1");
+  } finally {
+    await closeServer(server);
+  }
+});
+
+test("POST /hive/account-creation/quote rejects missing or invalid ERC20 decimals", async () => {
+  const server = await startMockEvmPriceServer((_req, res) => {
+    res.setHeader("content-type", "application/json");
+    res.end(JSON.stringify({ chainId: "1", tokenAddress: "0xabc", priceUsd: 1 }));
+  });
+
+  try {
+    for (const paymentTokenDecimals of [undefined, -1, 1.5, 256]) {
+      const response = await request(
+        buildApp(),
+        "POST",
+        "/hive/account-creation/quote",
+        {
+          ...quoteBody,
+          paymentCurrency: undefined,
+          paymentChainId: "1",
+          paymentTokenAddress: "0xabc",
+          paymentTokenDecimals,
+          payerEvmAddress: evmPayerAddress,
+        },
+      );
+
+      assert.equal(response.status, 400);
+      assert.equal(response.body.error, "Invalid EVM payment token decimals.");
+    }
+  } finally {
+    await closeServer(server);
+  }
+});
+
+test("POST /hive/account-creation/quote rejects unavailable or invalid HIVE prices", async () => {
+  const server = await startMockEvmPriceServer((_req, res) => {
+    res.setHeader("content-type", "application/json");
+    res.end(JSON.stringify({ chainId: "1", tokenAddress: null, priceUsd: 1 }));
+  });
+
+  try {
+    for (const hiveUsd of [undefined, 0, -1, Number.NaN]) {
+      mockHiveUsdPrice(hiveUsd);
+      const response = await request(
+        buildApp(),
+        "POST",
+        "/hive/account-creation/quote",
+        {
+          ...quoteBody,
+          paymentCurrency: undefined,
+          paymentChainId: "1",
+          paymentTokenAddress: null,
+          payerEvmAddress: evmPayerAddress,
+        },
+      );
+
+      assert.equal(response.status, 503);
+      assert.equal(response.body.error, "HIVE price is unavailable.");
+    }
+  } finally {
+    await closeServer(server);
+    mockHiveUsdPrice(1);
+  }
+});
+
+test("POST /hive/account-creation/quote rejects invalid EVM token prices", async () => {
+  const server = await startMockEvmPriceServer((_req, res) => {
+    res.setHeader("content-type", "application/json");
+    res.end(JSON.stringify({ chainId: "1", tokenAddress: null, priceUsd: 0 }));
+  });
+
+  try {
+    const response = await request(
+      buildApp(),
+      "POST",
+      "/hive/account-creation/quote",
+      {
+        ...quoteBody,
+        paymentCurrency: undefined,
+        paymentChainId: "1",
+        paymentTokenAddress: null,
+        payerEvmAddress: evmPayerAddress,
+      },
+    );
+
+    assert.equal(response.status, 502);
+    assert.equal(response.body.error, "Invalid EVM payment token price.");
+  } finally {
+    await closeServer(server);
+  }
+});
+
+test("POST /hive/account-creation/quote allows shared EVM treasury address quotes", async () => {
+  const server = await startMockEvmPriceServer((_req, res) => {
+    res.setHeader("content-type", "application/json");
+    res.end(
+      JSON.stringify({
+        chainId: "1",
+        tokenAddress: null,
+        priceUsd: 1.5,
+      }),
+    );
+  });
+
+  try {
+    const firstQuote = await request(
+      buildApp(),
+      "POST",
+      "/hive/account-creation/quote",
+      {
+        ...quoteBody,
+        paymentCurrency: undefined,
+        paymentChainId: "1",
+        paymentTokenAddress: null,
+        payerEvmAddress: evmPayerAddress,
+      },
+    );
+    const secondQuote = await request(
+      buildApp(),
+      "POST",
+      "/hive/account-creation/quote",
+      {
+        ...quoteBody,
+        username: "second-account",
+        paymentCurrency: undefined,
+        paymentChainId: "1",
+        paymentTokenAddress: null,
+        payerEvmAddress: "0x3333333333333333333333333333333333333333",
+      },
+    );
+
+    assert.equal(firstQuote.status, 201);
+    assert.equal(secondQuote.status, 201);
+    assert.equal(firstQuote.body.address, secondQuote.body.address);
+    assert.notEqual(firstQuote.body.requestId, secondQuote.body.requestId);
   } finally {
     await closeServer(server);
   }
@@ -354,6 +698,8 @@ test("POST /hive/account-creation/quote rejects EVM token-chain pair without pri
         paymentCurrency: undefined,
         paymentChainId: "1",
         paymentTokenAddress: "0xabc",
+        paymentTokenDecimals: 6,
+        payerEvmAddress: evmPayerAddress,
       },
     );
 
@@ -702,6 +1048,92 @@ test("reconciliation uses the HIVE detector by default", async () => {
   assert.equal(result.classification, AccountCreationPaymentClassification.FULL_PAYMENT);
   assert.equal(reconciledRequest.status, HiveAccountCreationStatus.PAYMENT_DETECTED);
   assert.equal(reconciledRequest.paymentTxId, "hive-payment-tx");
+});
+
+test("reconciliation detects submitted native EVM treasury payments", async () => {
+  const storedRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest({
+      paymentCurrency: "EVM:40:native",
+      paymentChainId: "40",
+      paymentTokenAddress: null,
+      paymentAddress: "0x1111111111111111111111111111111111111111",
+      paymentMemo: null,
+      payerEvmAddress: evmPayerAddress,
+      expectedAmount: "2",
+      paymentTxId: evmPaymentTxHash,
+    }),
+  );
+  const server = await startMockEvmPriceServer((_req, res) => {
+    res.setHeader("content-type", "application/json");
+    res.end(
+      JSON.stringify({
+        items: [evmTreasuryHistoryItem()],
+        latestBlockNumber: 130,
+      }),
+    );
+  });
+
+  try {
+    const [result] =
+      await HiveAccountCreationReconciliationLogic.reconcilePendingPayments();
+    const reconciledRequest = await HiveAccountCreationRequestLogic.getByRequestId(
+      storedRequest.requestId,
+    );
+
+    assert.equal(result.classification, AccountCreationPaymentClassification.FULL_PAYMENT);
+    assert.equal(reconciledRequest.status, HiveAccountCreationStatus.PAYMENT_DETECTED);
+    assert.equal(reconciledRequest.paidAmount, "2");
+  } finally {
+    await closeServer(server);
+  }
+});
+
+test("reconciliation detects submitted ERC20 EVM treasury payments", async () => {
+  const tokenAddress = "0x00000000000000000000000000000000000000aa";
+  const storedRequest = await HiveAccountCreationRequestLogic.create(
+    buildStoredRequest({
+      paymentCurrency: `EVM:40:${tokenAddress}`,
+      paymentChainId: "40",
+      paymentTokenAddress: tokenAddress,
+      paymentAddress: "0x1111111111111111111111111111111111111111",
+      paymentMemo: null,
+      payerEvmAddress: evmPayerAddress,
+      expectedAmount: "25",
+      paymentTxId: evmPaymentTxHash,
+    }),
+  );
+  const server = await startMockEvmPriceServer((_req, res) => {
+    res.setHeader("content-type", "application/json");
+    res.end(
+      JSON.stringify({
+        items: [
+          evmTreasuryHistoryItem(
+            { toAddress: tokenAddress },
+            {
+              kind: "ERC20",
+              tokenAddress,
+              amount: "25",
+            },
+          ),
+        ],
+        latestBlockNumber: 130,
+      }),
+    );
+  });
+
+  try {
+    const [result] =
+      await HiveAccountCreationReconciliationLogic.reconcilePendingPayments();
+    const reconciledRequest = await HiveAccountCreationRequestLogic.getByRequestId(
+      storedRequest.requestId,
+    );
+
+    assert.equal(result.classification, AccountCreationPaymentClassification.FULL_PAYMENT);
+    assert.equal(reconciledRequest.status, HiveAccountCreationStatus.PAYMENT_DETECTED);
+    assert.equal(reconciledRequest.paidAmount, "25");
+  } finally {
+    await closeServer(server);
+  }
 });
 
 test("account creation service uses a claimed account token when available", async () => {

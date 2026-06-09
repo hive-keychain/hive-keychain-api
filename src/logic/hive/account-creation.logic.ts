@@ -1,8 +1,11 @@
 import { PublicKey } from "@hiveio/dhive";
 import crypto from "crypto";
+import Decimal from "decimal.js";
+import { isAddress } from "ethers";
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import { Config } from "../../config";
 import { HiveUtils } from "../../utils/hive.utils";
+import { PriceLogic } from "../price.logic";
 import { AccountCreationEvmPriceLogic } from "./account-creation-evm-price.logic";
 import { AccountCreationPaymentDetector } from "./account-creation-payment-detector";
 import { HiveAccountCreationReconciliationLogic } from "./account-creation-reconciliation.logic";
@@ -43,6 +46,13 @@ interface AccountCreationQuoteRequestBody {
   paymentCurrency?: string;
   paymentChainId?: string | number;
   paymentTokenAddress?: string | null;
+  paymentTokenDecimals?: number;
+  payerEvmAddress?: string;
+}
+
+interface AccountCreationPaymentTxRequestBody {
+  txHash?: string;
+  from?: string;
 }
 
 interface PaymentQuoteConfig {
@@ -53,10 +63,16 @@ interface PaymentQuoteConfig {
   chainId?: string | null;
   tokenAddress?: string | null;
   priceUsd?: string | null;
+  payerEvmAddress?: string | null;
 }
 
 const usernameRegex =
   /^(?=.{3,16}$)[a-z][a-z0-9-]*(?:\.[a-z][a-z0-9-]*)*$/;
+const ACCOUNT_CREATION_PRICE_HIVE = new Decimal(3);
+const HIVE_PAYMENT_AMOUNT = ACCOUNT_CREATION_PRICE_HIVE.toFixed(3);
+const HIVE_PAYMENT_CURRENCY = "HIVE";
+const NATIVE_EVM_TOKEN_DECIMALS = 18;
+const MAX_ERC20_TOKEN_DECIMALS = 255;
 
 const validateUsername = (username?: string) => {
   if (!username || !usernameRegex.test(username)) return false;
@@ -75,6 +91,14 @@ const validatePublicKey = (key?: string) => {
   }
 };
 
+const validateEvmAddress = (address?: string | null) =>
+  typeof address === "string" && isAddress(address);
+
+const normalizeEvmAddress = (address: string) => address.trim().toLowerCase();
+
+const validateTxHash = (txHash?: string) =>
+  typeof txHash === "string" && /^0x[0-9a-fA-F]{64}$/.test(txHash.trim());
+
 const assertUsernameAvailable = async (username: string) => {
   const accounts = await HiveUtils.getClient().database.getAccounts([username]);
   if (accounts.length > 0) {
@@ -84,24 +108,50 @@ const assertUsernameAvailable = async (username: string) => {
   }
 };
 
-const getDynamicHiveAccountCreationFee = async () => {
-  const chainProperties = await HiveUtils.getClient().database.getChainProperties();
-  const [amount] = chainProperties.account_creation_fee.toString().split(" ");
-  return amount;
+const getHiveUsdPrice = () => {
+  const hivePrice = PriceLogic.getHivePrices()?.hive as
+    | { usd?: unknown }
+    | undefined;
+  const hiveUsd = hivePrice?.usd;
+  if (typeof hiveUsd !== "number" || !Number.isFinite(hiveUsd) || hiveUsd <= 0) {
+    throw Object.assign(new Error("HIVE price is unavailable."), {
+      statusCode: 503,
+    });
+  }
+
+  return new Decimal(hiveUsd.toString());
 };
 
-const formatTokenAmount = (amount: number) => {
+const getEvmPaymentTokenDecimals = (
+  tokenAddress?: string | null,
+  tokenDecimals?: number,
+) => {
+  if (!tokenAddress) return NATIVE_EVM_TOKEN_DECIMALS;
+  if (
+    !Number.isInteger(tokenDecimals) ||
+    tokenDecimals! < 0 ||
+    tokenDecimals! > MAX_ERC20_TOKEN_DECIMALS
+  ) {
+    throw Object.assign(new Error("Invalid EVM payment token decimals."), {
+      statusCode: 400,
+    });
+  }
+
+  return tokenDecimals!;
+};
+
+const formatTokenAmount = (amount: Decimal, decimals: number) => {
   return amount
-    .toFixed(18)
-    .replace(/\.?0+$/, "");
+    .toDecimalPlaces(decimals, Decimal.ROUND_UP)
+    .toFixed(decimals)
+    .replace(/(\.\d*?)0+$/, "$1")
+    .replace(/\.$/, "");
 };
 
 const getHivePaymentQuote = async (): Promise<PaymentQuoteConfig> => {
   return {
-    currency: Config.accountCreation.hivePayment.currency,
-    amount:
-      Config.accountCreation.hivePayment.amount?.split(" ")[0] ??
-      (await getDynamicHiveAccountCreationFee()),
+    currency: HIVE_PAYMENT_CURRENCY,
+    amount: HIVE_PAYMENT_AMOUNT,
     address: Config.accountCreation.paymentAccount,
   };
 };
@@ -109,6 +159,8 @@ const getHivePaymentQuote = async (): Promise<PaymentQuoteConfig> => {
 const getEvmPaymentQuote = async (
   chainId: string,
   tokenAddress?: string | null,
+  payerEvmAddress?: string,
+  tokenDecimals?: number,
 ): Promise<PaymentQuoteConfig> => {
   if (!Config.accountCreation.evmPaymentAddress) {
     throw Object.assign(new Error("EVM payment address is not configured."), {
@@ -116,6 +168,10 @@ const getEvmPaymentQuote = async (
     });
   }
 
+  const paymentTokenDecimals = getEvmPaymentTokenDecimals(
+    tokenAddress,
+    tokenDecimals,
+  );
   const price = await AccountCreationEvmPriceLogic.getLatestEvmPrice(
     chainId,
     tokenAddress,
@@ -126,21 +182,28 @@ const getEvmPaymentQuote = async (
     });
   }
 
-  const priceUsd = Number(price.priceUsd);
-  const amount = Config.accountCreation.evmQuoteAmountUsd / priceUsd;
-  if (!Number.isFinite(amount) || amount <= 0) {
+  if (!validateEvmAddress(payerEvmAddress)) {
+    throw Object.assign(new Error("Invalid EVM payer address."), {
+      statusCode: 400,
+    });
+  }
+
+  const priceUsd = new Decimal(price.priceUsd);
+  if (!priceUsd.isFinite() || !priceUsd.gt(0)) {
     throw Object.assign(new Error("Invalid EVM payment token price."), {
       statusCode: 502,
     });
   }
+  const amount = ACCOUNT_CREATION_PRICE_HIVE.mul(getHiveUsdPrice()).div(priceUsd);
 
   return {
     currency: `EVM:${price.chainId}:${price.tokenAddress ?? "native"}`,
-    amount: formatTokenAmount(amount),
+    amount: formatTokenAmount(amount, paymentTokenDecimals),
     address: Config.accountCreation.evmPaymentAddress,
     chainId: price.chainId,
     tokenAddress: price.tokenAddress,
     priceUsd: price.priceUsd,
+    payerEvmAddress: normalizeEvmAddress(payerEvmAddress!),
   };
 };
 
@@ -151,6 +214,8 @@ const getPaymentQuote = async (
     return getEvmPaymentQuote(
       body.paymentChainId.toString(),
       body.paymentTokenAddress,
+      body.payerEvmAddress,
+      body.paymentTokenDecimals,
     );
   }
 
@@ -176,6 +241,7 @@ const buildQuoteResponse = (request: HiveAccountCreationRequest) => ({
   priceUsd: request.paymentPriceUsd,
   address: request.paymentAddress,
   memo: request.paymentMemo,
+  payerEvmAddress: request.payerEvmAddress,
   expiresAt: request.expiresAt.toISOString(),
 });
 
@@ -191,6 +257,7 @@ const buildStatusResponse = (request: HiveAccountCreationRequest) => ({
     priceUsd: request.paymentPriceUsd,
     address: request.paymentAddress,
     memo: request.paymentMemo,
+    payerEvmAddress: request.payerEvmAddress,
     paidAmount: request.paidAmount,
     txId: request.paymentTxId,
   },
@@ -238,7 +305,10 @@ const createQuote = async (body: AccountCreationQuoteRequestBody) => {
     paymentTokenAddress: paymentQuote.tokenAddress,
     paymentPriceUsd: paymentQuote.priceUsd,
     paymentAddress: paymentQuote.address,
-    paymentMemo: paymentQuote.memo ?? buildPaymentMemo(requestId),
+    paymentMemo: paymentQuote.chainId
+      ? (paymentQuote.memo ?? null)
+      : (paymentQuote.memo ?? buildPaymentMemo(requestId)),
+    payerEvmAddress: paymentQuote.payerEvmAddress,
     expectedAmount: paymentQuote.amount,
     paidAmount: null,
     paymentTxId: null,
@@ -248,6 +318,70 @@ const createQuote = async (body: AccountCreationQuoteRequestBody) => {
   };
 
   return buildQuoteResponse(await HiveAccountCreationRequestLogic.create(request));
+};
+
+const assertEvmPaymentRequest = (request: HiveAccountCreationRequest) => {
+  if (!request.paymentChainId || !request.paymentCurrency.startsWith("EVM:")) {
+    throw Object.assign(new Error("Request does not use EVM payment."), {
+      statusCode: 400,
+    });
+  }
+};
+
+const assertPaymentTxCanBeSubmitted = (
+  request: HiveAccountCreationRequest,
+  body: AccountCreationPaymentTxRequestBody,
+) => {
+  assertEvmPaymentRequest(request);
+
+  if (!validateTxHash(body.txHash)) {
+    throw Object.assign(new Error("Invalid payment transaction hash."), {
+      statusCode: 400,
+    });
+  }
+
+  if (body.from && !validateEvmAddress(body.from)) {
+    throw Object.assign(new Error("Invalid EVM payer address."), {
+      statusCode: 400,
+    });
+  }
+
+  if (
+    body.from &&
+    request.payerEvmAddress &&
+    normalizeEvmAddress(body.from) !== request.payerEvmAddress
+  ) {
+    throw Object.assign(new Error("Payment transaction payer does not match."), {
+      statusCode: 400,
+    });
+  }
+
+  if (
+    request.status === HiveAccountCreationStatus.EXPIRED ||
+    request.status === HiveAccountCreationStatus.CANCELLED
+  ) {
+    throw Object.assign(new Error("Payment quote is no longer active."), {
+      statusCode: 409,
+    });
+  }
+};
+
+const submitPaymentTx = async (
+  requestId: string,
+  body: AccountCreationPaymentTxRequestBody,
+) => {
+  const request = await HiveAccountCreationRequestLogic.getByRequestId(requestId);
+  if (!request) return null;
+
+  assertPaymentTxCanBeSubmitted(request, body);
+
+  const updatedRequest = await HiveAccountCreationRequestLogic.assignPaymentTxId(
+    request.requestId,
+    body.txHash!.trim().toLowerCase(),
+    HiveAccountCreationStatus.PAYMENT_CONFIRMING,
+  );
+
+  return updatedRequest ? buildStatusResponse(updatedRequest) : null;
 };
 
 const getStatus = async (requestId: string) => {
@@ -318,6 +452,7 @@ const initPaymentProcessingJob = () => {
 export const HiveAccountCreationLogic = {
   createQuote,
   getStatus,
+  submitPaymentTx,
   expirePendingQuotes,
   processPaidAccountCreationRequests,
   initExpiryJob,

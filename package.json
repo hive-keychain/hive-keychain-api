@@ -29,6 +29,7 @@
     "body-parser": "^1.20.0",
     "canvas": "^2.11.2",
     "cors": "^2.8.5",
+    "decimal.js": "^10.6.0",
     "dotenv": "^8.2.0",
     "eth-phishing-detect": "^1.2.0",
     "ethers": "^6.13.5",

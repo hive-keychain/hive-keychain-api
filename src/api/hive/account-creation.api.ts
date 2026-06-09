@@ -34,6 +34,23 @@ const setupGetStatusApi = (app: Express) => {
   });
 };
 
+const setupPostPaymentTxApi = (app: Express) => {
+  app.post("/hive/account-creation/:requestId/payment-tx", async (req, res) => {
+    try {
+      const request = await HiveAccountCreationLogic.submitPaymentTx(
+        req.params.requestId,
+        req.body,
+      );
+      if (!request) return res.status(404).send({ error: "Request not found." });
+      return res.status(200).send(request);
+    } catch (error) {
+      return res
+        .status(getStatusCode(error))
+        .send({ error: getErrorMessage(error) });
+    }
+  });
+};
+
 const setupAdminApis = (app: Express) => {
   app.get(
     "/hive/account-creation/admin/request/:requestId",
@@ -126,6 +143,7 @@ const setupAdminApis = (app: Express) => {
 
 const setupApis = (app: Express) => {
   setupPostQuoteApi(app);
+  setupPostPaymentTxApi(app);
   setupAdminApis(app);
   setupGetStatusApi(app);
 };
