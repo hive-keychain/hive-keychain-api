@@ -16,7 +16,8 @@ const ensureStoreFile = () => {
   const requestStorePath = getRequestStorePath();
   const folder = path.dirname(requestStorePath);
   if (!fs.existsSync(folder)) fs.mkdirSync(folder, { recursive: true });
-  if (!fs.existsSync(requestStorePath)) fs.writeFileSync(requestStorePath, "[]");
+  if (!fs.existsSync(requestStorePath))
+    fs.writeFileSync(requestStorePath, "[]");
 };
 
 const mapRequest = (row: any): HiveAccountCreationRequest => ({
@@ -87,6 +88,7 @@ const logStatusTransition = (
         oldStatus: oldRequest.status,
         newStatus: newRequest.status,
         payment: getSafePaymentMetadata(newRequest),
+        account: newRequest.username,
       })}`,
     );
   } catch {
@@ -178,11 +180,14 @@ const assignPaymentTxId = async (
   status: HiveAccountCreationStatus,
 ): Promise<HiveAccountCreationRequest | null> => {
   const requests = readRequests();
-  const requestIndex = requests.findIndex((item) => item.requestId === requestId);
+  const requestIndex = requests.findIndex(
+    (item) => item.requestId === requestId,
+  );
   if (requestIndex === -1) return null;
 
   const existingTxRequest = requests.find(
-    (item) => item.requestId !== requestId && hasSamePaymentTxId(item, paymentTxId),
+    (item) =>
+      item.requestId !== requestId && hasSamePaymentTxId(item, paymentTxId),
   );
   if (existingTxRequest) {
     throw Object.assign(new Error("Payment transaction is already assigned."), {
@@ -192,9 +197,12 @@ const assignPaymentTxId = async (
 
   const request = requests[requestIndex];
   if (request.paymentTxId && !hasSamePaymentTxId(request, paymentTxId)) {
-    throw Object.assign(new Error("Request already has a payment transaction."), {
-      statusCode: 409,
-    });
+    throw Object.assign(
+      new Error("Request already has a payment transaction."),
+      {
+        statusCode: 409,
+      },
+    );
   }
 
   const updatedRequest: HiveAccountCreationRequest = {
@@ -241,7 +249,9 @@ const updateStatus = async (
   fields: HiveAccountCreationRequestStatusUpdate = {},
 ): Promise<HiveAccountCreationRequest | null> => {
   const requests = readRequests();
-  const requestIndex = requests.findIndex((item) => item.requestId === requestId);
+  const requestIndex = requests.findIndex(
+    (item) => item.requestId === requestId,
+  );
   if (requestIndex === -1) return null;
 
   const request = requests[requestIndex];
