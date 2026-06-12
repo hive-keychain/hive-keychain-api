@@ -30,6 +30,7 @@ const {
 const {
   HiveAccountCreationServiceLogic,
   HiveAccountCreationServiceResult,
+  HiveAccountCreationTokenClaimResult,
 } = require("../src/logic/hive/account-creation-service.logic");
 const {
   AccountCreationPaymentDetectionType,
@@ -1408,4 +1409,102 @@ test("account creation admin does not cancel created requests", async () => {
     () => HiveAccountCreationAdminLogic.cancelRequest(createdRequest.requestId),
     /Created requests cannot be cancelled\./,
   );
+});
+
+test("account creation service claims a token for the configured creator", async () => {
+  let broadcastOperations: any[] = [];
+  mockHiveClient(
+    {
+      "creator-test": matchingHiveAccount("creator-test", {
+        pending_claimed_accounts: 0,
+      }),
+    },
+    {
+      broadcastResult: { id: "claim-token-tx" },
+      onBroadcast: (operations) => {
+        broadcastOperations = operations as any[];
+      },
+    },
+  );
+
+  const result =
+    await HiveAccountCreationServiceLogic.attemptClaimAccountCreationToken();
+
+  assert.equal(result, HiveAccountCreationTokenClaimResult.CLAIMED);
+  assert.equal(broadcastOperations[0][0], "claim_account");
+  assert.equal(broadcastOperations[0][1].creator, "creator-test");
+  assert.equal(broadcastOperations[0][1].fee, "0.000 HIVE");
+});
+
+test("account creation service skips token claim when creator is not configured", async () => {
+  const previousAccount = process.env.ACCOUNT_CREATION_CREATOR_ACCOUNT;
+  const previousKey = process.env.ACCOUNT_CREATION_CREATOR_ACTIVE_PRIVATE_KEY;
+  delete process.env.ACCOUNT_CREATION_CREATOR_ACCOUNT;
+  delete process.env.ACCOUNT_CREATION_CREATOR_ACTIVE_PRIVATE_KEY;
+
+  try {
+    const { Config } = require("../src/config");
+    Config.accountCreation.creator.account = undefined;
+    Config.accountCreation.creator.activePrivateKey = undefined;
+
+    const result =
+      await HiveAccountCreationServiceLogic.attemptClaimAccountCreationToken();
+
+    assert.equal(
+      result,
+      HiveAccountCreationTokenClaimResult.SKIPPED_NOT_CONFIGURED,
+    );
+  } finally {
+    process.env.ACCOUNT_CREATION_CREATOR_ACCOUNT = previousAccount;
+    process.env.ACCOUNT_CREATION_CREATOR_ACTIVE_PRIVATE_KEY = previousKey;
+    const { Config } = require("../src/config");
+    Config.accountCreation.creator.account = previousAccount;
+    Config.accountCreation.creator.activePrivateKey = previousKey;
+  }
+});
+
+test("account creation service reports failed token claims safely", async () => {
+  mockHiveClient(
+    {
+      "creator-test": matchingHiveAccount("creator-test", {
+        pending_claimed_accounts: 0,
+      }),
+    },
+    {
+      broadcastError: new Error("no token available"),
+    },
+  );
+
+  const result =
+    await HiveAccountCreationServiceLogic.attemptClaimAccountCreationToken();
+
+  assert.equal(result, HiveAccountCreationTokenClaimResult.CLAIM_FAILED);
+});
+
+test("account creation token claim worker skips overlapping runs", async () => {
+  let releaseClaim: () => void = () => undefined;
+  (HiveUtils as any).getClient = () => ({
+    database: {
+      getAccounts: async (usernames: string[]) => {
+        await new Promise<void>((resolve) => {
+          releaseClaim = resolve;
+        });
+        return usernames.map((username) =>
+          matchingHiveAccount(username, { pending_claimed_accounts: 0 }),
+        );
+      },
+    },
+    broadcast: {
+      sendOperations: async () => ({ id: "claim-token-tx" }),
+    },
+  });
+
+  const firstRun = HiveAccountCreationLogic.claimAccountCreationToken();
+  const secondRun = await HiveAccountCreationLogic.claimAccountCreationToken();
+
+  releaseClaim();
+  const firstResult = await firstRun;
+
+  assert.equal(secondRun, HiveAccountCreationTokenClaimResult.ALREADY_IN_PROGRESS);
+  assert.equal(firstResult, HiveAccountCreationTokenClaimResult.CLAIMED);
 });

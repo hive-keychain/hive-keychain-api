@@ -15,10 +15,14 @@ import {
   HiveAccountCreationStatus,
   NewHiveAccountCreationRequest,
 } from "./account-creation-request.model";
-import { HiveAccountCreationServiceLogic } from "./account-creation-service.logic";
+import {
+  HiveAccountCreationServiceLogic,
+  HiveAccountCreationTokenClaimResult,
+} from "./account-creation-service.logic";
 
 let expiryInterval: NodeJS.Timeout | undefined;
 let paymentProcessingInterval: NodeJS.Timeout | undefined;
+let tokenClaimInterval: NodeJS.Timeout | undefined;
 let paymentProcessingInProgress = false;
 
 const safeLogInfo = (message: string) => {
@@ -449,12 +453,43 @@ const initPaymentProcessingJob = () => {
   );
 };
 
+const claimAccountCreationToken = async () => {
+  try {
+    const result =
+      await HiveAccountCreationServiceLogic.attemptClaimAccountCreationToken();
+    if (result === HiveAccountCreationTokenClaimResult.CLAIMED) {
+      safeLogInfo(
+        `Hive account creation token claimed for ${Config.accountCreation.creator.account}`,
+      );
+    }
+    return result;
+  } catch (error) {
+    safeLogError(
+      `Hive account creation token claim failed: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`,
+    );
+    throw error;
+  }
+};
+
+const initAccountCreationTokenClaimJob = () => {
+  if (tokenClaimInterval) return;
+  claimAccountCreationToken().catch(() => undefined);
+  tokenClaimInterval = setInterval(
+    () => claimAccountCreationToken().catch(() => undefined),
+    Config.accountCreation.tokenClaimIntervalMs,
+  );
+};
+
 export const HiveAccountCreationLogic = {
   createQuote,
   getStatus,
   submitPaymentTx,
   expirePendingQuotes,
   processPaidAccountCreationRequests,
+  claimAccountCreationToken,
   initExpiryJob,
   initPaymentProcessingJob,
+  initAccountCreationTokenClaimJob,
 };

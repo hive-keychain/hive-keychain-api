@@ -101,6 +101,26 @@ exports.Config = {
             cooldownBetweenRefresh: 60000,
             maxTokensToFetch: 500,
         }
-    }
+    },
+    accountCreation: {
+        quoteTtlMs: Number(process.env.ACCOUNT_CREATION_QUOTE_TTL_MS ?? 3600000),
+        expiryCheckIntervalMs: Number(process.env.ACCOUNT_CREATION_EXPIRY_CHECK_INTERVAL_MS ?? 60000),
+        paymentProcessingIntervalMs: Number(process.env.ACCOUNT_CREATION_PAYMENT_PROCESSING_INTERVAL_MS ?? 60000),
+        tokenClaimIntervalMs: Number(process.env.ACCOUNT_CREATION_TOKEN_CLAIM_INTERVAL_MS ?? 3600000),
+        evmLightNode: {
+            baseUrl: process.env.ACCOUNT_CREATION_EVM_LIGHT_NODE_URL ??
+                "https://evm.hive-keychain.com",
+        },
+        evmPaymentDetection: {
+            historyLimit: Number(process.env.ACCOUNT_CREATION_EVM_PAYMENT_HISTORY_LIMIT ?? 100),
+            requiredConfirmations: Number(process.env.ACCOUNT_CREATION_EVM_PAYMENT_REQUIRED_CONFIRMATIONS ?? 20),
+        },
+        evmPaymentAddress: process.env.ACCOUNT_CREATION_EVM_PAYMENT_ADDRESS,
+        paymentAccount: process.env.ACCOUNT_CREATION_PAYMENT_ACCOUNT ?? "hive-keychain",
+        creator: {
+            account: process.env.ACCOUNT_CREATION_CREATOR_ACCOUNT,
+            activePrivateKey: process.env.ACCOUNT_CREATION_CREATOR_ACTIVE_PRIVATE_KEY,
+        },
+    },
 };
 //# sourceMappingURL=config.js.map

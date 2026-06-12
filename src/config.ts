@@ -107,6 +107,9 @@ export const Config = {
     paymentProcessingIntervalMs: Number(
       process.env.ACCOUNT_CREATION_PAYMENT_PROCESSING_INTERVAL_MS ?? 60000,
     ),
+    tokenClaimIntervalMs: Number(
+      process.env.ACCOUNT_CREATION_TOKEN_CLAIM_INTERVAL_MS ?? 3600000,
+    ),
     evmLightNode: {
       baseUrl:
         process.env.ACCOUNT_CREATION_EVM_LIGHT_NODE_URL ??

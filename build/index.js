@@ -13,6 +13,7 @@ const ecosystem_api_1 = require("./api/ecosystem.api");
 const keychain_phishing_api_1 = require("./api/evm/keychain-phishing.api");
 const lifi_api_1 = require("./api/evm/lifi.api");
 const health_api_1 = require("./api/health.api");
+const account_creation_api_1 = require("./api/hive/account-creation.api");
 const background_color_api_1 = require("./api/hive/background-color.api");
 const bad_actors_api_1 = require("./api/hive/bad-actors.api");
 const delegation_api_1 = require("./api/hive/delegation.api");
@@ -28,6 +29,7 @@ const config_1 = require("./config");
 const coingecko_config_1 = require("./logic/evm/coingecko-config");
 const lifi_logic_1 = require("./logic/evm/lifi.logic");
 const smart_contract_info_logic_1 = require("./logic/evm/smart-contract-info.logic");
+const account_creation_logic_1 = require("./logic/hive/account-creation.logic");
 const historical_data_logic_1 = require("./logic/hive/historical-data.logic");
 const token_background_color_1 = require("./logic/hive/token-background-color");
 const price_logic_1 = require("./logic/price.logic");
@@ -42,6 +44,9 @@ const initServerRoutine = () => {
     token_background_color_1.TokensBackgroundColorsLogic.initFetchColorMap();
     coingecko_config_1.CoingeckoConfigLogic.initFetchCoingeckoConfig();
     smart_contract_info_logic_1.SmartContractsInfoLogic.initMoralisIfNeeded();
+    account_creation_logic_1.HiveAccountCreationLogic.initExpiryJob();
+    account_creation_logic_1.HiveAccountCreationLogic.initPaymentProcessingJob();
+    account_creation_logic_1.HiveAccountCreationLogic.initAccountCreationTokenClaimJob();
     // ChainLogic.initChainList();
     lifi_logic_1.LifiLogic.initializeLifi();
     startServer(app);
@@ -58,6 +63,7 @@ const setupRoutes = (app) => {
     //CORS
     app.use(cors());
     health_api_1.HealthApi.setupApis(app);
+    account_creation_api_1.AccountCreationApi.setupApis(app);
     bad_actors_api_1.BadActorsApi.setupApis(app);
     delegation_api_1.DelegationApi.setupApis(app);
     price_api_1.PriceApi.setupApis(app);

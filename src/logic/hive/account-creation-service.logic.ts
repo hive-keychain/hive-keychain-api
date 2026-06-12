@@ -17,6 +17,13 @@ export enum HiveAccountCreationServiceResult {
   ACCOUNT_CREATION_FAILED = "account_creation_failed",
 }
 
+export enum HiveAccountCreationTokenClaimResult {
+  CLAIMED = "claimed",
+  SKIPPED_NOT_CONFIGURED = "skipped_not_configured",
+  ALREADY_IN_PROGRESS = "already_in_progress",
+  CLAIM_FAILED = "claim_failed",
+}
+
 type HiveAccount = {
   name: string;
   owner?: { key_auths?: [unknown, number][] };
@@ -34,6 +41,7 @@ const paidCreationStatuses = [
 ];
 
 const processingRequestIds = new Set<string>();
+let tokenClaimInProgress = false;
 
 const buildAuthority = (publicKey: string) => ({
   weight_threshold: 1,
@@ -240,8 +248,43 @@ const createAccountsForPaidRequests = async () => {
   return Promise.all(requests.map(createAccountFromPaidRequest));
 };
 
+const buildClaimAccountOperation = (creator: string): Operation => [
+  "claim_account",
+  {
+    creator,
+    fee: "0.000 HIVE",
+    extensions: [],
+  },
+];
+
+const attemptClaimAccountCreationToken = async (): Promise<HiveAccountCreationTokenClaimResult> => {
+  const { account, activePrivateKey } = Config.accountCreation.creator;
+  if (!account || !activePrivateKey) {
+    return HiveAccountCreationTokenClaimResult.SKIPPED_NOT_CONFIGURED;
+  }
+
+  if (tokenClaimInProgress) {
+    return HiveAccountCreationTokenClaimResult.ALREADY_IN_PROGRESS;
+  }
+
+  tokenClaimInProgress = true;
+  try {
+    await getCreatorAccount(account);
+    await HiveUtils.getClient().broadcast.sendOperations(
+      [buildClaimAccountOperation(account)],
+      PrivateKey.fromString(activePrivateKey),
+    );
+    return HiveAccountCreationTokenClaimResult.CLAIMED;
+  } catch {
+    return HiveAccountCreationTokenClaimResult.CLAIM_FAILED;
+  } finally {
+    tokenClaimInProgress = false;
+  }
+};
+
 export const HiveAccountCreationServiceLogic = {
   createAccountFromPaidRequest,
   createAccountForRequestId,
   createAccountsForPaidRequests,
+  attemptClaimAccountCreationToken,
 };

@@ -45,6 +45,7 @@ const initServerRoutine = () => {
   SmartContractsInfoLogic.initMoralisIfNeeded();
   HiveAccountCreationLogic.initExpiryJob();
   HiveAccountCreationLogic.initPaymentProcessingJob();
+  HiveAccountCreationLogic.initAccountCreationTokenClaimJob();
   // ChainLogic.initChainList();
   LifiLogic.initializeLifi();
   startServer(app);
