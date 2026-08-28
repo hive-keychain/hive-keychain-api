@@ -48,6 +48,9 @@ jobs:
               IdentityFile ~/.ssh/deploy_key
               IdentitiesOnly yes
               StrictHostKeyChecking yes
+              ServerAliveInterval 30
+              ServerAliveCountMax 10
+              TCPKeepAlive yes
 
           Host keychain-api-production
               HostName $TARGET_HOST
@@ -56,6 +59,9 @@ jobs:
               IdentityFile ~/.ssh/deploy_key
               IdentitiesOnly yes
               StrictHostKeyChecking yes
+              ServerAliveInterval 30
+              ServerAliveCountMax 10
+              TCPKeepAlive yes
               ProxyJump keychain-api-bastion
           EOF
 
