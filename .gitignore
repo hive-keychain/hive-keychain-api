@@ -12,3 +12,4 @@ json/ecosystem/*
 src/logic/ecosystem/hive-dapps.json
 keychain-api-*.zip
 
+build/
