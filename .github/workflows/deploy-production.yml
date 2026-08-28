@@ -1,0 +1,70 @@
+name: Deploy production
+
+on:
+  push:
+    branches:
+      - master
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keychain-api-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.AWS_DEPLOY_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.AWS_KNOWN_HOSTS }}
+
+          BASTION_HOST: ${{ vars.AWS_BASTION_HOST }}
+          BASTION_USER: ${{ vars.AWS_BASTION_USER }}
+
+          TARGET_HOST: ${{ vars.AWS_TARGET_HOST }}
+          TARGET_USER: ${{ vars.AWS_TARGET_USER }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+          cat > ~/.ssh/config <<EOF
+          Host keychain-api-bastion
+              HostName $BASTION_HOST
+              User $BASTION_USER
+              Port 2223
+              IdentityFile ~/.ssh/deploy_key
+              IdentitiesOnly yes
+              StrictHostKeyChecking yes
+
+          Host keychain-api-production
+              HostName $TARGET_HOST
+              User $TARGET_USER
+              Port 22
+              IdentityFile ~/.ssh/deploy_key
+              IdentitiesOnly yes
+              StrictHostKeyChecking yes
+              ProxyJump keychain-api-bastion
+          EOF
+
+          chmod 600 ~/.ssh/config
+
+      - name: Deploy production
+        run: |
+          ssh \
+            -o BatchMode=yes \
+            -o ConnectTimeout=20 \
+            keychain-api-production \
+            'sudo -n /usr/local/sbin/deploy-keychain-api'
