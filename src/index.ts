@@ -83,6 +83,7 @@ const setupRoutes = (app: express.Express) => {
 };
 
 const startServer = (app: express.Express) => {
+  // Starting server
   if (!process.env.DEV) {
     https
       .createServer(
