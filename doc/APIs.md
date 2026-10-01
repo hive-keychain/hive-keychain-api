@@ -87,8 +87,9 @@ Each point is `[ISO timestamp, usd price]`. `24h` uses CoinGecko `market_chart` 
 
 Notes:
 - A failed window keeps the last successful series for that window. A category stays an empty array when neither source has more than one point.
+- The last successful payload is written to `json/coingecko-price-history.json` and loaded on startup. That file is a snapshot of the current `24h` and `7d` series, and it is gitignored with the rest of `json/*`.
 - CoinGecko currently returns no intraday history for HBD, so `24h` on the HBD route can be empty while `7d` is still populated. The chart ignores an empty category.
-- Returns `503` with `{ error: "Price history not available" }` when neither window has more than one point yet.
+- Returns `503` with `{ error: "Price history not available" }` when neither window has more than one point yet, including a restart before the first successful fetch and with no snapshot file.
 - `GET /hive/v2/price-history` is unchanged and still returns the older open-price arrays.
 
 ---

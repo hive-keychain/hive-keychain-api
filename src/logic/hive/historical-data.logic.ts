@@ -1,5 +1,7 @@
+import fs from "fs";
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import fetch from "node-fetch";
+import path from "path";
 
 export type PriceChartPoint = [string, number];
 
@@ -21,6 +23,10 @@ const CHART_WINDOWS = [
 ] as const;
 
 const STALE_CHART_MS = 36 * 60 * 60 * 1000;
+const CHART_HISTORY_FILE = path.join(
+  __dirname,
+  "../../../json/coingecko-price-history.json",
+);
 
 let historicalData;
 let chartHistory: Partial<Record<ChartAsset, PriceChartHistory>> = {};
@@ -41,29 +47,93 @@ const refreshHistoricalData = async () => {
   }
 };
 
+const isChartPoint = (entry: unknown): entry is PriceChartPoint =>
+  Array.isArray(entry) &&
+  entry.length >= 2 &&
+  typeof entry[0] === "string" &&
+  Number.isFinite(Date.parse(entry[0])) &&
+  typeof entry[1] === "number" &&
+  Number.isFinite(entry[1]);
+
+const parseChartSeries = (value: unknown): PriceChartPoint[] => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.filter(isChartPoint).map((entry) => [entry[0], entry[1]]);
+};
+
+const parseStoredChartHistory = (
+  value: unknown,
+): PriceChartHistory | undefined => {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+  const record = value as Record<string, unknown>;
+  const history: PriceChartHistory = {
+    "24h": parseChartSeries(record["24h"]),
+    "7d": parseChartSeries(record["7d"]),
+  };
+  if (history["24h"].length > 1 || history["7d"].length > 1) {
+    return history;
+  }
+  return undefined;
+};
+
+const loadCachedChartHistory = () => {
+  try {
+    const raw = JSON.parse(fs.readFileSync(CHART_HISTORY_FILE, "utf-8"));
+    const loaded: Partial<Record<ChartAsset, PriceChartHistory>> = {};
+    for (const asset of Object.keys(COIN_IDS) as ChartAsset[]) {
+      const history = parseStoredChartHistory(raw?.[asset]);
+      if (history) {
+        loaded[asset] = history;
+      }
+    }
+    chartHistory = loaded;
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code !== "ENOENT") {
+      Logger.error("failed to load cached chart price history", err);
+    }
+    chartHistory = {};
+  }
+};
+
+const saveCachedChartHistory = () => {
+  try {
+    fs.writeFileSync(CHART_HISTORY_FILE, JSON.stringify(chartHistory));
+  } catch (err) {
+    Logger.error("failed to save cached chart price history", err);
+  }
+};
+
 const refreshChartHistory = async () => {
   try {
     Logger.info("Fetching chart price history");
+    let updated = false;
     for (const asset of Object.keys(COIN_IDS) as ChartAsset[]) {
       const previous = chartHistory[asset];
       const next: PriceChartHistory = {
         "24h": previous?.["24h"] ?? [],
         "7d": previous?.["7d"] ?? [],
       };
-      let updated = false;
+      let assetUpdated = false;
 
       for (const window of CHART_WINDOWS) {
         const points = await fetchChartWindow(COIN_IDS[asset], window.days);
         if (points) {
           next[window.category] = points;
-          updated = true;
+          assetUpdated = true;
         }
         await sleep(2000);
       }
 
-      if (updated) {
+      if (assetUpdated) {
         chartHistory[asset] = next;
+        updated = true;
       }
+    }
+    if (updated) {
+      saveCachedChartHistory();
     }
   } catch (e) {
     Logger.error("failed to refresh chart price history", e);
@@ -77,6 +147,7 @@ const refreshAllHistoricalData = async () => {
 
 const initFetchHistoricalData = () => {
   Logger.technical("Intializing fetch historical prices...");
+  loadCachedChartHistory();
   void refreshAllHistoricalData();
   setInterval(() => {
     void refreshAllHistoricalData();
