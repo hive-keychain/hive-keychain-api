@@ -68,6 +68,31 @@ Notes:
 
 ---
 
+### Hive and HBD chart history
+#### `GET /hive/v2/price/hive/history`
+#### `GET /hive/v2/price/hbd/history`
+**Goal**: Return timestamped USD price series for the wallet price chart. HIVE and HBD each have their own route.
+
+**Response**
+```ts
+type PriceChartPoint = [string, number];
+
+type PriceChartHistory = {
+  "24h": PriceChartPoint[];
+  "7d": PriceChartPoint[];
+};
+```
+
+Each point is `[ISO timestamp, usd price]`. `24h` uses CoinGecko `market_chart` with `days=1`. `7d` uses `days=7`. If that series is missing or its newest point is more than 36 hours old, the window falls back to CoinGecko OHLC close prices for the same range.
+
+Notes:
+- A failed window keeps the last successful series for that window. A category stays an empty array when neither source has more than one point.
+- CoinGecko currently returns no intraday history for HBD, so `24h` on the HBD route can be empty while `7d` is still populated. The chart ignores an empty category.
+- Returns `503` with `{ error: "Price history not available" }` when neither window has more than one point yet.
+- `GET /hive/v2/price-history` is unchanged and still returns the older open-price arrays.
+
+---
+
 ### Hive RPC endpoint
 #### `GET /hive/rpc`
 **Goal**: Return the configured Hive RPC URL from environment/config.
