@@ -23,6 +23,9 @@ const CHART_WINDOWS = [
 ] as const;
 
 const STALE_CHART_MS = 36 * 60 * 60 * 1000;
+const HOUR_MS = 60 * 60 * 1000;
+const DAY_MS = 24 * HOUR_MS;
+const WEEK_MS = 7 * DAY_MS;
 const CHART_HISTORY_FILE = path.join(
   __dirname,
   "../../../json/coingecko-price-history.json",
@@ -30,6 +33,7 @@ const CHART_HISTORY_FILE = path.join(
 
 let historicalData;
 let chartHistory: Partial<Record<ChartAsset, PriceChartHistory>> = {};
+let hbdHourlySamples: PriceChartPoint[] = [];
 
 const refreshHistoricalData = async () => {
   try {
@@ -90,12 +94,82 @@ const loadCachedChartHistory = () => {
       }
     }
     chartHistory = loaded;
+    seedHbdHourlySamples(loaded.hbd);
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code !== "ENOENT") {
       Logger.error("failed to load cached chart price history", err);
     }
     chartHistory = {};
   }
+};
+
+const bucketHourlySamples = (
+  points: PriceChartPoint[],
+  now = Date.now(),
+): PriceChartPoint[] => {
+  const cutoff = now - WEEK_MS;
+  const byHour = new Map<number, number>();
+  const sorted = [...points].sort(
+    (left, right) => Date.parse(left[0]) - Date.parse(right[0]),
+  );
+  for (const [iso, price] of sorted) {
+    const timestamp = Date.parse(iso);
+    if (!Number.isFinite(timestamp) || timestamp < cutoff || !Number.isFinite(price)) {
+      continue;
+    }
+    byHour.set(Math.floor(timestamp / HOUR_MS) * HOUR_MS, price);
+  }
+  return [...byHour.entries()]
+    .sort((left, right) => left[0] - right[0])
+    .map(([hour, price]) => [new Date(hour).toISOString(), price]);
+};
+
+const hbdChartFromSamples = (now = Date.now()): PriceChartHistory => {
+  const dayCutoff = now - DAY_MS;
+  return {
+    "24h": hbdHourlySamples.filter((point) => Date.parse(point[0]) >= dayCutoff),
+    "7d": hbdHourlySamples.slice(),
+  };
+};
+
+const seedHbdHourlySamples = (history: PriceChartHistory | undefined) => {
+  hbdHourlySamples = bucketHourlySamples([
+    ...(history?.["7d"] ?? []),
+    ...(history?.["24h"] ?? []),
+  ]);
+  if (hbdHourlySamples.length > 0) {
+    chartHistory.hbd = hbdChartFromSamples();
+    saveCachedChartHistory();
+  }
+};
+
+const recordHbdSpot = (priceUsd: number, at = Date.now()) => {
+  if (!Number.isFinite(priceUsd)) {
+    return;
+  }
+  const hourStart = Math.floor(at / HOUR_MS) * HOUR_MS;
+  const cutoff = at - WEEK_MS;
+  hbdHourlySamples = hbdHourlySamples.filter(
+    (point) => Date.parse(point[0]) >= cutoff,
+  );
+  const iso = new Date(hourStart).toISOString();
+  const last = hbdHourlySamples[hbdHourlySamples.length - 1];
+  const lastHour = last ? Date.parse(last[0]) : Number.NaN;
+  if (last && lastHour === hourStart && last[1] === priceUsd) {
+    return;
+  }
+  if (last && lastHour === hourStart) {
+    hbdHourlySamples[hbdHourlySamples.length - 1] = [iso, priceUsd];
+  } else if (!last || lastHour < hourStart) {
+    hbdHourlySamples.push([iso, priceUsd]);
+  } else {
+    hbdHourlySamples = bucketHourlySamples(
+      [...hbdHourlySamples, [iso, priceUsd]],
+      at,
+    );
+  }
+  chartHistory.hbd = hbdChartFromSamples(at);
+  saveCachedChartHistory();
 };
 
 const saveCachedChartHistory = () => {
@@ -111,6 +185,9 @@ const refreshChartHistory = async () => {
     Logger.info("Fetching chart price history");
     let updated = false;
     for (const asset of Object.keys(COIN_IDS) as ChartAsset[]) {
+      if (asset === "hbd") {
+        continue;
+      }
       const previous = chartHistory[asset];
       const next: PriceChartHistory = {
         "24h": previous?.["24h"] ?? [],
@@ -363,5 +440,6 @@ const fetchOhlcChartOnce = async (
 export const HistoricalDataLogic = {
   get: getHistoricalData,
   getChart: getChartHistory,
+  recordHbdSpot,
   init: initFetchHistoricalData,
 };

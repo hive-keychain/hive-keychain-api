@@ -83,12 +83,13 @@ type PriceChartHistory = {
 };
 ```
 
-Each point is `[ISO timestamp, usd price]`. `24h` uses CoinGecko `market_chart` with `days=1`. `7d` uses `days=7`. If that series is missing or its newest point is more than 36 hours old, the window falls back to CoinGecko OHLC close prices for the same range.
+Each point is `[ISO timestamp, usd price]`. For HIVE, `24h` uses CoinGecko `market_chart` with `days=1` and `7d` uses `days=7`. If that series is missing or its newest point is more than 36 hours old, the window falls back to CoinGecko OHLC close prices for the same range.
+
+HBD is not taken from those CoinGecko history calls. Each successful spot-price refresh records the `hive_dollar` USD price into an hourly sample, kept for 7 days in the same snapshot file. `7d` is that full sample list. `24h` is the samples from the last day. The series starts when recording begins, so it stays shorter than 7 days until a week of samples exists.
 
 Notes:
-- A failed window keeps the last successful series for that window. A category stays an empty array when neither source has more than one point.
-- The last successful payload is written to `json/coingecko-price-history.json` and loaded on startup. That file is a snapshot of the current `24h` and `7d` series, and it is gitignored with the rest of `json/*`.
-- CoinGecko currently returns no intraday history for HBD, so `24h` on the HBD route can be empty while `7d` is still populated. The chart ignores an empty category.
+- A failed HIVE window keeps the last successful series for that window. A category stays an empty array when it has fewer than two points.
+- The last successful payload is written to `json/coingecko-price-history.json` and loaded on startup. That file is gitignored with the rest of `json/*`. HBD samples already in the file are kept and collapsed to one price per hour.
 - Returns `503` with `{ error: "Price history not available" }` when neither window has more than one point yet, including a restart before the first successful fetch and with no snapshot file.
 - `GET /hive/v2/price-history` is unchanged and still returns the older open-price arrays.
 

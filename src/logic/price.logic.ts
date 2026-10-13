@@ -3,6 +3,7 @@ import fs from "fs";
 import Logger from "hive-keychain-commons/lib/logger/logger";
 import path from "path";
 import { Config } from "../config";
+import { HistoricalDataLogic } from "./hive/historical-data.logic";
 
 const PRICES_FILE = path.join(__dirname, `../../json/coingecko-prices.json`);
 
@@ -97,6 +98,11 @@ const refreshPrices = async () => {
   if (newPrices) {
     prices = { ...prices, ...(newPrices as any) };
     fs.writeFileSync(PRICES_FILE, JSON.stringify(prices));
+    const hbdUsd = (newPrices as { hive_dollar?: { usd?: number } }).hive_dollar
+      ?.usd;
+    if (typeof hbdUsd === "number") {
+      HistoricalDataLogic.recordHbdSpot(hbdUsd);
+    }
   }
 
   const end = Date.now();
