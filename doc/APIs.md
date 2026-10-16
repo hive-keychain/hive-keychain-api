@@ -100,6 +100,8 @@ On startup, each coin is seeded once from CoinGecko `market_chart`: `days=1` int
 
 Each successful spot-price refresh writes the current `hive` and `hive_dollar` USD price into the current 5-minute, hour, and day buckets. A later sample replaces a bucket only when its sample time is newer.
 
+HBD `7d` carries the last hourly price across days with no stored bucket. The series starts at the beginning of the 7-day window with that price, then adds one point at the start of each missing UTC day until the next stored bucket. The same carry fills a gap between stored points. Those points are only in the response.
+
 Saving the store drops 5-minute buckets older than 24 hours, hourly buckets older than 30 days, and daily buckets older than 365 days.
 
 Notes:

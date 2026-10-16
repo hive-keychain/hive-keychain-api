@@ -324,6 +324,71 @@ const serializePriceHistory = (
   return points;
 };
 
+const latestPriceBefore = (
+  coingeckoId: string,
+  granularity: PriceHistoryGranularity,
+  since: Date,
+): number | null => {
+  const buckets = store.history[coingeckoId]?.[granularity];
+  if (!buckets) return null;
+  const sinceMs = since.getTime();
+  let bestMs = Number.NEGATIVE_INFINITY;
+  let priceUsd: number | null = null;
+  for (const [bucketAt, bucket] of Object.entries(buckets)) {
+    const bucketMs = Date.parse(bucketAt);
+    if (!Number.isFinite(bucketMs) || bucketMs >= sinceMs) continue;
+    if (!Number.isFinite(bucket.priceUsd) || bucketMs <= bestMs) continue;
+    bestMs = bucketMs;
+    priceUsd = bucket.priceUsd;
+  }
+  return priceUsd;
+};
+
+const carriedMidnightsBetween = (
+  fromMs: number,
+  toMs: number,
+  priceUsd: number,
+): Array<{ bucketAt: Date; priceUsd: number }> => {
+  const points: Array<{ bucketAt: Date; priceUsd: number }> = [];
+  let midnight =
+    Math.floor(fromMs / PRICE_HISTORY_1D_MS) * PRICE_HISTORY_1D_MS +
+    PRICE_HISTORY_1D_MS;
+  while (midnight < toMs) {
+    points.push({ bucketAt: new Date(midnight), priceUsd });
+    midnight += PRICE_HISTORY_1D_MS;
+  }
+  return points;
+};
+
+const carryLastPriceAcrossMissingDays = (
+  rows: Array<{ bucketAt: Date; priceUsd: number }>,
+  since: Date,
+  previousPriceUsd: number | null,
+): Array<{ bucketAt: Date; priceUsd: number }> => {
+  if (rows.length === 0 || previousPriceUsd === null || !Number.isFinite(previousPriceUsd)) {
+    return rows;
+  }
+
+  const filled: Array<{ bucketAt: Date; priceUsd: number }> = [];
+  let anchorMs: number | null = null;
+  let anchorPrice: number | null = null;
+  if (rows[0].bucketAt.getTime() > since.getTime()) {
+    filled.push({ bucketAt: since, priceUsd: previousPriceUsd });
+    anchorMs = since.getTime();
+    anchorPrice = previousPriceUsd;
+  }
+
+  for (const row of rows) {
+    if (anchorMs !== null && anchorPrice !== null) {
+      filled.push(...carriedMidnightsBetween(anchorMs, row.bucketAt.getTime(), anchorPrice));
+    }
+    filled.push(row);
+    anchorMs = row.bucketAt.getTime();
+    anchorPrice = row.priceUsd;
+  }
+  return filled;
+};
+
 const emptyPriceHistory = (): PriceChartHistory => ({
   "24h": [],
   "7d": [],
@@ -347,7 +412,15 @@ const loadStoredPriceHistory = (coingeckoId: string): PriceChartHistory | null =
   for (const range of ranges) {
     const rows = listPriceHistory(coingeckoId, range.granularity, range.since);
     if (!rows) return null;
-    const points = serializePriceHistory(rows);
+    const series =
+      coingeckoId === ASSET_COIN_IDS.hbd && range.key === "7d"
+        ? carryLastPriceAcrossMissingDays(
+            rows,
+            range.since,
+            latestPriceBefore(coingeckoId, range.granularity, range.since),
+          )
+        : rows;
+    const points = serializePriceHistory(series);
     if (!points) return null;
     history[range.key] = points;
   }
