@@ -80,17 +80,32 @@ type PriceChartPoint = [string, number];
 type PriceChartHistory = {
   "24h": PriceChartPoint[];
   "7d": PriceChartPoint[];
+  "30d": PriceChartPoint[];
+  "1y": PriceChartPoint[];
 };
 ```
 
-Each point is `[ISO timestamp, usd price]`. For HIVE, `24h` uses CoinGecko `market_chart` with `days=1` and `7d` uses `days=7`. If that series is missing or its newest point is more than 36 hours old, the window falls back to CoinGecko OHLC close prices for the same range.
+Each point is `[ISO bucket start, usd price]`, oldest first. The timestamp is the start of the stored bucket.
 
-HBD is not taken from those CoinGecko history calls. Each successful spot-price refresh records the `hive_dollar` USD price into an hourly sample, kept for 7 days in the same snapshot file. `7d` is that full sample list. `24h` is the samples from the last day. The series starts when recording begins, so it stays shorter than 7 days until a week of samples exists.
+| Range | Bucket | Read from |
+|---|---|---|
+| `24h` | 5 minutes | the last 24 hours |
+| `7d` | 1 hour | the last 7 days |
+| `30d` | 1 hour | the last 30 days |
+| `1y` | 1 day | the last 365 days |
+
+HIVE uses CoinGecko id `hive`. HBD uses `hive_dollar`. Both coins share one store.
+
+On startup, each coin is seeded once from CoinGecko `market_chart`: `days=1` into 5-minute buckets, then `days=30&interval=hourly` into hourly buckets, then `days=365&interval=daily` into daily buckets. For HIVE, seeding moves to the next call only when the oldest point covers that window. A short window, or a `404`, marks HIVE seeded and skips the remaining calls. HBD always requests all three windows. A `404` or an empty series on one HBD window still continues to the next. Any other failure leaves the coin unseeded. The job retries every 15 seconds, one coin at a time, and stops after both coins are seeded.
+
+Each successful spot-price refresh writes the current `hive` and `hive_dollar` USD price into the current 5-minute, hour, and day buckets. A later sample replaces a bucket only when its sample time is newer.
+
+Saving the store drops 5-minute buckets older than 24 hours, hourly buckets older than 30 days, and daily buckets older than 365 days.
 
 Notes:
-- A failed HIVE window keeps the last successful series for that window. A category stays an empty array when it has fewer than two points.
-- The last successful payload is written to `json/coingecko-price-history.json` and loaded on startup. That file is gitignored with the rest of `json/*`. HBD samples already in the file are kept and collapsed to one price per hour.
-- Returns `503` with `{ error: "Price history not available" }` when neither window has more than one point yet, including a restart before the first successful fetch and with no snapshot file.
+- The store is `json/coingecko-price-history.json`, loaded on startup. That file is gitignored with the rest of `json/*`. It stores the buckets and seed completion times. A file from the previous chart snapshot is ignored and replaced by the next save.
+- A range with no buckets is an empty array. The response is still `200`.
+- Returns `500` with `{ error: "Invalid price data" }` when a stored price is not a finite number.
 - `GET /hive/v2/price-history` is unchanged and still returns the older open-price arrays.
 
 ---

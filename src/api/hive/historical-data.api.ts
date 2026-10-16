@@ -4,7 +4,7 @@ import { HistoricalDataLogic } from "../../logic/hive/historical-data.logic";
 const sendChartHistory = (res: Response, asset: "hive" | "hbd") => {
   const history = HistoricalDataLogic.getChart(asset);
   if (!history) {
-    res.status(503).send({ error: "Price history not available" });
+    res.status(500).send({ error: "Invalid price data" });
     return;
   }
   res.status(200).send(history);

@@ -98,10 +98,23 @@ const refreshPrices = async () => {
   if (newPrices) {
     prices = { ...prices, ...(newPrices as any) };
     fs.writeFileSync(PRICES_FILE, JSON.stringify(prices));
-    const hbdUsd = (newPrices as { hive_dollar?: { usd?: number } }).hive_dollar
-      ?.usd;
-    if (typeof hbdUsd === "number") {
-      HistoricalDataLogic.recordHbdSpot(hbdUsd);
+    const quote = newPrices as {
+      hive?: { usd?: number };
+      hive_dollar?: { usd?: number };
+    };
+    const sampledAt = new Date();
+    const samples = [];
+    if (typeof quote.hive?.usd === "number") {
+      samples.push({ coingeckoId: "hive", priceUsd: quote.hive.usd });
+    }
+    if (typeof quote.hive_dollar?.usd === "number") {
+      samples.push({
+        coingeckoId: "hive_dollar",
+        priceUsd: quote.hive_dollar.usd,
+      });
+    }
+    if (samples.length > 0) {
+      HistoricalDataLogic.recordLivePrices(samples, sampledAt);
     }
   }
 
