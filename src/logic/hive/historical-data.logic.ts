@@ -35,7 +35,10 @@ type StoredBucket = {
 };
 
 type PriceHistoryStore = {
-  history: Record<string, Record<PriceHistoryGranularity, Record<string, StoredBucket>>>;
+  history: Record<
+    string,
+    Record<PriceHistoryGranularity, Record<string, StoredBucket>>
+  >;
   seeded: Record<string, string>;
 };
 
@@ -45,7 +48,11 @@ const ASSET_COIN_IDS: Record<ChartAsset, string> = {
 };
 
 const CHART_COIN_IDS = ["hive", "hive_dollar"] as const;
-const PRICE_HISTORY_GRANULARITIES: PriceHistoryGranularity[] = ["5m", "1h", "1d"];
+const PRICE_HISTORY_GRANULARITIES: PriceHistoryGranularity[] = [
+  "5m",
+  "1h",
+  "1d",
+];
 
 const PRICE_HISTORY_5M_MS = 5 * 60 * 1000;
 const PRICE_HISTORY_1H_MS = 60 * 60 * 1000;
@@ -138,7 +145,9 @@ const livePriceHistoryRows = (
     return {
       coingeckoId,
       granularity,
-      bucketAt: new Date(priceHistoryBucketStartMs(sampledAt.getTime(), bucketMs)),
+      bucketAt: new Date(
+        priceHistoryBucketStartMs(sampledAt.getTime(), bucketMs),
+      ),
       priceUsd,
       sampledAt,
     };
@@ -200,7 +209,10 @@ const upsertPriceHistory = (rows: PriceHistoryPoint[]) => {
     const existing = buckets[bucketAt];
     if (existing) {
       const existingMs = Date.parse(existing.sampledAt);
-      if (Number.isFinite(existingMs) && existingMs >= row.sampledAt.getTime()) {
+      if (
+        Number.isFinite(existingMs) &&
+        existingMs >= row.sampledAt.getTime()
+      ) {
         continue;
       }
     }
@@ -213,21 +225,32 @@ const upsertPriceHistory = (rows: PriceHistoryPoint[]) => {
   saveStore();
 };
 
-const markPriceHistorySeeded = (coingeckoId: string, completedAt = new Date()) => {
+const markPriceHistorySeeded = (
+  coingeckoId: string,
+  completedAt = new Date(),
+) => {
   store.seeded[coingeckoId] = completedAt.toISOString();
   saveStore();
 };
 
-const parseBuckets = (value: unknown): Record<string, StoredBucket> | undefined => {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+const parseBuckets = (
+  value: unknown,
+): Record<string, StoredBucket> | undefined => {
+  if (!value || typeof value !== "object" || Array.isArray(value))
+    return undefined;
   const buckets: Record<string, StoredBucket> = {};
   for (const [bucketAt, entry] of Object.entries(value)) {
     if (!Number.isFinite(Date.parse(bucketAt))) return undefined;
-    if (!entry || typeof entry !== "object" || Array.isArray(entry)) return undefined;
+    if (!entry || typeof entry !== "object" || Array.isArray(entry))
+      return undefined;
     const priceUsd = (entry as { priceUsd?: unknown }).priceUsd;
     const sampledAt = (entry as { sampledAt?: unknown }).sampledAt;
-    if (typeof priceUsd !== "number" || !Number.isFinite(priceUsd)) return undefined;
-    if (typeof sampledAt !== "string" || !Number.isFinite(Date.parse(sampledAt))) {
+    if (typeof priceUsd !== "number" || !Number.isFinite(priceUsd))
+      return undefined;
+    if (
+      typeof sampledAt !== "string" ||
+      !Number.isFinite(Date.parse(sampledAt))
+    ) {
       return undefined;
     }
     buckets[bucketAt] = { priceUsd, sampledAt };
@@ -237,8 +260,11 @@ const parseBuckets = (value: unknown): Record<string, StoredBucket> | undefined 
 
 const parseCoin = (
   value: unknown,
-): Record<PriceHistoryGranularity, Record<string, StoredBucket>> | undefined => {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+):
+  | Record<PriceHistoryGranularity, Record<string, StoredBucket>>
+  | undefined => {
+  if (!value || typeof value !== "object" || Array.isArray(value))
+    return undefined;
   const record = value as Record<string, unknown>;
   const coin = emptyGranularities();
   for (const granularity of PRICE_HISTORY_GRANULARITIES) {
@@ -259,11 +285,19 @@ const loadStore = () => {
     }
     const historyValue = (raw as { history?: unknown }).history;
     const seededValue = (raw as { seeded?: unknown }).seeded;
-    if (!historyValue || typeof historyValue !== "object" || Array.isArray(historyValue)) {
+    if (
+      !historyValue ||
+      typeof historyValue !== "object" ||
+      Array.isArray(historyValue)
+    ) {
       store = emptyStore();
       return;
     }
-    if (!seededValue || typeof seededValue !== "object" || Array.isArray(seededValue)) {
+    if (
+      !seededValue ||
+      typeof seededValue !== "object" ||
+      Array.isArray(seededValue)
+    ) {
       store = emptyStore();
       return;
     }
@@ -280,7 +314,10 @@ const loadStore = () => {
 
     const seeded: Record<string, string> = {};
     for (const [coingeckoId, completedAt] of Object.entries(seededValue)) {
-      if (typeof completedAt !== "string" || !Number.isFinite(Date.parse(completedAt))) {
+      if (
+        typeof completedAt !== "string" ||
+        !Number.isFinite(Date.parse(completedAt))
+      ) {
         continue;
       }
       seeded[coingeckoId] = completedAt;
@@ -309,7 +346,9 @@ const listPriceHistory = (
     if (!Number.isFinite(bucket.priceUsd)) return null;
     rows.push({ bucketAt: new Date(bucketMs), priceUsd: bucket.priceUsd });
   }
-  rows.sort((left, right) => left.bucketAt.getTime() - right.bucketAt.getTime());
+  rows.sort(
+    (left, right) => left.bucketAt.getTime() - right.bucketAt.getTime(),
+  );
   return rows;
 };
 
@@ -365,14 +404,16 @@ const carryLastPriceAcrossMissingDays = (
   since: Date,
   previousPriceUsd: number | null,
 ): Array<{ bucketAt: Date; priceUsd: number }> => {
-  if (rows.length === 0 || previousPriceUsd === null || !Number.isFinite(previousPriceUsd)) {
-    return rows;
-  }
+  if (rows.length === 0) return rows;
 
   const filled: Array<{ bucketAt: Date; priceUsd: number }> = [];
   let anchorMs: number | null = null;
   let anchorPrice: number | null = null;
-  if (rows[0].bucketAt.getTime() > since.getTime()) {
+  if (
+    previousPriceUsd !== null &&
+    Number.isFinite(previousPriceUsd) &&
+    rows[0].bucketAt.getTime() > since.getTime()
+  ) {
     filled.push({ bucketAt: since, priceUsd: previousPriceUsd });
     anchorMs = since.getTime();
     anchorPrice = previousPriceUsd;
@@ -380,7 +421,13 @@ const carryLastPriceAcrossMissingDays = (
 
   for (const row of rows) {
     if (anchorMs !== null && anchorPrice !== null) {
-      filled.push(...carriedMidnightsBetween(anchorMs, row.bucketAt.getTime(), anchorPrice));
+      filled.push(
+        ...carriedMidnightsBetween(
+          anchorMs,
+          row.bucketAt.getTime(),
+          anchorPrice,
+        ),
+      );
     }
     filled.push(row);
     anchorMs = row.bucketAt.getTime();
@@ -396,30 +443,45 @@ const emptyPriceHistory = (): PriceChartHistory => ({
   "1y": [],
 });
 
-const loadStoredPriceHistory = (coingeckoId: string): PriceChartHistory | null => {
+const loadStoredPriceHistory = (
+  coingeckoId: string,
+): PriceChartHistory | null => {
   const now = Date.now();
   const ranges: Array<{
     key: keyof PriceChartHistory;
     granularity: PriceHistoryGranularity;
     since: Date;
   }> = [
-    { key: "24h", granularity: "5m", since: new Date(now - PRICE_HISTORY_24H_MS) },
-    { key: "7d", granularity: "1h", since: new Date(now - PRICE_HISTORY_7D_MS) },
-    { key: "30d", granularity: "1h", since: new Date(now - PRICE_HISTORY_30D_MS) },
-    { key: "1y", granularity: "1d", since: new Date(now - PRICE_HISTORY_1Y_MS) },
+    {
+      key: "24h",
+      granularity: "5m",
+      since: new Date(now - PRICE_HISTORY_24H_MS),
+    },
+    {
+      key: "7d",
+      granularity: "1h",
+      since: new Date(now - PRICE_HISTORY_7D_MS),
+    },
+    {
+      key: "30d",
+      granularity: "1h",
+      since: new Date(now - PRICE_HISTORY_30D_MS),
+    },
+    {
+      key: "1y",
+      granularity: "1d",
+      since: new Date(now - PRICE_HISTORY_1Y_MS),
+    },
   ];
   const history = emptyPriceHistory();
   for (const range of ranges) {
     const rows = listPriceHistory(coingeckoId, range.granularity, range.since);
     if (!rows) return null;
-    const series =
-      coingeckoId === ASSET_COIN_IDS.hbd && range.key === "7d"
-        ? carryLastPriceAcrossMissingDays(
-            rows,
-            range.since,
-            latestPriceBefore(coingeckoId, range.granularity, range.since),
-          )
-        : rows;
+    const series = carryLastPriceAcrossMissingDays(
+      rows,
+      range.since,
+      latestPriceBefore(coingeckoId, range.granularity, range.since),
+    );
     const points = serializePriceHistory(series);
     if (!points) return null;
     history[range.key] = points;
@@ -427,7 +489,9 @@ const loadStoredPriceHistory = (coingeckoId: string): PriceChartHistory | null =
   return history;
 };
 
-const chartPoints = (prices: Array<[number, number]> | undefined): ChartPoint[] => {
+const chartPoints = (
+  prices: Array<[number, number]> | undefined,
+): ChartPoint[] => {
   if (!Array.isArray(prices)) {
     throw new Error("CoinGecko market chart missing prices");
   }
@@ -510,7 +574,10 @@ const seedAllPriceHistoryWindows = async (coingeckoId: string, now: Date) => {
   return { calls: 3 as const };
 };
 
-const seedCoingeckoPriceHistory = async (coingeckoId: string, now = new Date()) => {
+const seedCoingeckoPriceHistory = async (
+  coingeckoId: string,
+  now = new Date(),
+) => {
   if (coingeckoId === ASSET_COIN_IDS.hbd) {
     return seedAllPriceHistoryWindows(coingeckoId, now);
   }
@@ -522,7 +589,14 @@ const seedCoingeckoPriceHistory = async (coingeckoId: string, now = new Date()) 
   }
   const dayPoints = chartPoints(dayChart.prices);
   upsertPriceHistory(rowsFromChartPoints(coingeckoId, "5m", dayPoints));
-  if (isPriceHistoryWindowShort(dayPoints, PRICE_HISTORY_24H_MS, PRICE_HISTORY_5M_MS, now)) {
+  if (
+    isPriceHistoryWindowShort(
+      dayPoints,
+      PRICE_HISTORY_24H_MS,
+      PRICE_HISTORY_5M_MS,
+      now,
+    )
+  ) {
     markPriceHistorySeeded(coingeckoId, now);
     return { calls: 1 as const };
   }
@@ -537,7 +611,14 @@ const seedCoingeckoPriceHistory = async (coingeckoId: string, now = new Date()) 
   }
   const hourPoints = chartPoints(hourChart.prices);
   upsertPriceHistory(rowsFromChartPoints(coingeckoId, "1h", hourPoints));
-  if (isPriceHistoryWindowShort(hourPoints, PRICE_HISTORY_30D_MS, PRICE_HISTORY_1H_MS, now)) {
+  if (
+    isPriceHistoryWindowShort(
+      hourPoints,
+      PRICE_HISTORY_30D_MS,
+      PRICE_HISTORY_1H_MS,
+      now,
+    )
+  ) {
     markPriceHistorySeeded(coingeckoId, now);
     return { calls: 2 as const };
   }
@@ -581,7 +662,9 @@ const seedNext = async () => {
         `price history seed skipped (coin not found) for ${coingeckoId} (${result.calls} calls)`,
       );
     } else {
-      Logger.info(`price history seeded for ${coingeckoId} (${result.calls} calls)`);
+      Logger.info(
+        `price history seeded for ${coingeckoId} (${result.calls} calls)`,
+      );
     }
   } catch (error) {
     Logger.error("price history seed failed (will retry)", error);
@@ -592,7 +675,10 @@ const seedNext = async () => {
   if (!nextUnseededCoingeckoId()) stopSeedLoop();
 };
 
-const recordLivePrices = (samples: LivePriceSample[], sampledAt = new Date()) => {
+const recordLivePrices = (
+  samples: LivePriceSample[],
+  sampledAt = new Date(),
+) => {
   const rows: PriceHistoryPoint[] = [];
   for (const sample of samples) {
     const coingeckoId = sample.coingeckoId.trim();
@@ -625,9 +711,12 @@ const initFetchHistoricalData = () => {
   Logger.technical("Intializing fetch historical prices...");
   loadStore();
   void refreshHistoricalData();
-  setInterval(() => {
-    void refreshHistoricalData();
-  }, 30 * 60 * 1000);
+  setInterval(
+    () => {
+      void refreshHistoricalData();
+    },
+    30 * 60 * 1000,
+  );
   if (!nextUnseededCoingeckoId()) return;
   void seedNext();
   seedTimer = setInterval(() => {
